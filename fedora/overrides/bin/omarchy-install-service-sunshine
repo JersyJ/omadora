@@ -1,0 +1,77 @@
+#!/bin/bash
+
+# omarchy:summary=Install Sunshine and open Moonlight streaming ports for LAN and Tailscale.
+# omarchy:requires-sudo=true
+
+set -e
+
+TCP_PORTS=(47984 47989 48010)
+UDP_PORTS=(5353 47998 47999 48000 48002 48010)
+PRIVATE_CIDRS=(10.0.0.0/8 172.16.0.0/12 192.168.0.0/16)
+SUNSHINE_ADMIN_APP="Sunshine Admin"
+SUNSHINE_ADMIN_URL="https://localhost:47990"
+SUNSHINE_ADMIN_EXEC="omarchy-launch-webapp $SUNSHINE_ADMIN_URL --ignore-certificate-errors"
+SUNSHINE_ICON_SOURCE="/usr/share/sunshine/web/images/logo-sunshine-45.png"
+HYPR_AUTOSTART_FILE="$HOME/.config/hypr/autostart.lua"
+HYPR_AUTOSTART_ENTRY='o.launch_on_start("sunshine")'
+
+# Fedora fork: firewalld instead of ufw. Private LANs get rich rules limited
+# to their address ranges; Tailscale peers are matched by Tailscale's address
+# range (100.64.0.0/10), since rich rules cannot name the tailscale0 interface.
+TAILSCALE_CIDR=100.64.0.0/10
+
+add_sunshine_rules() {
+  local proto=$1 port=$2 cidr
+
+  for cidr in "${PRIVATE_CIDRS[@]}" "$TAILSCALE_CIDR"; do
+    sudo firewall-cmd --permanent --add-rich-rule="rule family=\"ipv4\" source address=\"$cidr\" port port=\"$port\" protocol=\"$proto\" accept" >/dev/null
+  done
+}
+
+open_firewall_ports() {
+  local port
+
+  if ! systemctl is-active --quiet firewalld; then
+    echo "firewalld is not running; skipping Sunshine firewall rules."
+    return
+  fi
+
+  for port in "${TCP_PORTS[@]}"; do
+    add_sunshine_rules tcp "$port"
+  done
+  for port in "${UDP_PORTS[@]}"; do
+    add_sunshine_rules udp "$port"
+  done
+
+  sudo firewall-cmd --reload >/dev/null
+}
+
+install_admin_webapp() {
+  omarchy-webapp-install "$SUNSHINE_ADMIN_APP" "$SUNSHINE_ADMIN_URL" "$SUNSHINE_ICON_SOURCE" "$SUNSHINE_ADMIN_EXEC"
+}
+
+enable_hyprland_autostart() {
+  mkdir -p "$(dirname "$HYPR_AUTOSTART_FILE")"
+  touch "$HYPR_AUTOSTART_FILE"
+
+  if ! grep -Fxq "$HYPR_AUTOSTART_ENTRY" "$HYPR_AUTOSTART_FILE"; then
+    printf '\n%s\n' "$HYPR_AUTOSTART_ENTRY" >>"$HYPR_AUTOSTART_FILE"
+  fi
+}
+
+echo "Installing Sunshine..."
+omarchy-pkg-add sunshine
+systemctl --user enable --now sunshine
+
+echo "Opening Sunshine firewall ports..."
+open_firewall_ports
+
+echo "Installing Sunshine admin web app..."
+install_admin_webapp
+$SUNSHINE_ADMIN_EXEC >/dev/null 2>&1 &
+
+echo "Enabling Sunshine autostart..."
+enable_hyprland_autostart
+
+echo ""
+echo "Sunshine has been installed and its Moonlight streaming ports are open for private LANs and Tailscale."

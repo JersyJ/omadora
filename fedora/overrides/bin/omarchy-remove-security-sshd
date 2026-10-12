@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# omarchy:summary=Disable the OpenSSH server, remove standard firewall rules, and optionally remove authorized keys
+# omarchy:requires-sudo=true
+
+set -e
+
+AUTHORIZED_KEYS="$HOME/.ssh/authorized_keys"
+
+echo -e "\e[32mRemoving SSH server access.\n\e[0m"
+
+echo "Stopping and disabling the OpenSSH server..."
+sudo systemctl disable --now sshd.service 2>/dev/null || true
+
+# Fedora fork: firewalld instead of ufw. Removes the rate-limited rule
+# omarchy-setup-security-sshd adds and the plain ssh service.
+if systemctl is-active --quiet firewalld; then
+  echo "Removing standard SSH firewall rules..."
+  sudo firewall-cmd --permanent --remove-rich-rule='rule service name="ssh" accept limit value="6/m"' >/dev/null 2>&1 || true
+  sudo firewall-cmd --permanent --remove-service=ssh >/dev/null 2>&1 || true
+  sudo firewall-cmd --reload >/dev/null
+  echo "Standard SSH firewall rules removed. Review custom firewall rules separately."
+fi
+
+if [[ -s $AUTHORIZED_KEYS ]]; then
+  echo
+  if gum confirm "Also remove all authorized SSH keys ($AUTHORIZED_KEYS)?"; then
+    rm -f "$AUTHORIZED_KEYS"
+    echo "Authorized keys removed."
+  else
+    echo "Keeping authorized keys."
+  fi
+fi
+
+echo -e "\e[32m\nThe SSH server has been disabled.\e[0m"
+echo "The openssh package remains installed since it also provides the ssh client."
