@@ -35,10 +35,10 @@ Do not edit files outside `fedora/`, `.github/workflows/` and `.github/README.md
 ## Common commands
 
 ```bash
-fedora/tests/static.sh               # all checks, as CI runs them
-fedora/build/assemble                # build fedora/.build/omarchy-<version>/
-fedora/bin/port-status --list        # what is left to port
+fedora/tests/static.sh                     # all checks, as CI runs them
+fedora/build/assemble                      # build fedora/.build/omarchy-<version>/
+fedora/bin/port-status --list              # what is left to port
 fedora/bin/sync-upstream upstream/quattro  # take upstream's latest quattro
 ```
 
-The upstream remote is called `upstream` (https://github.com/omacom/omarchy.git).
+Remotes: `origin` is this fork (https://github.com/JersyJ/omadora), `upstream` is https://github.com/omacom/omarchy.git. A fresh clone needs `git remote add upstream https://github.com/omacom/omarchy.git` before syncing.
