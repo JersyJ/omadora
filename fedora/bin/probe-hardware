@@ -1,0 +1,120 @@
+#!/bin/bash
+
+# Collect the hardware facts the Fedora port needs from a target laptop.
+# Read-only and safe to run from any Linux live USB (Fedora live works well).
+# It records no serial numbers. With --sudo it also reads the kernel log.
+#
+# Usage: fedora/bin/probe-hardware [--sudo] [output-file]
+
+set -uo pipefail
+
+use_sudo=0
+if [[ ${1:-} == "--sudo" ]]; then
+  use_sudo=1
+  shift
+fi
+output=${1:-hardware-probe-$(date +%Y%m%d-%H%M%S).txt}
+
+section() {
+  printf '\n### %s\n' "$1"
+}
+
+run() {
+  if command -v "$1" >/dev/null 2>&1; then
+    "$@" 2>&1
+  else
+    echo "($1 not installed)"
+  fi
+}
+
+read_file() {
+  local file
+
+  for file in "$@"; do
+    if [[ -r $file ]]; then
+      printf '%s: %s\n' "$file" "$(tr -d '\0' <"$file")"
+    fi
+  done
+}
+
+{
+  echo "Hardware probe for the Omarchy Fedora port, $(date -Iseconds)"
+
+  section "Machine"
+  read_file /sys/class/dmi/id/{sys_vendor,product_name,product_family,product_sku,product_version,board_name,bios_vendor,bios_version,bios_date}
+
+  section "Running system"
+  uname -a
+  grep -E '^(NAME|VERSION_ID)=' /etc/os-release
+
+  section "Firmware: Secure Boot, TPM"
+  if command -v mokutil >/dev/null 2>&1; then
+    mokutil --sb-state 2>&1
+  else
+    for var in /sys/firmware/efi/efivars/SecureBoot-*; do
+      [[ -r $var ]] && echo "SecureBoot efivar: $(od -An -t u1 -j4 -N1 "$var" | tr -d ' ') (1 = enabled)"
+    done
+  fi
+  [[ -d /sys/firmware/efi ]] && echo "Boot mode: UEFI" || echo "Boot mode: legacy BIOS"
+  ls /sys/class/tpm 2>/dev/null | sed 's/^/TPM device: /'
+  read_file /sys/class/tpm/tpm0/tpm_version_major
+
+  section "PCI devices (lspci -nnk)"
+  run lspci -nnk
+
+  section "USB devices (lsusb)"
+  run lsusb
+
+  section "CPU"
+  grep -m1 'model name' /proc/cpuinfo
+  grep -m1 -o -w 'fred' /proc/cpuinfo || echo "fred flag: not reported"
+
+  section "GPU and displays"
+  run lspci -nn | grep -iE 'vga|3d|display'
+  for status in /sys/class/drm/card*-*/status; do
+    connector=$(basename "$(dirname "$status")")
+    echo "$connector: $(cat "$status") $(head -1 "$(dirname "$status")/modes" 2>/dev/null)"
+  done
+
+  section "Camera: MIPI/IPU sensors (ACPI) and video devices"
+  grep -H . /sys/bus/acpi/devices/*/hid 2>/dev/null | grep -iE 'OVTI|INT3474|INT3472|IPU|HIMX|SONY|GCTI' || echo "no MIPI camera sensor HIDs found"
+  run lspci -nn | grep -iE 'ipu|image|camera' || echo "no IPU PCI device found"
+  ls -l /dev/video* 2>/dev/null || echo "no /dev/video* devices"
+  run v4l2-ctl --list-devices
+
+  section "Fingerprint and IR"
+  run lsusb | grep -iE '06cb|27c6|10a5|138a|04f3|1c7a|2808|fingerprint' || echo "no known fingerprint reader vendor on USB"
+  grep -lis 'ir camera\|infrared' /sys/class/video4linux/*/name 2>/dev/null || true
+
+  section "Network"
+  run lspci -nn | grep -iE 'network|ethernet|wireless'
+  run iw dev
+  ls /sys/class/net
+
+  section "Audio"
+  cat /proc/asound/cards 2>/dev/null
+  run aplay -l
+
+  section "Input"
+  grep -E '^N: Name=' /proc/bus/input/devices
+
+  section "Thunderbolt and USB4"
+  ls /sys/bus/thunderbolt/devices 2>/dev/null || echo "none"
+  run boltctl list
+
+  section "Power"
+  ls /sys/class/power_supply
+  read_file /sys/class/power_supply/BAT*/{model_name,technology,energy_full_design,energy_full}
+  read_file /sys/firmware/acpi/platform_profile_choices /sys/firmware/acpi/platform_profile
+
+  section "Storage"
+  run lsblk -o NAME,SIZE,TYPE,FSTYPE,MOUNTPOINTS,MODEL
+
+  if (( use_sudo )); then
+    section "Kernel messages: firmware, IPU, SOF, iwlwifi, nvidia"
+    sudo dmesg 2>&1 | grep -iE 'firmware|ipu|sof|iwlwifi|nvidia|i915|xe |fred' | tail -n 200
+  fi
+} | tee "$output"
+
+echo
+echo "Saved to $output"

@@ -1,0 +1,127 @@
+#!/bin/bash
+
+# Build the installable Omarchy-on-Fedora tree: the pristine upstream tree at
+# HEAD, minus exclusions, with Fedora overrides and patches applied. The RPM
+# specs and the script installer both consume this tree.
+#
+# Upstream files come from HEAD (git archive), so local edits to upstream files
+# never leak into a build. The Fedora layer (overrides, patches, package map)
+# comes from the working tree, so it can be iterated on before committing.
+#
+# Usage: fedora/build/assemble [--out DIR]
+
+set -euo pipefail
+source "$(dirname "$(realpath "$0")")/../lib/common.sh"
+
+out=""
+while (( $# > 0 )); do
+  case $1 in
+    --out)
+      out=$2
+      shift 2
+      ;;
+    *)
+      die "usage: fedora/build/assemble [--out DIR]"
+      ;;
+  esac
+done
+
+cd "$FEDORA_ROOT"
+load_lock
+
+out=${out:-$FEDORA_DIR/.build/omarchy-$UPSTREAM_VERSION}
+
+# 1. Every top-level upstream path must be classified in layout.tsv.
+declare -A role=()
+while IFS=$'\t' read -r path kind _; do
+  if [[ -n $path && $path != \#* ]]; then
+    role[$path]=$kind
+  fi
+done <"$FEDORA_DIR/build/layout.tsv"
+
+ship=()
+unknown=()
+while IFS= read -r path; do
+  case ${role[$path]:-} in
+    ship) ship+=("$path") ;;
+    repo-only) ;;
+    *) unknown+=("$path") ;;
+  esac
+done < <(git ls-tree --name-only HEAD | grep -vxF fedora)
+
+(( ${#unknown[@]} == 0 )) ||
+  die "unclassified top-level upstream paths: ${unknown[*]} (classify them in fedora/build/layout.tsv)"
+
+rm -rf "$out"
+mkdir -p "$out"
+git archive --format=tar HEAD -- "${ship[@]}" | tar -x -C "$out"
+
+# 2. Drop Arch-only paths.
+excluded=0
+while read -r pattern _; do
+  if [[ -n $pattern && $pattern != \#* ]]; then
+    mapfile -t matches < <(cd "$out" && shopt -s nullglob globstar && for match in $pattern; do echo "$match"; done)
+    for match in "${matches[@]}"; do
+      rm -rf -- "${out:?}/$match"
+      excluded=$((excluded + 1))
+    done
+  fi
+done <"$FEDORA_DIR/build/exclude.txt"
+
+# 3. Overrides, refusing any whose upstream file changed since it was pinned.
+declare -A pinned=()
+while IFS=$'\t' read -r path blob; do
+  if [[ -n $path && $path != \#* ]]; then
+    pinned[$path]=$blob
+  fi
+done <"$FEDORA_DIR/overrides.lock"
+
+overrides=0
+drifted=()
+if [[ -d $FEDORA_DIR/overrides ]]; then
+  while IFS= read -r path; do
+    [[ -n ${pinned[$path]:-} ]] || die "fedora/overrides/$path is not pinned; run: fedora/bin/pin-override $path"
+
+    current=$(git rev-parse --verify --quiet "$UPSTREAM_COMMIT:$path" || echo "new")
+    if [[ ${pinned[$path]} != "$current" ]]; then
+      drifted+=("$path (pinned ${pinned[$path]:0:10}, upstream now ${current:0:10})")
+    fi
+
+    mkdir -p "$(dirname "$out/$path")"
+    cp -p "$FEDORA_DIR/overrides/$path" "$out/$path"
+    overrides=$((overrides + 1))
+  done < <(cd "$FEDORA_DIR/overrides" && find . -type f -printf '%P\n' | sort)
+fi
+
+for path in "${!pinned[@]}"; do
+  [[ -f $FEDORA_DIR/overrides/$path ]] || die "fedora/overrides.lock pins $path but the override file is missing"
+done
+
+if (( ${#drifted[@]} > 0 )); then
+  printf '  %s\n' "${drifted[@]}" >&2
+  die "upstream changed files that have Fedora overrides; port the changes (git diff <pinned> <upstream>), then fedora/bin/pin-override them"
+fi
+
+# 4. Patches, applied in name order. Any rejected hunk fails the build.
+patches=0
+shopt -s nullglob
+for patch_file in "$FEDORA_DIR"/patches/*.patch; do
+  patch -d "$out" -p1 --forward --batch --silent --no-backup-if-mismatch <"$patch_file" ||
+    die "patch $(basename "$patch_file") no longer applies; refresh it against $UPSTREAM_REF"
+  patches=$((patches + 1))
+done
+shopt -u nullglob
+
+# 5. Fedora runtime data and version. Upstream's version file is not kept up
+# to date (it still says 4.0.0.alpha at v4.0.4), so use the synced release.
+install -D -m 644 "$FEDORA_DIR/packages/map.tsv" "$out/fedora/packages/map.tsv"
+echo "$UPSTREAM_VERSION" >"$out/version"
+cat >"$out/fedora/build-info" <<INFO
+upstream_ref=$UPSTREAM_REF
+upstream_commit=$UPSTREAM_COMMIT
+fork_commit=$(git rev-parse HEAD)
+fedora_release=$FEDORA_RELEASE
+INFO
+
+info "Assembled $out"
+echo "  shipped top-level paths: ${#ship[@]}, excluded paths: $excluded, overrides: $overrides, patches: $patches"

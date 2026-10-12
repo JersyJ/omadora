@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# Record that the override for each <path> was reviewed against the upstream
+# file at the pinned commit. Run it after porting upstream's latest change of
+# that file into fedora/overrides/<path>.
+#
+# Usage: fedora/bin/pin-override <path>...   (paths relative to the repo root)
+
+set -euo pipefail
+source "$(dirname "$(realpath "$0")")/../lib/common.sh"
+
+(( $# > 0 )) || die "usage: fedora/bin/pin-override <path>..."
+
+cd "$FEDORA_ROOT"
+load_lock
+
+lock="$FEDORA_DIR/overrides.lock"
+
+for path in "$@"; do
+  path=${path#fedora/overrides/}
+  [[ -f $FEDORA_DIR/overrides/$path ]] || die "no override at fedora/overrides/$path"
+
+  blob=$(git rev-parse --verify --quiet "$UPSTREAM_COMMIT:$path" || echo "new")
+  sed -i "\|^$path\t|d" "$lock"
+  printf '%s\t%s\n' "$path" "$blob" >>"$lock"
+  info "Pinned $path to $blob"
+done
+
+{ grep '^#' "$lock"; grep -v '^#' "$lock" | sort; } >"$lock.tmp"
+mv "$lock.tmp" "$lock"

@@ -1,0 +1,40 @@
+#!/bin/bash
+
+# Report the porting backlog: files in the assembled Fedora tree that still
+# reference Arch-only tooling after overrides and patches are applied.
+# Migrations are tracked separately by fedora/bin/migrations-status.
+#
+# Usage: fedora/bin/port-status [--list]
+
+set -euo pipefail
+source "$(dirname "$(realpath "$0")")/../lib/common.sh"
+
+list=0
+if [[ ${1:-} == "--list" ]]; then
+  list=1
+fi
+
+cd "$FEDORA_ROOT"
+out="$FEDORA_DIR/.build/port-status"
+"$FEDORA_DIR/build/assemble" --out "$out" >/dev/null
+
+declare -A patterns=(
+  [pacman]='\bpacman\b|/etc/pacman|pacman-key|\bpaccache\b|\bexpac\b'
+  [aur]='\byay\b|\bmakepkg\b|aur\.archlinux'
+  [boot]='mkinitcpio|limine|libalpm'
+  [ufw]='\bufw\b'
+)
+
+total=0
+for category in pacman aur boot ufw; do
+  mapfile -t files < <(grep -rlE "${patterns[$category]}" "$out" --exclude-dir=migrations --exclude-dir=fedora 2>/dev/null | sed "s|^$out/||" | sort)
+  printf '  %-8s %4d files\n' "$category" "${#files[@]}"
+  if (( list )) && (( ${#files[@]} > 0 )); then
+    printf '      %s\n' "${files[@]}"
+  fi
+done
+
+mapfile -t all < <(grep -rlE "${patterns[pacman]}|${patterns[aur]}|${patterns[boot]}|${patterns[ufw]}" "$out" --exclude-dir=migrations --exclude-dir=fedora 2>/dev/null)
+total=${#all[@]}
+echo "  ----"
+printf '  %-8s %4d files still reference Arch-only tooling\n' "total" "$total"

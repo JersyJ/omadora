@@ -1,0 +1,82 @@
+#!/bin/bash
+
+# Sync every upstream-owned path to exactly <ref> while keeping the paths this
+# fork owns (FORK_OWNED_PATHS in fedora/lib/common.sh).
+#
+# The result is a real merge commit, so `git log` keeps upstream's history,
+# but the sync can never conflict: upstream files are taken verbatim from
+# <ref> and fork files verbatim from HEAD. This also works across upstream's
+# diverging lines (a v4.0.x release branch to quattro and back).
+#
+# Usage: fedora/bin/sync-upstream [--no-fetch] <ref>
+#   <ref>  an upstream tag or commit, e.g. v4.0.5 or upstream/quattro
+
+set -euo pipefail
+source "$(dirname "$(realpath "$0")")/../lib/common.sh"
+
+fetch=1
+if [[ ${1:-} == "--no-fetch" ]]; then
+  fetch=0
+  shift
+fi
+
+ref=${1:-}
+[[ -n $ref ]] || die "usage: fedora/bin/sync-upstream [--no-fetch] <ref>"
+
+cd "$FEDORA_ROOT"
+load_lock
+
+[[ -z $(git status --porcelain) ]] || die "the working tree is not clean; commit or stash first"
+[[ ! -e $(git rev-parse --git-path MERGE_HEAD) ]] || die "a merge is already in progress"
+
+if (( fetch )); then
+  info "Fetching upstream"
+  git fetch --quiet --tags upstream
+fi
+
+commit=$(git rev-parse --verify --quiet "$ref^{commit}") || die "unknown ref: $ref"
+old=$UPSTREAM_COMMIT
+short=$(git rev-parse --short "$commit")
+
+if [[ $commit == "$old" ]]; then
+  info "Already synced to $ref ($short)"
+  exit 0
+fi
+
+info "Syncing upstream-owned paths to $ref ($short)"
+
+# Record ancestry without touching the tree. When <ref> is already an ancestor
+# (going back to an older release) there is nothing to merge, and the sync is
+# recorded as an ordinary commit instead.
+git merge --quiet --no-ff --no-commit -s ours "$commit" >/dev/null 2>&1 || true
+
+# Index := upstream tree at <ref>, without upstream workflows (they would run
+# in the fork; the fork owns .github/workflows), plus the fork-owned paths
+# from HEAD.
+git read-tree "$commit"
+git rm -r -q --cached --ignore-unmatch -- .github/workflows
+for path in "${FORK_OWNED_PATHS[@]}"; do
+  git ls-tree -r --full-tree HEAD -- "$path" | git update-index --index-info
+done
+
+git checkout-index --all --force
+git clean -fdq
+
+version=$(git describe --tags --abbrev=8 "$commit" 2>/dev/null || echo "$short")
+set_lock_value UPSTREAM_REF "${ref#upstream/}"
+set_lock_value UPSTREAM_COMMIT "$commit"
+set_lock_value UPSTREAM_VERSION "${version#v}"
+git add fedora/upstream.lock
+
+mapfile -t spec < <(upstream_pathspec)
+changed=$(git diff --cached --name-only HEAD -- "${spec[@]}" | wc -l)
+new_commits=$(git rev-list --count "$old..$commit")
+new_migrations=$(git diff --cached --name-only --diff-filter=A HEAD -- migrations/ | wc -l)
+
+git commit --quiet \
+  -m "Sync upstream ${ref#upstream/} ($short)" \
+  -m "Upstream commits since $(git rev-parse --short "$old"): $new_commits. Upstream-owned files changed: $changed. New migrations: $new_migrations."
+
+info "Synced: $new_commits upstream commits, $changed files changed, $new_migrations new migrations"
+"$FEDORA_DIR/bin/check-invariant"
+echo "Next: run fedora/tests/static.sh, then review drifted overrides, failed patches, new migrations and new packages."

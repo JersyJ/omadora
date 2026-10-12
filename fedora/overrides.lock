@@ -1,0 +1,5 @@
+# Overrides in fedora/overrides/<path> replace the upstream file at <path>.
+# Each line pins the upstream blob the override was reviewed against, or "new"
+# for files upstream does not have. fedora/build/assemble fails when upstream's
+# file changes, so its change gets ported before the override ships again.
+# Update a pin with: fedora/bin/pin-override <path>

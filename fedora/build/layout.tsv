@@ -1,0 +1,31 @@
+# Every top-level upstream path, classified. fedora/build/assemble refuses to
+# run while upstream has a top-level path missing here, so new upstream trees
+# are reviewed before they ship (or don't).
+# path	role	note
+applications	ship	desktop entries and icons
+bin	ship	omarchy-* commands
+config	ship	default user configs (seeded to /etc/skel)
+default	ship	defaults, themed templates, menu
+etc	ship	system drop-ins and etc overrides
+install	ship	install, hardware and user setup scripts
+migrations	ship	per-user migrations
+shell	ship	Quickshell desktop
+themes	ship	theme bundles
+version	ship	replaced by fedora/build/assemble
+icon.png	ship	branding
+icon.txt	ship	branding
+logo.svg	ship	branding
+logo.txt	ship	branding
+LICENSE	ship	MIT license text
+.editorconfig	repo-only
+.github	repo-only	issue templates; the fork owns .github/workflows
+.gitignore	repo-only
+.luarc.json	repo-only
+AGENTS.md	repo-only	contributor guidance
+CLAUDE.md	repo-only	contributor guidance
+README.md	repo-only
+agents	repo-only	contributor task guides
+docs	repo-only	internal reference docs
+manual	repo-only	end-user manual (published by upstream)
+plans	repo-only	design notes (quattro)
+test	repo-only	upstream test suites

@@ -1,0 +1,8 @@
+# Upstream paths dropped from the Fedora build. One shell glob per line,
+# relative to the repo root; globstar (**) is enabled. Keep a reason on each.
+default/libalpm           # pacman (ALPM) hooks; the RPM scriptlets in fedora/rpm do this job
+default/pacman            # pacman.conf and mirrorlist templates
+default/limine            # Limine boot menu; Fedora boots with GRUB2
+etc/mkinitcpio.conf.d     # mkinitcpio drop-ins; Fedora builds its initramfs with dracut
+etc/limine-entry-tool.d   # Limine entry tool drop-ins
+install/provisioning      # first-boot owner, LUKS rekey and factory reset for Omarchy's ISO; Anaconda does this on Fedora

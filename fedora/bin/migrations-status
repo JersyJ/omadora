@@ -1,0 +1,91 @@
+#!/bin/bash
+
+# Track the review state of upstream migrations in fedora/migrations/classify.tsv.
+#
+# Every upstream migration gets a row with its content hash and a decision:
+#   unreviewed       not looked at yet
+#   run              runs unchanged on Fedora
+#   skip             must not run on Fedora (reason says why)
+#   replace:<file>   skipped; fedora/migrations/<file> runs in its place
+# Upstream edits shipped migrations, so a changed hash sends a row back to
+# unreviewed.
+#
+# Usage: fedora/bin/migrations-status [--check | --update]
+#   (none)    print a summary
+#   --check   exit 1 if any migration is missing a row or changed since review
+#   --update  add missing rows and reset changed ones to unreviewed
+
+set -euo pipefail
+source "$(dirname "$(realpath "$0")")/../lib/common.sh"
+
+mode=${1:-}
+cd "$FEDORA_ROOT"
+
+table="$FEDORA_DIR/migrations/classify.tsv"
+if [[ ! -f $table ]]; then
+  printf '# Review state of upstream migrations; see fedora/bin/migrations-status.\nmigration\tsha256\thint\tdecision\treason\tsummary\n' >"$table"
+fi
+
+hint_for() {
+  local content=$1
+
+  if grep -qE '\b(pacman|yay|makepkg|pacman-key|paccache|expac)\b|pacman\.d|mirrorlist' <<<"$content"; then
+    echo "arch-pacman"
+  elif grep -qE 'mkinitcpio|limine|libalpm' <<<"$content"; then
+    echo "arch-boot"
+  elif grep -qE 'omarchy-pkg-' <<<"$content"; then
+    echo "pkg-helpers"
+  else
+    echo "neutral"
+  fi
+}
+
+declare -A row_hash=()
+while IFS=$'\t' read -r name hash _; do
+  if [[ -n $name && $name != \#* && $name != "migration" ]]; then
+    row_hash[$name]=$hash
+  fi
+done <"$table"
+
+missing=()
+changed=()
+while IFS= read -r path; do
+  name=$(basename "$path")
+  content=$(git show "HEAD:$path")
+  hash=$(sha256sum <<<"$content" | cut -c1-16)
+
+  if [[ -z ${row_hash[$name]:-} ]]; then
+    missing+=("$name")
+  elif [[ ${row_hash[$name]} != "$hash" ]]; then
+    changed+=("$name")
+  fi
+
+  if [[ $mode == "--update" ]] && [[ -z ${row_hash[$name]:-} || ${row_hash[$name]} != "$hash" ]]; then
+    summary=$(grep -m1 -oP '^echo "\K[^"]*' <<<"$content" || true)
+    sed -i "/^$name\t/d" "$table"
+    printf '%s\t%s\t%s\tunreviewed\t\t%s\n' "$name" "$hash" "$(hint_for "$content")" "$summary" >>"$table"
+  fi
+done < <(git ls-tree --name-only HEAD migrations/ | grep '\.sh$')
+
+if [[ $mode == "--update" ]]; then
+  { grep '^#' "$table"; grep -v '^#' "$table" | grep '^migration' ; grep -v '^#' "$table" | grep -v '^migration' | sort; } >"$table.tmp"
+  mv "$table.tmp" "$table"
+  info "Added ${#missing[@]} and reset ${#changed[@]} rows in fedora/migrations/classify.tsv"
+  missing=()
+  changed=()
+fi
+
+total=$(git ls-tree --name-only HEAD migrations/ | grep -c '\.sh$')
+echo "Upstream migrations: $total"
+awk -F'\t' '!/^#/ && $1 != "migration" { print $4 " (" $3 ")" }' "$table" | sort | uniq -c | sed 's/^/  /'
+
+if (( ${#missing[@]} > 0 )); then
+  warn "${#missing[@]} migrations have no row: ${missing[*]}"
+fi
+if (( ${#changed[@]} > 0 )); then
+  warn "${#changed[@]} migrations changed since review: ${changed[*]}"
+fi
+
+if [[ $mode == "--check" ]] && (( ${#missing[@]} + ${#changed[@]} > 0 )); then
+  die "run fedora/bin/migrations-status --update, then review the unreviewed rows"
+fi

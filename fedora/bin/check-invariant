@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# Verify that every upstream-owned path is byte-identical to the upstream
+# commit pinned in fedora/upstream.lock, both in HEAD and in the working tree.
+
+set -euo pipefail
+source "$(dirname "$(realpath "$0")")/../lib/common.sh"
+
+cd "$FEDORA_ROOT"
+load_lock
+
+git cat-file -e "$UPSTREAM_COMMIT^{commit}" 2>/dev/null ||
+  die "the pinned upstream commit $UPSTREAM_COMMIT is missing; run: git fetch upstream --tags"
+
+short=$(git rev-parse --short "$UPSTREAM_COMMIT")
+mapfile -t spec < <(upstream_pathspec)
+
+committed=$(git diff --name-only "$UPSTREAM_COMMIT" HEAD -- "${spec[@]}")
+uncommitted=$(git diff --name-only HEAD -- "${spec[@]}")
+untracked=$(git ls-files --others --exclude-standard -- "${spec[@]}")
+
+if [[ -n $committed || -n $uncommitted || -n $untracked ]]; then
+  echo "Upstream-owned paths differ from $UPSTREAM_REF ($short):" >&2
+  [[ -z $committed ]] || sed 's/^/  committed:   /' <<<"$committed" >&2
+  [[ -z $uncommitted ]] || sed 's/^/  uncommitted: /' <<<"$uncommitted" >&2
+  [[ -z $untracked ]] || sed 's/^/  untracked:   /' <<<"$untracked" >&2
+  die "Fedora changes belong in fedora/overrides or fedora/patches, never in upstream files"
+fi
+
+if ! git merge-base --is-ancestor "$UPSTREAM_COMMIT" HEAD; then
+  die "$UPSTREAM_REF ($short) is not merged into HEAD; sync with fedora/bin/sync-upstream"
+fi
+
+info "Upstream-owned paths match $UPSTREAM_REF ($short)"
