@@ -3,3 +3,7 @@
 # for files upstream does not have. fedora/build/assemble fails when upstream's
 # file changes, so its change gets ported before the override ships again.
 # Update a pin with: fedora/bin/pin-override <path>
+bin/omarchy-debug	59fbc4fce48b667bc166e08251ef0fdff64a2827
+bin/omarchy-upload-log	134d9174180bf9a241ccc2a35e162404ceccbe8c
+install/login/sddm.sh	250ce80e1f7e105e02f86e4a0f30a10b6e68bf18
+install/user/default-keyring.sh	63f70798c0a426a6dfe2ab871846850d8b76aa38
