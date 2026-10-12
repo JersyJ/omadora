@@ -87,4 +87,4 @@ Fedora retired Hyprland after F42; solopasha/hyprland is abandoned. nett00n/hypr
 | 1. Repositories and our COPR (2–3 weeks) | Repo files with `includepkgs`, versionlocks, our COPR with the gap packages and Omarchy's apps, map the 104 optional-install packages | The whole base set resolves on F45 with only the allowed repositories |
 | 2. RPMs, overrides, patches (3–5 weeks) | `omarchy`/`omarchy-settings` specs, about 40 overrides and 20 patches, authselect and PAM, firewalld, hardware probe of a real ZBook | Kickstarted VM, then a real ZBook: no failed setup steps, zero AVC denials, lock and unlock work, upstream shell tests pass apart from listed exceptions |
 | 3. Updates and migrations (2 weeks) | Update pipeline, snapper and grub-btrfs, migration harness | `omarchy update` across one two-week sync works; rollback tested |
-| 4. Pilot (2 weeks) | Kickstart (optionally an ISO), docs | 5–10 ZBooks through two upstream syncs |
+| 4. Pilot (2 weeks) | Kickstart (optionally an ISO), docs, Intune enrollment to IT's requirements | 5–10 ZBooks through two upstream syncs |

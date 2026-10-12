@@ -27,12 +27,12 @@ Decided 2026-10-12 unless noted. Reasons are kept short; `RESEARCH.md` has the e
 | Log upload | Never upload to logs.omarchy.org; save the log in the home directory instead | Decided 2026-10-12: upstream's support service is for Arch-based Omarchy, not forks. Overrides: `bin/omarchy-upload-log`, `bin/omarchy-debug` |
 | mise | Keep `install/user/mise.sh` (about 20 CLIs from the internet) | Decided 2026-10-12 |
 | sshd migration `1788124236` | Run it (disables SSH password logins, or sshd when no key is authorized) | Decided 2026-10-12 |
+| Intune | Phase 4 (pilot), once IT has given its requirements | Decided 2026-10-12. Microsoft supports Intune on Ubuntu and RHEL, not Fedora, so the pilot includes a test enrollment on F45. The keyring decision above is already in place for it |
 
 ## Open
 
 | Topic | Options | Notes |
 | --- | --- | --- |
-| Intune client | Ship `intune-portal` and Microsoft Edge from Microsoft's RHEL repo in the base install, or leave enrollment to IT | Microsoft supports Intune on Ubuntu and RHEL, not Fedora; needs a test enrollment on F45. The keyring decision above is the prerequisite |
 | Flatpak or RPM for obsidian, localsend, pinta | Flathub (current map) or RPMs in our COPR (kamm3r specs) | Flatpaks need small wrappers where Omarchy launches the apps by command name |
 | Codecs | RPM Fusion `ffmpeg` and `intel-media-driver` (current map) or Fedora's free builds | Full H.264/HEVC encode needs RPM Fusion; screen recording uses it |
 | Camera | Depends on the hardware probe (Phase 2) | MIPI/IPU7 cameras need an akmod plus closed-source userspace (the hardest item in the port); USB cameras need nothing |
