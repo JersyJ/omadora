@@ -19,8 +19,8 @@ Fedora fork: the menu's batched package guards read Omadora's package layer
 -    + 'omarchy-pkg-missing() { local p; for p in "$@"; do __omarchy_pkg_has "$p" || return 0; done; return 1; }\n'
 +  // Fedora fork: the batch answers come from Omadora's package layer, which
 +  // loads the Arch-to-Fedora package map, the installed RPMs and Flatpaks once
-+  // (/usr/share/omarchy/fedora/pkg.sh) instead of reading pacman's database.
-+  return 'source /usr/share/omarchy/fedora/pkg.sh\n'
++  // ($OMARCHY_PATH/fedora/pkg.sh) instead of reading pacman's database.
++  return 'source "${OMARCHY_PATH:-/usr/share/omarchy}/fedora/pkg.sh"\n'
 +    + 'omadora_pkg_cache_load 2>/dev/null\n'
 +    + 'omarchy-pkg-present() { omadora_pkg_cached_present "$@"; }\n'
 +    + 'omarchy-pkg-missing() { ! omadora_pkg_cached_present "$@"; }\n'

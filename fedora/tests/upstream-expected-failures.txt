@@ -1,3 +1,67 @@
 # Upstream test files expected to fail on the assembled Fedora tree, one per
 # line: the path, then why. fedora/tests/upstream-tests.sh fails on any other
 # failure, and on a listed file that passes again.
+
+# Firewall: firewalld replaces ufw (DECISIONS.md); these assert ufw commands.
+test/shell.d/firewall-config-test.sh                  ufw rules in install/config/firewall.sh
+test/shell.d/setup-security-sshd-test.sh              ufw limit rule for SSH
+test/shell.d/remove-security-sshd-firewall-test.sh    ufw rule removal for SSH
+
+# Packages: pacman and the AUR are replaced by the package map and dnf.
+test/shell.d/pkg-drop-test.sh                         stubs pacman -Rns
+test/shell.d/command-operand-boundaries-test.sh       stubs pacman -Q behind omarchy-pkg-present
+test/shell.d/fingerprint-package-test.sh              expects pacman to install libfprint-git
+test/shell.d/fingerprint-driver-migration-test.sh     expects pacman to swap libfprint for libfprint-git
+test/shell.d/locate-test.sh                           runs the AUR picker, which is the dnf picker here and reaches the host's own Omarchy
+test/shell.d/pacman-templates-test.sh                 default/pacman is excluded
+test/shell.d/channel-test.sh                          pacman channels; Fedora channels arrive with the update pipeline (Phase 3)
+test/shell.d/channel-sudo-boundary-test.sh            pacman channels (Phase 3)
+
+# Boot: GRUB and dracut replace Limine and mkinitcpio.
+test/shell.d/limine-defaults-test.sh                  default/limine is excluded
+test/shell.d/mkinitcpio-hooks-test.sh                 etc/mkinitcpio.conf.d is excluded
+test/shell.d/nvidia-kms-hook-test.sh                  mkinitcpio hooks; and no NVIDIA support
+test/shell.d/hyprland-keyboard-layout-test.sh         reads etc/mkinitcpio.conf.d, which is excluded
+test/shell.d/settings-runtime-profile-test.sh         the profile lists default/limine, which is excluded
+test/shell.d/plymouth-set-test.sh                     expects mkinitcpio; Fedora rebuilds with dracut
+test/shell.d/console-no-ansi-query-migration-test.sh  migration rebuilds the initramfs with mkinitcpio
+test/shell.d/kernel-headers-migration-test.sh         Arch's linux-omarchy kernel headers
+test/shell.d/omarchy-kernel-migration-test.sh         Arch's linux-omarchy kernel
+
+# Update pipeline: still Arch's until Phase 3.
+test/shell.d/update-boot-verify-test.sh               pacman and Limine update steps
+test/shell.d/update-disk-space-test.sh                pacman cache and Limine
+test/shell.d/update-hook-security-test.sh             ALPM hooks are excluded
+test/shell.d/update-lock-test.sh                      pacman database lock
+test/shell.d/update-orphan-test.sh                    pacman orphans
+test/shell.d/update-pacman-guard-test.sh              omarchy-update-pacman-guard is excluded
+test/shell.d/update-restart-phases-test.sh            pacman -Qo
+test/shell.d/update-sequence-test.sh                  pacman update sequence
+test/shell.d/update-user-path-test.sh                 pacman update sequence
+test/shell.d/snapshot-create-test.sh                  reads omarchy-upgrade-to-quattro, which is excluded
+
+# Excluded Arch-only files the tests read or copy.
+test/shell.d/upgrade-to-quattro-test.sh               omarchy-upgrade-to-quattro is excluded
+test/shell.d/systemd-test.sh                          reads omarchy-upgrade-to-quattro
+test/shell.d/video-background-test.sh                 reads omarchy-upgrade-to-quattro
+test/shell.d/hyprland-default-config-test.sh          runs omarchy-upgrade-to-quattro
+test/shell.d/security-entrypoint-symlink-test.sh      copies default/pacman, which is excluded
+test/shell.d/security-source-root-test.sh             copies default/pacman, which is excluded
+test/shell.d/passwordless-sudo-indicator-test.sh      copies the ALPM revoke hook (an RPM scriptlet here)
+test/shell.d/nopasswd-sudo-expiry-test.sh             copies the ALPM revoke hook (an RPM scriptlet here)
+test/shell.d/cups-hardening-test.sh                   etc/cups/cups-files.conf is excluded (Arch's cups user 209)
+
+# Install and provisioning: Anaconda and the kickstart replace the ISO.
+test/shell.d/locale-setup-test.sh                     locale-gen; Fedora uses langpacks
+test/shell.d/drive-password-test.sh                   install/provisioning (LUKS re-key) is excluded
+test/shell.d/luks-rekey-journal-test.sh               install/provisioning is excluded
+test/shell.d/setup-form-test.sh                       install/provisioning is excluded
+test/shell.d/typing-setup-test.sh                     install/provisioning is excluded
+test/shell.d/provision-owner-keyboard-test.sh         install/provisioning is excluded
+test/shell.d/image-deferred-hardware-test.sh          hardware steps differ (install/hardware/all.sh override)
+
+# Hardware for other laptops, left out of install/hardware/all.sh.
+test/shell.d/brcmfmac-supplicant-test.sh              Apple Broadcom Wi-Fi
+test/shell.d/xps13-ptl-firmware-test.sh               Dell XPS 13
+test/shell.d/xps13-sidecar-amps-test.sh               Dell XPS 13
+test/shell.d/yt6801-driver-test.sh                    Motorcomm yt6801 Ethernet

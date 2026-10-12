@@ -5,6 +5,6 @@
 
 # Fedora fork: there is no AUR. Omadora's package map names a Fedora source for
 # every package Omarchy takes from the AUR, so this is omarchy-pkg-add.
-source /usr/share/omarchy/fedora/pkg.sh
+source "${OMARCHY_PATH:-/usr/share/omarchy}/fedora/pkg.sh"
 
 omadora_pkg_add "$@"

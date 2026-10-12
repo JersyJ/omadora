@@ -6,6 +6,6 @@
 
 # Fedora fork: removes the packages Omadora's package map gives for the Arch
 # names, with dnf (which also drops unneeded dependencies), flatpak or mise.
-source /usr/share/omarchy/fedora/pkg.sh
+source "${OMARCHY_PATH:-/usr/share/omarchy}/fedora/pkg.sh"
 
 omadora_pkg_drop "$@"

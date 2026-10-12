@@ -9,7 +9,7 @@
 #
 # Installed at /usr/share/omarchy/fedora/pkg.sh.
 
-OMADORA_PKG_MAP=${OMADORA_PKG_MAP:-/usr/share/omarchy/fedora/packages/map.tsv}
+OMADORA_PKG_MAP=${OMADORA_PKG_MAP:-${OMARCHY_PATH:-/usr/share/omarchy}/fedora/packages/map.tsv}
 OMADORA_ON_DEMAND_REPOS=${OMADORA_ON_DEMAND_REPOS:-/usr/share/omadora/repos/on-demand}
 OMADORA_FLATHUB_URL=https://dl.flathub.org/repo/flathub.flatpakrepo
 

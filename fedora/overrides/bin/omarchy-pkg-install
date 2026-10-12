@@ -24,5 +24,9 @@ if [[ -n $pkg_names ]]; then
 
   # Convert newline-separated selections to space-separated for dnf
   echo "$pkg_names" | tr '\n' ' ' | xargs sudo dnf install -y
-  omarchy-show-done $?
+  code=$?
+  # Upstream's AUR picker, which is this picker on Fedora, refreshes the
+  # locate database so new files are findable at once.
+  sudo updatedb --prune-bind-mounts=no --add-prunepaths=/.snapshots
+  omarchy-show-done $code
 fi

@@ -4,6 +4,6 @@
 # omarchy:args=<packages...>
 
 # Fedora fork: checks the packages Omadora's package map gives for the Arch names.
-source /usr/share/omarchy/fedora/pkg.sh
+source "${OMARCHY_PATH:-/usr/share/omarchy}/fedora/pkg.sh"
 
 omadora_pkg_present "$@"
