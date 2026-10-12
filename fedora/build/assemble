@@ -112,7 +112,37 @@ for patch_file in "$FEDORA_DIR"/patches/*.patch; do
 done
 shopt -u nullglob
 
-# 5. Fedora runtime data and version. Upstream's version file is not kept up
+# 5. Migrations, as reviewed in fedora/migrations/classify.tsv: an unreviewed
+# or skipped migration is left out, so it never runs; a replaced one ships the
+# Fedora file under the upstream name, so the done-marker stays the same.
+left_out=0
+replaced=0
+while IFS=$'\t' read -r name _ _ decision _; do
+  [[ -n $name && $name != \#* && $name != "migration" && -f $out/migrations/$name ]] || continue
+  case $decision in
+    baseline | run) ;;
+    unreviewed | skip)
+      rm -f "$out/migrations/$name"
+      left_out=$((left_out + 1))
+      ;;
+    replace:*)
+      [[ -f $FEDORA_DIR/migrations/${decision#replace:} ]] || die "migration $name: fedora/migrations/${decision#replace:} is missing"
+      install -m 644 "$FEDORA_DIR/migrations/${decision#replace:}" "$out/migrations/$name"
+      replaced=$((replaced + 1))
+      ;;
+    *) die "migration $name: unknown decision '$decision' in fedora/migrations/classify.tsv" ;;
+  esac
+done <"$FEDORA_DIR/migrations/classify.tsv"
+# A migration without a row has not been reviewed either.
+for path in "$out"/migrations/*.sh; do
+  if ! grep -q "^$(basename "$path")"$'\t' "$FEDORA_DIR/migrations/classify.tsv"; then
+    rm -f "$path"
+    left_out=$((left_out + 1))
+  fi
+done
+(( left_out == 0 )) || warn "left out $left_out unreviewed or skipped migrations (fedora/bin/migrations-status)"
+
+# 6. Fedora runtime data and version. Upstream's version file is not kept up
 # to date (it still says 4.0.0.alpha at v4.0.4), so write the RPM version.
 install -D -m 644 "$FEDORA_DIR/packages/map.tsv" "$out/fedora/packages/map.tsv"
 cp -a "$FEDORA_DIR/repos" "$out/fedora/repos"
@@ -128,4 +158,4 @@ fedora_release=$FEDORA_RELEASE
 INFO
 
 info "Assembled $out"
-echo "  shipped top-level paths: ${#ship[@]}, excluded paths: $excluded, overrides: $overrides, patches: $patches"
+echo "  shipped top-level paths: ${#ship[@]}, excluded paths: $excluded, overrides: $overrides, patches: $patches, replaced migrations: $replaced"

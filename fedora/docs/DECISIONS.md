@@ -17,7 +17,7 @@ Decided 2026-10-12 unless noted. Reasons are kept short; `RESEARCH.md` has the e
 | Bootloader | GRUB2 (Fedora default) + snapper + grub-btrfs; no Limine | Limine is not packaged for Fedora, needs Secure Boot off or per-machine keys (Omarchy's manual says to disable Secure Boot), and its Omarchy glue is mkinitcpio-only. GRUB keeps Secure Boot, TPM2 unlock and fwupd working |
 | Initramfs | dracut | Fedora default; Omarchy's mkinitcpio drop-ins become dracut config |
 | Firewall | firewalld | Fedora's maintained default; ufw on Fedora is 0.35 and `ufw-docker` has no package anywhere. Costs one override (`install/config/firewall.sh`) and four small patches |
-| Migrations | Upstream migrations run, each reviewed (`migrations/classify.tsv`) | whelanh's port skips all of them, so existing installs never get upstream's config changes |
+| Migrations | Upstream migrations run, each reviewed (`migrations/classify.tsv`); unreviewed and skipped ones are left out of the build. The 164 migrations up to upstream `defbf90e` are `baseline`: a fresh install marks every shipped migration done, and no Omadora install is older | whelanh's port skips all of them, so existing installs never get upstream's config changes. Updated 2026-10-12 |
 | System files | Keep Fedora's `os-release`, `nsswitch.conf` and `cups-files.conf` | Upstream's versions set `ID_LIKE=arch` (breaks dnf copr, toolbox and management agents), fight authselect, and hardcode Arch's cups user 209 |
 | SELinux | Enforcing; releases gated on zero AVC denials | Company laptops; RPM installs label files correctly |
 | Hardware | HP ZBook 8 G2i 14" only | See `HARDWARE.md` |

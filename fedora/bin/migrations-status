@@ -3,16 +3,20 @@
 # Track the review state of upstream migrations in fedora/migrations/classify.tsv.
 #
 # Every upstream migration gets a row with its content hash and a decision:
-#   unreviewed       not looked at yet
+#   unreviewed       not looked at yet; fedora/build/assemble leaves it out
+#   baseline         older than the first Omadora install, which marks every
+#                    shipped migration done (omarchy-provision-user), so it never
+#                    runs; ships unchanged
 #   run              runs unchanged on Fedora
-#   skip             must not run on Fedora (reason says why)
-#   replace:<file>   skipped; fedora/migrations/<file> runs in its place
+#   skip             must not run on Fedora (reason says why); left out
+#   replace:<file>   fedora/migrations/<file> ships under the upstream name
 # Upstream edits shipped migrations, so a changed hash sends a row back to
-# unreviewed.
+# unreviewed (except baseline rows: those never run anywhere).
 #
 # Usage: fedora/bin/migrations-status [--check | --update]
 #   (none)    print a summary
-#   --check   exit 1 if any migration is missing a row or changed since review
+#   --check   exit 1 if any migration is missing a row, changed since review
+#             or unreviewed
 #   --update  add missing rows and reset changed ones to unreviewed
 
 set -euo pipefail
@@ -40,10 +44,11 @@ hint_for() {
   fi
 }
 
-declare -A row_hash=()
-while IFS=$'\t' read -r name hash _; do
+declare -A row_hash=() row_decision=()
+while IFS=$'\t' read -r name hash _ decision _; do
   if [[ -n $name && $name != \#* && $name != "migration" ]]; then
     row_hash[$name]=$hash
+    row_decision[$name]=$decision
   fi
 done <"$table"
 
@@ -56,11 +61,13 @@ while IFS= read -r path; do
 
   if [[ -z ${row_hash[$name]:-} ]]; then
     missing+=("$name")
-  elif [[ ${row_hash[$name]} != "$hash" ]]; then
+  elif [[ ${row_hash[$name]} != "$hash" && ${row_decision[$name]} != "baseline" ]]; then
     changed+=("$name")
+  else
+    continue
   fi
 
-  if [[ $mode == "--update" ]] && [[ -z ${row_hash[$name]:-} || ${row_hash[$name]} != "$hash" ]]; then
+  if [[ $mode == "--update" ]]; then
     summary=$(grep -m1 -oP '^echo "\K[^"]*' <<<"$content" || true)
     sed -i "/^$name\t/d" "$table"
     printf '%s\t%s\t%s\tunreviewed\t\t%s\n' "$name" "$hash" "$(hint_for "$content")" "$summary" >>"$table"
@@ -86,6 +93,8 @@ if (( ${#changed[@]} > 0 )); then
   warn "${#changed[@]} migrations changed since review: ${changed[*]}"
 fi
 
-if [[ $mode == "--check" ]] && (( ${#missing[@]} + ${#changed[@]} > 0 )); then
+mapfile -t unreviewed < <(awk -F'\t' '!/^#/ && $1 != "migration" && $4 == "unreviewed" { print $1 }' "$table")
+if [[ $mode == "--check" ]] && (( ${#missing[@]} + ${#changed[@]} + ${#unreviewed[@]} > 0 )); then
+  (( ${#unreviewed[@]} == 0 )) || warn "${#unreviewed[@]} migrations are unreviewed: ${unreviewed[*]}"
   die "run fedora/bin/migrations-status --update, then review the unreviewed rows"
 fi

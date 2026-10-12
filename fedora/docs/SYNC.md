@@ -26,7 +26,7 @@ The cost moves from merge conflicts to review: changes upstream made to files we
    | --- | --- |
    | Override drifted | `git diff <pinned blob> <new blob>` (both printed), port the relevant change into `fedora/overrides/<path>`, then `fedora/bin/pin-override <path>` |
    | Patch no longer applies | Re-create it against the new upstream file (`fedora/build/assemble` output is a convenient base) |
-   | Migration missing or changed | `fedora/bin/migrations-status --update`, then review each `unreviewed` row and set `run`, `skip` or `replace:<file>` with a reason |
+   | Migration missing, changed or unreviewed | `fedora/bin/migrations-status --update`, then review each `unreviewed` row and set `run`, `skip` or `replace:<file>` with a reason. Until then the build leaves the migration out, so it cannot run unreviewed. A replacement lives in `fedora/migrations/` and ships under the upstream name |
    | Unmapped package | Add it to `fedora/packages/map.tsv`, following the source order in `DECISIONS.md` |
    | Unclassified top-level path | Mark it `ship` or `repo-only` in `fedora/build/layout.tsv` |
 
