@@ -1,0 +1,11 @@
+# Words the optional-package scan in fedora/tests/static.sh picks up from
+# comments and messages next to omarchy-pkg-* calls. Not package names.
+as
+cannot
+do
+runs
+several
+swap
+that
+with
+words

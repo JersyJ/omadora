@@ -135,6 +135,7 @@ report_optional_packages() {
 
   unmapped=$(git grep -hoE 'omarchy-pkg-(add|aur-add|drop|present|missing)( +[a-z0-9][A-Za-z0-9@._+-]*)+' -- bin install migrations default shell |
     sed -E 's/^omarchy-pkg-[a-z-]+ +//' | tr ' ' '\n' | grep -E '^[a-z0-9][a-z0-9@._+-]*$' | sort -u |
+    grep -vxF -f <(grep -v '^#' fedora/packages/not-packages.txt) |
     comm -23 - <(mapped_package_names))
   echo "  $(grep -c . <<<"$unmapped") package names used by optional installers are not mapped yet (Phase 1 backlog)"
 }

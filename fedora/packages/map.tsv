@@ -5,10 +5,12 @@
 # Seeded 2026-10-12 from a full F45 pass (Koji, COPR API, mdapi) and whelanh/omarchy-fedora's packages.yaml (MIT).
 arch_name	fedora_names	source	note
 aether	aether	ours	Spec: whelanh/omarchy-fedora (MIT)
+alacritty	alacritty	fedora	
 alsa-utils	alsa-utils	fedora	
 apple-bcm-firmware		drop	hardware not supported by this fork (HP ZBook 8 G2i only)
 apple-bcm-firmware-fetcher		drop	hardware not supported by this fork (HP ZBook 8 G2i only)
 apple-t2-audio-config		drop	hardware not supported by this fork (HP ZBook 8 G2i only)
+archlinuxarm-keyring		drop	Arch Linux ARM's keyring; no Fedora equivalent needed
 asdcontrol		drop	hardware not supported by this fork (HP ZBook 8 G2i only)
 asusctl		drop	hardware not supported by this fork (HP ZBook 8 G2i only)
 autoconf-archive	autoconf-archive	fedora	
@@ -28,8 +30,11 @@ btrfs-progs	btrfs-progs	fedora
 chromium	chromium	fedora	
 clang	clang	fedora	
 cliamp	cliamp	ours	Spec: whelanh/omarchy-fedora (MIT)
+composer	composer	fedora	
 cups	cups	fedora	
+cups-browsed	cups-browsed	fedora	
 cups-filters	cups-filters	fedora	
+cups-pdf	cups-pdf	fedora	
 cups-pk-helper	cups-pk-helper	fedora	
 ddcutil	ddcutil	fedora	
 dell-xps-touchpad-haptics		drop	hardware not supported by this fork (HP ZBook 8 G2i only)
@@ -42,6 +47,7 @@ docker-compose	docker-compose	fedora
 dosfstools	dosfstools	fedora	
 dotnet-runtime	dotnet-runtime-10.0	fedora	
 dua-cli	dua-cli	fedora	
+dust	du-dust	fedora	
 egl-wayland	egl-wayland	fedora	
 evince	evince	fedora	
 exfatprogs	exfatprogs	fedora	
@@ -59,11 +65,17 @@ fcitx5-qt	fcitx5-qt	fedora
 fd	fd-find	fedora	
 ffmpeg	ffmpeg	rpmfusion-free	full codecs; replaces Fedora's ffmpeg-free (dnf swap)
 ffmpegthumbnailer	ffmpegthumbnailer	fedora	
+firefox	firefox	fedora	
+flatpak	flatpak	fedora	
 fontconfig	fontconfig	fedora	
 foot	foot	fedora	
+fprintd	fprintd	fedora	
+freerdp	freerdp	fedora	
+fwupd	fwupd	fedora	
 fzf	fzf	fedora	
 git	git	fedora	
 gliff	gliff	ours	Spec: whelanh/omarchy-fedora (MIT)
+gnome-calculator	gnome-calculator	fedora	
 gnome-disk-utility	gnome-disk-utility	fedora	
 gnome-keyring	gnome-keyring	fedora	
 gnome-themes-extra		drop	retired in Fedora; GTK3 ships Adwaita-dark built in (verify in Phase 2)
@@ -75,6 +87,7 @@ gum	gum	fedora
 gvfs-mtp	gvfs-mtp	fedora	
 gvfs-nfs	gvfs-nfs	fedora	
 gvfs-smb	gvfs-smb	fedora	
+helix	helix	fedora	
 herdr	herdr	ours	Spec: whelanh/omarchy-fedora (MIT)
 hype	hype	ours	Spec: whelanh/omarchy-fedora (MIT)
 hyprland	hyprland	copr:nett00n/hyprland	versionlock to the Hyprland version upstream Omarchy pins
@@ -93,11 +106,16 @@ inxi	inxi	fedora
 jq	jq	fedora	
 kdenlive	kdenlive	fedora	
 kernel-modules-hook		drop	Arch-only tooling, no Fedora equivalent needed
+kitty	kitty	fedora	
 lazydocker	lazydocker	copr:atim/lazydocker	removed upstream on quattro; atim/lazydocker F45 build present (0.23.3-1)
 lazygit	lazygit	copr:boobaa/lazygit	
 less	less	fedora	
 lib32-nvidia-580xx-utils		drop	legacy NVIDIA branch; Blackwell uses the open modules
 lib32-nvidia-utils	xorg-x11-drv-nvidia-libs.i686	rpmfusion-nonfree	only needed for 32-bit games (Steam)
+libappindicator-gtk3	libappindicator-gtk3	fedora	
+libfido2	libfido2	fedora	
+libfprint	libfprint	fedora	
+libfprint-git	libfprint	fedora	Arch development build; Fedora's release build
 libpulse	pulseaudio-libs	fedora	
 libreoffice-fresh	libreoffice	fedora	
 libsecret	libsecret	fedora	
@@ -125,6 +143,7 @@ localsend	org.localsend.localsend_app	flatpak	needs a command-name wrapper where
 lsp-plugins-lv2	lsp-plugins-lv2	fedora	
 lua51	compat-lua	fedora	Lua 5.1 for luarocks/Neovim
 luarocks	luarocks	fedora	
+lutris	lutris	fedora	
 macbook12-spi-driver-dkms		drop	hardware not supported by this fork (HP ZBook 8 G2i only)
 man-db	man-db	fedora	
 mariadb-libs	mariadb-connector-c	fedora	
@@ -135,6 +154,7 @@ mpv	mpv	fedora
 mpv-mpris	mpv-mpris	fedora	
 nautilus	nautilus	fedora	
 nautilus-python	nautilus-python	fedora	
+neovim	neovim	fedora	
 networkmanager	NetworkManager	fedora	
 noto-fonts	google-noto-sans-fonts google-noto-serif-fonts google-noto-sans-mono-fonts	fedora	
 noto-fonts-cjk	google-noto-sans-cjk-fonts	fedora	
@@ -148,16 +168,27 @@ nvidia-utils	xorg-x11-drv-nvidia	rpmfusion-nonfree
 nvim	neovim	fedora	
 obs-studio	obs-studio	fedora	
 obsidian	md.obsidian.Obsidian	flatpak	needs a command-name wrapper where Omarchy launches obsidian
+ollama	ollama	fedora	
+ollama-rocm	ollama-rocm	fedora	
+ollama-vulkan	ollama-vulkan	fedora	
 omacalc	omacalc	ours	Spec: whelanh/omarchy-fedora (MIT)
 omacut	omacut	ours	Spec: whelanh/omarchy-fedora (MIT)
 omarchy-hyprland-titlebars	omarchy-hyprland-titlebars	ours	Hyprland plugin: must match nett00n's Hyprland build exactly; Spec: whelanh/omarchy-fedora (MIT)
+omarchy-keyring		drop	Omarchy's pacman signing keyring; Fedora verifies RPM signatures itself
 omarchy-nvim	omarchy-nvim	ours	kammer/omadora is F44-only and too old for migration 1791723398. Spec: kamm3r/omadora-pkg (MIT)
 omasnap	omasnap	ours	Spec: whelanh/omarchy-fedora (MIT)
 omawrite	omawrite	ours	Spec: whelanh/omarchy-fedora (MIT)
+openbsd-netcat	netcat	fedora	Fedora's netcat is the OpenBSD one
+openclaw	openclaw	fedora	
+openssh	openssh	fedora	
 owe	owe	ours	Spec: whelanh/omarchy-fedora (MIT)
 owe-lockfeed	owe-lockfeed	ours	Spec: whelanh/omarchy-fedora (MIT)
+pacman		drop	Arch's package manager
 pacman-contrib		drop	Arch-only tooling, no Fedora equivalent needed
+pam-u2f	pam-u2f	fedora	
 pamixer	pamixer	fedora	
+php	php	fedora	
+php-sqlite	php-pdo	fedora	php-pdo provides pdo_sqlite and sqlite3
 pinta	com.github.PintaProject.Pinta	flatpak	Fedora's pinta is old and retired in Rawhide
 pipewire	pipewire	fedora	
 pipewire-alsa	pipewire-alsa	fedora	
@@ -168,7 +199,9 @@ plymouth	plymouth	fedora
 postgresql-libs	libpq	fedora	
 power-profiles-daemon	power-profiles-daemon	fedora	conflicts with tuned-ppd if a Fedora spin installed it
 python-gobject	python3-gobject	fedora	
+python-gpgme	python3-gpg	fedora	
 python-poetry-core	python3-poetry-core	fedora	
+python-protobuf	python3-protobuf	fedora	
 qemu-user-static-binfmt	qemu-user-static	fedora	binfmt registration via systemd-binfmt
 qmk-hid		drop	hardware not supported by this fork (HP ZBook 8 G2i only)
 qrencode	qrencode	fedora	
@@ -179,7 +212,10 @@ qt6-multimedia	qt6-qtmultimedia	fedora
 qt6-svg	qt6-qtsvg	fedora	
 qt6-wayland	qt6-qtwayland	fedora	
 quickshell	quickshell	copr:nett00n/hyprland	Fedora's own quickshell is a stale 0.2.1 snapshot; nett00n ships 0.3.2 rebuilt against Fedora Qt
+quickshell-git	quickshell	copr:nett00n/hyprland	Arch development build; Omadora uses nett00n's release build
+retroarch	retroarch	fedora	
 ripgrep	ripgrep	fedora	
+rlwrap	rlwrap	fedora	
 ruby	ruby	fedora	
 sddm	sddm	fedora	
 signed	signed	ours	Spec: whelanh/omarchy-fedora (MIT)
@@ -192,10 +228,12 @@ superwhisper-bin	superwhisper-bin	ours	Spec: whelanh/omarchy-fedora (MIT)
 sushi	sushi	fedora	
 system-config-printer	system-config-printer	fedora	
 t2fanrd		drop	hardware not supported by this fork (HP ZBook 8 G2i only)
+tailscale	tailscale	fedora	
 tensaku		drop	removed upstream on quattro (omasnap replaced it; migration 1788129995 drops it)
 tesseract	tesseract	fedora	
 tesseract-data-eng	tesseract-langpack-eng	fedora	
 thermald	thermald	fedora	
+tiny-dfr	tiny-dfr	fedora	Apple Touch Bar; not on the ZBook
 tldr	tldr	fedora	
 tmux	tmux	fedora	
 tobi-try	try	ours	Fedora package name is try; Spec: whelanh/omarchy-fedora (MIT)
@@ -210,19 +248,27 @@ ufw	firewalld	fedora	decision: firewalld instead of ufw (see fedora/docs/DECISIO
 ufw-docker		drop	decision: firewalld instead of ufw
 unzip	unzip	fedora	
 usage	usage	mise:usage	installed per user with mise use -g usage
+usbguard	usbguard	fedora	
+usbutils	usbutils	fedora	
 uwsm	uwsm	copr:nett00n/hyprland	verify uwsm-app is shipped (whelanh needed a shim)
 vi	vim-minimal	fedora	provides vi
+vim	vim-enhanced	fedora	
 vpl-gpu-rt	intel-vpl-gpu-rt	fedora	
 vulkan-asahi		drop	hardware not supported by this fork (HP ZBook 8 G2i only)
 vulkan-intel	mesa-vulkan-drivers	fedora	
 vulkan-radeon	mesa-vulkan-drivers	fedora	
 webp-pixbuf-loader	glycin-loaders	fedora	webp-pixbuf-loader is retired; glycin loaders read WebP (verify in Phase 2)
 whois	whois	fedora	
+wine-gecko	mingw32-wine-gecko mingw64-wine-gecko	fedora	
+wine-mono	wine-mono	fedora	
+wine-staging	wine	fedora	Fedora ships one wine build
+winetricks	winetricks	fedora	
 wireless-regdb	wireless-regdb	fedora	
 wireplumber	wireplumber	fedora	
 wl-clipboard	wl-clipboard	fedora	
 woff2-font-awesome	fontawesome-7-free-fonts fontawesome-7-brands-fonts	fedora	F45 ships Font Awesome 7.3.1
 wtype	wtype	fedora	
+xdebug	php-pecl-xdebug3	fedora	
 xdg-desktop-portal-gtk	xdg-desktop-portal-gtk	fedora	
 xdg-desktop-portal-hyprland	xdg-desktop-portal-hyprland	copr:nett00n/hyprland	
 xdg-terminal-exec	xdg-terminal-exec	fedora	
@@ -230,6 +276,7 @@ xournalpp	xournalpp	fedora
 yaru-icon-theme	yaru-icon-theme	fedora	F45 has 25.10 (Arch 26.10); older is acceptable
 yay		drop	Arch-only tooling, no Fedora equivalent needed
 yay-debug		drop	Arch-only tooling, no Fedora equivalent needed
+ydotool	ydotool	fedora	
 yt-dlp	yt-dlp	fedora	
 yt6801-dkms		drop	hardware not supported by this fork (HP ZBook 8 G2i only)
 zbar	zbar	fedora	
