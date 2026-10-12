@@ -37,6 +37,8 @@ Requires:       uwsm
 Requires:       python3-pyxdg
 # omarchy-shell lists keyboard layouts with xkbcli (in Arch's libxkbcommon)
 Requires:       libxkbcommon-utils
+# Arch's Hyprland requires Xwayland; nett00n's does not, and X11 apps need it
+Requires:       xorg-x11-server-Xwayland
 Requires:       sddm
 Requires:       xdg-desktop-portal-hyprland
 # Audio / auth / portal essentials
