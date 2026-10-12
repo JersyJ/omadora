@@ -6,8 +6,9 @@ socket, logs in on that console as the test user, runs each command given and
 prints its output, then powers the VM off. For debugging an install without
 reinstalling.
 
-Usage: fedora/tests/vm-console.py [--root] 'command' ['command' ...]
-  --root  run the commands through sudo
+Usage: fedora/tests/vm-console.py [--root] [--screenshot] 'command' ['command' ...]
+  --root        run the commands through sudo
+  --screenshot  save the screen to fedora/.build/vm/console-screen.png afterwards
 """
 import os
 import re
@@ -19,9 +20,26 @@ import time
 WORK = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", ".build", "vm")
 USER, PASSWORD = "omatest", "omadora-test"
 SOCK = os.path.join(WORK, "console.sock")
+MONITOR = os.path.join(WORK, "console-monitor.sock")
+
+
+def monitor(command):
+    conn = socket.socket(socket.AF_UNIX)
+    conn.connect(MONITOR)
+    time.sleep(0.3)
+    conn.sendall((command + "\n").encode())
+    time.sleep(1.5)
+    conn.close()
 
 
 TRANSCRIPT = open(os.path.join(WORK, "console.log"), "ab")
+
+
+def clean(text):
+    """Drop terminal control sequences (CSI and OSC) and carriage returns."""
+    text = re.sub(r"\x1b\][^\x07\x1b]*(\x07|\x1b\\)", "", text)
+    text = re.sub(r"\x1b\[[0-9;?]*[a-zA-Z]", "", text)
+    return text.replace("\r", "")
 
 
 def read_until(conn, patterns, timeout):
@@ -38,18 +56,22 @@ def read_until(conn, patterns, timeout):
         TRANSCRIPT.write(chunk)
         TRANSCRIPT.flush()
         data += chunk
-        text = data.decode(errors="replace")
+        text = clean(data.decode(errors="replace"))
         for pattern in patterns:
             if re.search(pattern, text):
                 return text
-    return data.decode(errors="replace")
+    return clean(data.decode(errors="replace"))
 
 
 def main():
     args = sys.argv[1:]
-    root = False
-    if args and args[0] == "--root":
-        root, args = True, args[1:]
+    root = screenshot = False
+    while args and args[0] in ("--root", "--screenshot"):
+        if args[0] == "--root":
+            root = True
+        else:
+            screenshot = True
+        args = args[1:]
     if not args:
         sys.exit(__doc__)
 
@@ -63,6 +85,7 @@ def main():
         "-netdev", "user,id=net0", "-device", "virtio-net-pci,netdev=net0",
         "-device", "virtio-vga", "-display", "none",
         "-serial", f"unix:{SOCK},server,nowait",
+        "-monitor", f"unix:{MONITOR},server,nowait",
     ])
     try:
         for _ in range(100):
@@ -91,11 +114,15 @@ def main():
                 line = f"echo {PASSWORD} | sudo -S -p '' bash -c {shlex_quote(command)}"
             conn.sendall(line.encode() + b"; echo __DONE__\r")
             out = read_until(conn, [r"__DONE__\s*OMADORA\$ *$"], 300)
-            out = re.sub(r"\x1b\[[0-9;?]*[a-zA-Z]", "", out).replace("\r", "")
             out = out.rsplit("__DONE__", 1)[0]
             print(f"{'#' if root else '$'} {command}")
             print(out.strip())
             print()
+        if screenshot:
+            ppm = os.path.join(WORK, "console-screen.ppm")
+            monitor(f"screendump {ppm}")
+            subprocess.run(["magick", ppm, os.path.join(WORK, "console-screen.png")], check=False)
+            print(f"Screenshot: {os.path.join(WORK, 'console-screen.png')}")
         conn.sendall(b"echo " + PASSWORD.encode() + b" | sudo -S -p '' systemctl poweroff\r")
         time.sleep(5)
     finally:

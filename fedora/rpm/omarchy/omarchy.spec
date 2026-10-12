@@ -35,6 +35,8 @@ Requires:       quickshell
 Requires:       uwsm
 # uwsm imports the xdg module, but nett00n's uwsm package does not require it
 Requires:       python3-pyxdg
+# omarchy-shell lists keyboard layouts with xkbcli (in Arch's libxkbcommon)
+Requires:       libxkbcommon-utils
 Requires:       sddm
 Requires:       xdg-desktop-portal-hyprland
 # Audio / auth / portal essentials
