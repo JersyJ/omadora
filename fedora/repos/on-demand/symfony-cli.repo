@@ -1,0 +1,8 @@
+[symfony-stable]
+name=Symfony CLI
+baseurl=https://dl.cloudsmith.io/public/symfony/stable/rpm/fedora/$releasever/$basearch
+enabled=1
+gpgcheck=1
+gpgkey=https://dl.cloudsmith.io/public/symfony/stable/gpg.99CEF8A62216B73D.key
+includepkgs=symfony-cli
+repo_gpgcheck=1

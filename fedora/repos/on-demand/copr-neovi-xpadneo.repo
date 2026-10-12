@@ -1,0 +1,10 @@
+[copr:copr.fedorainfracloud.org:neovi:xpadneo]
+name=Copr repo for xpadneo owned by neovi
+baseurl=https://download.copr.fedorainfracloud.org/results/neovi/xpadneo/fedora-$releasever-$basearch/
+type=rpm-md
+gpgcheck=1
+gpgkey=https://download.copr.fedorainfracloud.org/results/neovi/xpadneo/pubkey.gpg
+repo_gpgcheck=0
+enabled=1
+enabled_metadata=1
+includepkgs=xpadneo akmod-xpadneo kmod-xpadneo*

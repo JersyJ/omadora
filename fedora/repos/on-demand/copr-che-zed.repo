@@ -1,0 +1,10 @@
+[copr:copr.fedorainfracloud.org:che:zed]
+name=Copr repo for zed owned by che
+baseurl=https://download.copr.fedorainfracloud.org/results/che/zed/fedora-$releasever-$basearch/
+type=rpm-md
+gpgcheck=1
+gpgkey=https://download.copr.fedorainfracloud.org/results/che/zed/pubkey.gpg
+repo_gpgcheck=0
+enabled=1
+enabled_metadata=1
+includepkgs=zed

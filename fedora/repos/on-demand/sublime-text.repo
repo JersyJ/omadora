@@ -1,0 +1,7 @@
+[sublime-text]
+name=Sublime Text
+baseurl=https://download.sublimetext.com/rpm/stable/$basearch
+enabled=1
+gpgcheck=1
+gpgkey=https://download.sublimetext.com/sublimehq-rpm-pub.gpg
+includepkgs=sublime-text

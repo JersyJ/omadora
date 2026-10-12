@@ -2,23 +2,24 @@
 # release packages own its .repo files, so the limit is a dnf5 override,
 # installed in /etc/dnf/repos.override.d/.
 # Free: full ffmpeg (H.264/HEVC encode) and its codec libraries.
-# Nonfree: Intel's full media driver, the NVIDIA open-module stack (akmod,
-# signed with a MOK for Secure Boot) and fdk-aac.
+# Free, on demand: v4l2loopback. Nonfree: Intel's full media driver, the NVIDIA
+# open-module stack (akmod, signed with a MOK for Secure Boot) and fdk-aac;
+# Steam on demand.
 
 [rpmfusion-free]
-includepkgs=rpmfusion-free-* ffmpeg ffmpeg-libs libavdevice vvenc-libs x264-libs x265-libs
+includepkgs=rpmfusion-free-* ffmpeg ffmpeg-libs libavdevice vvenc-libs x264-libs x265-libs v4l2loopback akmod-v4l2loopback kmod-v4l2loopback*
 
 [rpmfusion-free-updates]
-includepkgs=rpmfusion-free-* ffmpeg ffmpeg-libs libavdevice vvenc-libs x264-libs x265-libs
+includepkgs=rpmfusion-free-* ffmpeg ffmpeg-libs libavdevice vvenc-libs x264-libs x265-libs v4l2loopback akmod-v4l2loopback kmod-v4l2loopback*
 
 [rpmfusion-free-updates-testing]
-includepkgs=rpmfusion-free-* ffmpeg ffmpeg-libs libavdevice vvenc-libs x264-libs x265-libs
+includepkgs=rpmfusion-free-* ffmpeg ffmpeg-libs libavdevice vvenc-libs x264-libs x265-libs v4l2loopback akmod-v4l2loopback kmod-v4l2loopback*
 
 [rpmfusion-nonfree]
-includepkgs=rpmfusion-nonfree-* intel-media-driver fdk-aac akmod-nvidia nvidia-modprobe nvidia-settings nvidia-persistenced xorg-x11-drv-nvidia*
+includepkgs=rpmfusion-nonfree-* intel-media-driver fdk-aac akmod-nvidia nvidia-modprobe nvidia-settings nvidia-persistenced xorg-x11-drv-nvidia* steam
 
 [rpmfusion-nonfree-updates]
-includepkgs=rpmfusion-nonfree-* intel-media-driver fdk-aac akmod-nvidia nvidia-modprobe nvidia-settings nvidia-persistenced xorg-x11-drv-nvidia*
+includepkgs=rpmfusion-nonfree-* intel-media-driver fdk-aac akmod-nvidia nvidia-modprobe nvidia-settings nvidia-persistenced xorg-x11-drv-nvidia* steam
 
 [rpmfusion-nonfree-updates-testing]
-includepkgs=rpmfusion-nonfree-* intel-media-driver fdk-aac akmod-nvidia nvidia-modprobe nvidia-settings nvidia-persistenced xorg-x11-drv-nvidia*
+includepkgs=rpmfusion-nonfree-* intel-media-driver fdk-aac akmod-nvidia nvidia-modprobe nvidia-settings nvidia-persistenced xorg-x11-drv-nvidia* steam

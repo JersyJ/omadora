@@ -1,0 +1,7 @@
+[dropbox]
+name=Dropbox
+baseurl=https://linux.dropbox.com/fedora/$releasever/
+enabled=1
+gpgcheck=1
+gpgkey=https://linux.dropbox.com/fedora/rpm-public-key.asc
+includepkgs=nautilus-dropbox
