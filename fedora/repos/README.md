@@ -8,6 +8,8 @@ Every package Omadora installs comes from Fedora, from a repository in this dire
 | `nett00n-hyprland.repo` | `/etc/yum.repos.d/` | The Hyprland stack and Quickshell |
 | `coprs.repo` | `/etc/yum.repos.d/` | Single-app COPRs: lazygit, lazydocker, gpu-screen-recorder, moonlight-qt |
 | `mise.repo` | `/etc/yum.repos.d/` | mise's vendor repository |
+| `microsoft.repo`, `microsoft-edge.repo` | `/etc/yum.repos.d/` | Intune Portal, its identity broker, Defender for Endpoint and Edge, which company compliance requires (`docs/INTUNE.md`) |
+| `copr-dwrobel-webkit2gtk4.0.repo` | `/etc/yum.repos.d/` | WebKitGTK 4.0, which Intune Portal needs and Fedora dropped after 42 |
 | `repos.override.d/50-omadora-rpmfusion.repo` | `/etc/dnf/repos.override.d/` | Limits for RPM Fusion, whose own release packages own its repo files |
 | `versionlock.toml` | `/etc/dnf/versionlock.toml` | Hyprland held at 0.56.2, Quickshell at 0.3 |
 | `on-demand/*.repo` | `/etc/yum.repos.d/`, when an app needs it | Vendor repositories and app COPRs for Omarchy's optional installers; see `on-demand/README.md` |

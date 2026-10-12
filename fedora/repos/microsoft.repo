@@ -1,0 +1,9 @@
+# Microsoft's RHEL 9 repository: Intune Portal with its identity broker, and
+# Defender for Endpoint, which company compliance requires (fedora/docs/INTUNE.md).
+[packages-microsoft-com-prod]
+name=Microsoft RHEL 9 production
+baseurl=https://packages.microsoft.com/rhel/9/prod/
+enabled=1
+gpgcheck=1
+gpgkey=https://packages.microsoft.com/keys/microsoft.asc
+includepkgs=intune-portal microsoft-identity-broker microsoft-identity-diagnostics mdatp

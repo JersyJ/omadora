@@ -1,0 +1,15 @@
+# Fedora packages Omadora installs beyond upstream's package lists, one per
+# line with the reason. fedora/bin/kickstart installs them and
+# fedora/tests/resolve.sh resolves them with the base set.
+
+# Arch bundles these into packages Omarchy already has; Fedora splits them out.
+systemd-resolved              # Arch's systemd includes resolved; enable-services.sh enables it
+xdg-user-dirs                 # omarchy-provision-user runs xdg-user-dirs-update
+python3-pyxdg                 # uwsm imports the xdg module; nett00n's uwsm does not require it
+xorg-x11-server-Xwayland      # Arch's Hyprland requires Xwayland; X11 apps (Intune Portal) need it
+libxkbcommon-utils            # xkbcli, which omarchy-shell runs for keyboard layouts
+
+# Company compliance (fedora/docs/INTUNE.md).
+microsoft-edge-stable         # checked by Intune; Office, Outlook and Teams run as Edge web apps
+mdatp                         # Defender for Endpoint, checked by Intune
+intune-portal                 # enrollment and compliance checks

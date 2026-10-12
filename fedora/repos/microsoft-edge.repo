@@ -1,3 +1,5 @@
+# Microsoft Edge: company compliance requires it (fedora/docs/INTUNE.md), so it
+# is a base repository rather than an on-demand one.
 [microsoft-edge]
 name=Microsoft Edge
 baseurl=https://packages.microsoft.com/yumrepos/edge

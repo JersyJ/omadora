@@ -4,8 +4,8 @@
 #
 # Run as root in a disposable Fedora container (CI uses fedora:45). Installs
 # the repo files and version locks from fedora/repos, adds RPM Fusion, then asks
-# dnf to install every package upstream's x86_64 lists map to, without
-# installing anything. Fails when a package is missing or dependencies don't
+# dnf to install every package upstream's x86_64 lists map to, plus the ones
+# Omadora adds (fedora/packages/extra.txt), without installing anything. Fails when a package is missing or dependencies don't
 # resolve, which also catches an includepkgs list that is too narrow.
 #
 # With --optional, it also adds the on-demand repositories (fedora/repos/
@@ -84,6 +84,11 @@ done < <(awk -F'\t' -v optional="$optional" '
   NR == FNR { listed[$1] = 1; next }
   /^#/ || $1 == "arch_name" || (optional ? ($1 in listed) : !($1 in listed)) || $3 ~ /^(drop|todo|flatpak|mise:)/ { next }
   { n = split($2, names, " "); for (i = 1; i <= n; i++) print $3, names[i] }' <(upstream_package_names) fedora/packages/map.tsv)
+
+# Base mode also resolves what Omadora adds beyond upstream's lists.
+if (( ! optional )); then
+  mapfile -t -O "${#packages[@]}" packages < <(sed -e 's/[[:space:]]*#.*$//' -e '/^[[:space:]]*$/d' fedora/packages/extra.txt)
+fi
 
 (( ${#packages[@]} > 0 )) || die "no packages selected"
 mapfile -t packages < <(printf '%s\n' "${packages[@]}" | sort -u)

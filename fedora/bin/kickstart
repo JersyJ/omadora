@@ -90,6 +90,11 @@ rpmfusion_lines() {
   done
 }
 
+# Fedora packages Omadora adds beyond upstream's lists (fedora/packages/extra.txt).
+extra_lines() {
+  sed -e 's/[[:space:]]*#.*$//' -e '/^[[:space:]]*$/d' fedora/packages/extra.txt
+}
+
 # Fedora package names for upstream's base and x86_64-only lists.
 package_lines() {
   local list
@@ -137,14 +142,7 @@ user --name=$user --groups=wheel$( [[ -n $password_hash ]] && echo " --iscrypted
 
 %packages
 @core
-# Arch's systemd includes resolved; Fedora ships it separately, and
-# install/config/enable-services.sh enables it.
-systemd-resolved
-# omarchy-provision-user runs xdg-user-dirs-update; Arch pulls it in through
-# other packages, Fedora's minimal install does not.
-xdg-user-dirs
-# uwsm imports the xdg module; nett00n's uwsm package does not require it.
-python3-pyxdg
+$(extra_lines)
 omadora-repos
 omarchy-settings
 omarchy
