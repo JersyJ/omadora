@@ -174,9 +174,12 @@ trap 'echo "Omadora setup failed; the last lines of \$OMARCHY_INSTALL_LOG_FILE:"
 # Omarchy's system setup, as the ISO runs it in the target chroot.
 omarchy-apply-system --install-user $user --first-install
 
-# Omarchy's user setup, as the new user.
+# Omarchy's user setup, as the new user. The setup context is the one
+# upstream's first-boot owner setup uses: Node.js comes from the network (the
+# ISO context expects a tarball the ISO bundles), and the theme is applied
+# without a display, as in the ISO.
 runuser -u $user -- env HOME=/home/$user USER=$user OMARCHY_INSTALL_LOG_FILE=\$OMARCHY_INSTALL_LOG_FILE \\
-  omarchy-provision-user --first-install
+  OMARCHY_SETUP_CONTEXT=provision-owner omarchy-provision-user --first-install
 
 # Omarchy's boot splash lives in the initramfs.
 plymouth-set-default-theme omarchy
