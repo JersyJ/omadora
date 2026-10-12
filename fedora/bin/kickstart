@@ -121,6 +121,8 @@ timezone $timezone --utc
 network --bootproto=dhcp --activate
 selinux --enforcing
 firewall --enabled
+# Fedora enables sshd; Omarchy leaves it off until omarchy-setup-security-sshd.
+services --disabled=sshd
 firstboot --disable
 $( (( reboot )) && echo "reboot" || echo "# no reboot: inspect the install, then reboot by hand" )
 
