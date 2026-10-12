@@ -116,6 +116,7 @@ shopt -u nullglob
 # to date (it still says 4.0.0.alpha at v4.0.4), so write the RPM version.
 install -D -m 644 "$FEDORA_DIR/packages/map.tsv" "$out/fedora/packages/map.tsv"
 cp -a "$FEDORA_DIR/repos" "$out/fedora/repos"
+install -m 644 "$FEDORA_DIR/lib/runtime/pkg.sh" "$out/fedora/pkg.sh"
 omadora_version >"$out/version"
 cat >"$out/fedora/build-info" <<INFO
 upstream_ref=$UPSTREAM_REF

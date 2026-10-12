@@ -87,6 +87,7 @@ install -m 0644 version "$share/version"
 install -d "$share/fedora/packages"
 install -m 0644 fedora/packages/map.tsv "$share/fedora/packages/map.tsv"
 install -m 0644 fedora/build-info "$share/fedora/build-info"
+install -m 0644 fedora/pkg.sh "$share/fedora/pkg.sh"
 
 # New users are already on this layout, so their migration markers are seeded.
 install -d %{buildroot}%{_sysconfdir}/skel/.local/state/omarchy/migrations
