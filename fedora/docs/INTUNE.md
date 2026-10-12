@@ -13,8 +13,8 @@ Intune checks these continuously; a failing one makes the device non-compliant a
 | Supported OS: Fedora newer than 42, x86_64 Intel or AMD | Fedora 45 on the ZBook (Intel) | None. Intune is not for shared machines: one user per device |
 | Secure Boot enabled, no exceptions; Secure Boot in User Mode; third-party UEFI certificates allowed | Boots with Secure Boot on through Fedora's shim (tested in a VM with Microsoft's keys) | On the ZBook: confirm HP's "Enable MS UEFI CA key" setting is on (`HARDWARE.md`) |
 | Disk encryption at OS level: the whole disk, or the OS and `/home`; `/boot` and `/boot/efi` are ignored | The kickstart encrypts the btrfs with LUKS2 | None (test VMs alone run unencrypted) |
-| Microsoft Edge installed | Edge is an on-demand vendor repository (`repos/on-demand/microsoft-edge.repo`) | Move Edge into the base install |
-| Microsoft Defender for Endpoint (`mdatp`): installed, healthy, definitions up to date, registered to the organisation, real-time protection on | Not installed | Install `mdatp`; Intune configures and registers it |
+| Microsoft Edge installed | In the base install (`packages/extra.txt`, `repos/microsoft-edge.repo`) | None |
+| Microsoft Defender for Endpoint (`mdatp`): installed, healthy, definitions up to date, registered to the organisation, real-time protection on | `mdatp` in the base install | Intune configures and registers it; verify health on the first enrolled pilot device |
 | Screen lock settings | Omarchy locks with its Quickshell lock screen (`omarchy-apply-lock`) | Unknown how Intune reads this setting; verify on the first enrolled pilot device |
 | Local password: at least 12 characters, one digit, one lowercase and one uppercase letter (no MFA on local accounts) | Not enforced | Ship a `pwquality.conf.d` drop-in: `minlen = 12`, `dcredit = -1`, `lcredit = -1`, `ucredit = -1` |
 | Automatic security updates; critical security updates applied daily | No automatic updates | Phase 3 update pipeline: automatic security updates that respect the version locks |
@@ -26,12 +26,18 @@ Intune checks these continuously; a failing one makes the device non-compliant a
 
 | Package | Repository | Notes |
 | --- | --- | --- |
-| `intune-portal` (Company Portal, pulls `microsoft-identity-broker`) | Microsoft RHEL 9 prod: `https://packages.microsoft.com/rhel/9/prod/config.repo` | Needs `libwebkit2gtk-4.0.so.37`, which Fedora dropped after 42 |
+| `intune-portal` (Company Portal, pulls `microsoft-identity-broker`) | Microsoft RHEL 9 prod (`repos/microsoft.repo`) | Needs `libwebkit2gtk-4.0.so.37`, `libjavascriptcoregtk-4.0.so.18` and libsoup 2, which Fedora 43 and later lack WebKit for. Fedora 45 still ships `libsoup` 2.74 |
 | `mdatp` (Defender for Endpoint) | Microsoft RHEL 9 prod | Configured by Intune |
-| `microsoft-edge-stable` | Microsoft Edge: `https://packages.microsoft.com/yumrepos/edge/config.repo` | Already in `repos/on-demand` |
-| `temurin-11-jdk` | Adoptium/Temurin (`adoptium-temurin-java-repository` package from Fedora) | Intune Portal and the identity broker need Java 11, which Fedora 42 and later no longer ship. The guide links `/usr/lib/jvm/jre-11-openjdk` to `/usr/lib/jvm/temurin-11-jdk` |
-| `webkit2gtk4.0`, `libicu76` | Fedora 42's repositories | The guide's documented workaround for Fedora 43 and Rawhide (45), which lack WebKitGTK 4.0. Needs a decision: taking packages from an older Fedora release |
+| `microsoft-edge-stable` | Microsoft Edge (`repos/microsoft-edge.repo`) | |
+| `webkit2gtk4.0`, `javascriptcoregtk4.0` | COPR `dwrobel/webkit2gtk4.0` (`repos/copr-dwrobel-webkit2gtk4.0.repo`), built for Fedora 43, 44, 45 and Rawhide | Replaces the guide's workaround of taking `webkit2gtk4.0` and `libicu76` from end-of-life Fedora 42 |
+| `xorg-x11-server-Xwayland` | Fedora | Intune Portal is an X11 (GTK 3) app; without Xwayland it panics with "Unable to initialize GTK+". The omarchy package requires it |
 | `libsecret` (`secret-tool`) | Fedora | Troubleshooting only |
+
+No Java 11 is needed. The current identity broker (3.x) is native code; only `microsoft-identity-diagnostics` asks for a JRE, and accepts Fedora's `java-25-openjdk` (`jre >= 17`). The guide's Temurin 11 steps date from the Java broker.
+
+Verified 2026-10-12 in the test VM (Fedora 45): `intune-portal`, `mdatp` and `microsoft-edge-stable` resolve together from these repositories, and Intune Portal starts and shows its window in the Hyprland session. Enrollment itself is untested until the pilot.
+
+Risk: the COPR's WebKitGTK 4.0 (2.50.0) lags upstream WebKitGTK (2.54.1), so it misses security fixes, and its maintainer may stop. Intune Portal only renders Microsoft's sign-in pages in it. If the COPR goes stale, rebuild it in Omadora's COPR.
 
 All of these repositories get `includepkgs` limits like every other third-party source (`repos/README.md`). The guide's own commands also add whole repositories without limits; Omadora will not.
 
@@ -56,4 +62,4 @@ Office, Outlook and Teams are used as Edge web apps (PWAs). Native OneDrive sync
 | Login shell | Root policies are not deployed when the user's shell is zsh | Omarchy uses bash |
 | Passwordless sudo | The guide discourages passwordless sudo for daily use | Omarchy's narrow NOPASSWD rules and temporary grants stay (decided 2026-10-12) |
 | Slack | The guide describes the Slack RPM | Not used: the company discontinued Slack |
-| Java | Company guidelines require OpenJDK, not Oracle Java | Temurin (OpenJDK) as above |
+| Java | Company guidelines require OpenJDK, not Oracle Java | No Java in the base install; Fedora's OpenJDK if `microsoft-identity-diagnostics` is ever needed |
