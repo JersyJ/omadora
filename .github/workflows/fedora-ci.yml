@@ -47,3 +47,19 @@ jobs:
         run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
           fedora/tests/resolve.sh --optional
+
+  rpm:
+    # Build omarchy, omarchy-settings and omadora-repos the way COPR does, and
+    # install them in a throwaway Fedora container.
+    runs-on: ubuntu-latest
+    container: registry.fedoraproject.org/fedora:45
+    steps:
+      - name: Install tools
+        run: dnf -y -q install git-core
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Build and install
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          fedora/tests/rpm.sh
