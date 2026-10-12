@@ -89,7 +89,7 @@ git	git	fedora
 gliff	gliff	ours	Spec: whelanh/omarchy-fedora (MIT)
 gnome-calculator	gnome-calculator	fedora	
 gnome-disk-utility	gnome-disk-utility	fedora	
-gnome-keyring	gnome-keyring	fedora	
+gnome-keyring	gnome-keyring gnome-keyring-pam	fedora	Fedora splits pam_gnome_keyring.so out; SDDM unlocks the login keyring and passwd updates its password with it
 gnome-themes-extra		drop	retired in Fedora; GTK3 ships Adwaita-dark built in (verify in Phase 2)
 google-chrome	google-chrome-stable	repo:google-chrome	
 gpu-screen-recorder	gpu-screen-recorder	copr:arabianq/gpu-screen-recorder	
