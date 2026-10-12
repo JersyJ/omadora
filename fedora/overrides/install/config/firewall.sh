@@ -16,12 +16,20 @@ zone=public
 if firewall-cmd --state >/dev/null 2>&1; then
   running=1
   firewall=(firewall-cmd --permanent)
-  # The default zone is persistent by itself; it refuses --permanent.
-  firewall-cmd --set-default-zone="$zone" >/dev/null
 else
   running=0
   firewall=(firewall-offline-cmd)
-  firewall-offline-cmd --set-default-zone="$zone" >/dev/null
+fi
+
+# firewalld treats a change that is already in place as an error
+# (ZONE_ALREADY_SET, ALREADY_ENABLED), so every change is made only when needed.
+if [[ $("${firewall[@]}" --get-default-zone) != "$zone" ]]; then
+  if (( running )); then
+    # The default zone is persistent by itself; it refuses --permanent.
+    firewall-cmd --set-default-zone="$zone" >/dev/null
+  else
+    firewall-offline-cmd --set-default-zone="$zone" >/dev/null
+  fi
 fi
 
 for service in $("${firewall[@]}" --zone="$zone" --list-services); do
@@ -31,12 +39,17 @@ for service in $("${firewall[@]}" --zone="$zone" --list-services); do
   esac
 done
 for service in dhcpv6-client mdns; do
-  "${firewall[@]}" --zone="$zone" --add-service="$service" >/dev/null
+  if ! "${firewall[@]}" --zone="$zone" --query-service="$service" >/dev/null 2>&1; then
+    "${firewall[@]}" --zone="$zone" --add-service="$service" >/dev/null
+  fi
 done
 
 # LocalSend.
-"${firewall[@]}" --zone="$zone" --add-port=53317/tcp >/dev/null
-"${firewall[@]}" --zone="$zone" --add-port=53317/udp >/dev/null
+for port in 53317/tcp 53317/udp; do
+  if ! "${firewall[@]}" --zone="$zone" --query-port="$port" >/dev/null 2>&1; then
+    "${firewall[@]}" --zone="$zone" --add-port="$port" >/dev/null
+  fi
+done
 
 if (( running )); then
   firewall-cmd --reload >/dev/null
