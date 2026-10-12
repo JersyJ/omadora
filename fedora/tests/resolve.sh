@@ -31,18 +31,18 @@ dnf versionlock list
 # Fedora package names for everything in upstream's lists, by source.
 packages=()
 skipped=()
-while IFS=$'\t' read -r _ fedora_names source _; do
-  case $source in
-    drop | todo | flatpak | mise:*) continue ;;
-  esac
-  for name in $fedora_names; do
-    if [[ $source == "ours" && ! -d fedora/rpm/$name ]]; then
-      skipped+=("$name")
-    else
-      packages+=("$name")
-    fi
-  done
-done < <(awk -F'\t' 'NR == FNR { listed[$1] = 1; next } !/^#/ && ($1 in listed)' <(upstream_package_names) fedora/packages/map.tsv)
+# awk does the selection: bash's read would merge the empty columns of
+# dropped packages, because tab counts as whitespace.
+while read -r source name; do
+  if [[ $source == "ours" && ! -d fedora/rpm/$name ]]; then
+    skipped+=("$name")
+  else
+    packages+=("$name")
+  fi
+done < <(awk -F'\t' '
+  NR == FNR { listed[$1] = 1; next }
+  /^#/ || !($1 in listed) || $3 ~ /^(drop|todo|flatpak|mise:)/ { next }
+  { n = split($2, names, " "); for (i = 1; i <= n; i++) print $3, names[i] }' <(upstream_package_names) fedora/packages/map.tsv)
 
 (( ${#packages[@]} > 0 )) || die "no packages selected"
 mapfile -t packages < <(printf '%s\n' "${packages[@]}" | sort -u)
