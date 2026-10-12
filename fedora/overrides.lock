@@ -24,4 +24,5 @@ install/config/theme-system.sh	1527e17e7b1e5d5d904e2f6c4e8d3bb169165d74
 install/hardware/all.sh	4f24cdcb5c7c8dbd521909cecb9568aa95a87e16
 install/hardware/intel/fred.sh	af8d43bff553a2131e5a6788c1202a205a8fe8a4
 install/login/sddm.sh	250ce80e1f7e105e02f86e4a0f30a10b6e68bf18
+install/post-install/pacman.sh	4964fe9712e471b79ca25f76884fd20172aa2dde
 install/user/default-keyring.sh	63f70798c0a426a6dfe2ab871846850d8b76aa38
