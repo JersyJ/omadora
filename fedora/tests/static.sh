@@ -48,7 +48,7 @@ listed_packages_are_mapped() {
   local missing todo
 
   missing=$(comm -23 <(upstream_package_names) <(mapped_package_names))
-  todo=$(grep -v '^#' fedora/packages/map.tsv | awk -F'\t' '$3 == "todo" { print $1 }' | tr '\n' ' ')
+  todo=$(grep -v '^#' fedora/packages/map.tsv | awk -F'\t' '$3 == "todo" { print $1 }' | sort | comm -12 - <(upstream_package_names) | tr '\n' ' ')
   [[ -z $todo ]] || echo "  still todo: $todo"
   if [[ -n $missing ]]; then
     echo "  unmapped packages from install/*.packages:"
@@ -105,7 +105,7 @@ repos_cover_map() {
       section = $3
       if (section == "ours") section = "copr:jersyj/omadora"
       if (section ~ /^copr:/) { split(substr(section, 6), op, "/"); section = "copr:copr.fedorainfracloud.org:" op[1] ":" op[2] }
-      if (section ~ /^repo:/) section = substr(section, 6) "-repo"
+      if (section ~ /^repo:/) section = substr(section, 6)
       n = split($2, names, " ")
       for (i = 1; i <= n; i++) {
         name = names[i]
@@ -115,7 +115,7 @@ repos_cover_map() {
         for (j = 1; j <= m; j++) if (name ~ patterns[j]) ok = 1
         if (!ok) print $1 ": " name " is not in includepkgs of [" section "]"
       }
-    }' <(cat fedora/repos/*.repo fedora/repos/repos.override.d/*.repo) fedora/packages/map.tsv)
+    }' <(cat fedora/repos/*.repo fedora/repos/repos.override.d/*.repo fedora/repos/on-demand/*.repo) fedora/packages/map.tsv)
   if [[ -n $bad ]]; then
     sed 's/^/  /' <<<"$bad"
     return 1

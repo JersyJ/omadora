@@ -8,14 +8,25 @@
 # installing anything. Fails when a package is missing or dependencies don't
 # resolve, which also catches an includepkgs list that is too narrow.
 #
+# With --optional, it also adds the on-demand repositories (fedora/repos/
+# on-demand) and resolves every package Omarchy's optional installers map to,
+# instead of the base set.
+#
 # Packages for our COPR that have no recipe in fedora/rpm yet are skipped and
 # listed; they can't resolve before they are built.
+#
+# Usage: fedora/tests/resolve.sh [--optional]
 
 set -euo pipefail
 source "$(dirname "$(realpath "$0")")/../lib/common.sh"
 
 cd "$FEDORA_ROOT"
 load_lock
+
+optional=0
+if [[ ${1:-} == "--optional" ]]; then
+  optional=1
+fi
 
 (( EUID == 0 )) || die "run as root in a disposable Fedora container"
 [[ $(rpm -E %fedora) == "$FEDORA_RELEASE" ]] || die "this is Fedora $(rpm -E %fedora); upstream.lock targets $FEDORA_RELEASE"
@@ -27,6 +38,9 @@ dnf -y -q install \
   "https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$FEDORA_RELEASE.noarch.rpm" \
   "https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$FEDORA_RELEASE.noarch.rpm"
 install -m 0644 -D -t /etc/dnf/repos.override.d fedora/repos/repos.override.d/*.repo
+if (( optional )); then
+  install -m 0644 fedora/repos/on-demand/*.repo /etc/yum.repos.d/
+fi
 dnf versionlock list
 
 # includepkgs must actually take effect: every package a limited repository
@@ -34,7 +48,7 @@ dnf versionlock list
 # otherwise leave a repository unrestricted without any error.
 info "Checking repository limits"
 mapfile -t limited < <(awk -F= '/^\[/ { section = substr($0, 2, length($0) - 2) } /^includepkgs=/ { print section "=" $2 }' \
-  fedora/repos/*.repo fedora/repos/repos.override.d/*.repo)
+  fedora/repos/*.repo fedora/repos/repos.override.d/*.repo fedora/repos/on-demand/*.repo)
 for entry in "${limited[@]}"; do
   repo=${entry%%=*}
   read -ra patterns <<<"${entry#*=}"
@@ -66,9 +80,9 @@ while read -r source name; do
   else
     packages+=("$name")
   fi
-done < <(awk -F'\t' '
+done < <(awk -F'\t' -v optional="$optional" '
   NR == FNR { listed[$1] = 1; next }
-  /^#/ || !($1 in listed) || $3 ~ /^(drop|todo|flatpak|mise:)/ { next }
+  /^#/ || $1 == "arch_name" || (optional ? ($1 in listed) : !($1 in listed)) || $3 ~ /^(drop|todo|flatpak|mise:)/ { next }
   { n = split($2, names, " "); for (i = 1; i <= n; i++) print $3, names[i] }' <(upstream_package_names) fedora/packages/map.tsv)
 
 (( ${#packages[@]} > 0 )) || die "no packages selected"

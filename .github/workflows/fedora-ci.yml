@@ -31,3 +31,19 @@ jobs:
         run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
           fedora/tests/resolve.sh
+
+  resolve-optional:
+    # The same for the packages Omarchy's optional installers map to, with the
+    # on-demand vendor repositories and COPRs added.
+    runs-on: ubuntu-latest
+    container: registry.fedoraproject.org/fedora:45
+    steps:
+      - name: Install tools
+        run: dnf -y -q install git-core
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 1
+      - name: Resolve the optional package set
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          fedora/tests/resolve.sh --optional
