@@ -44,6 +44,10 @@ rm -rf "$pristine_tree"
 mkdir -p "$pristine_tree"
 git archive "$UPSTREAM_COMMIT" | tar -x -C "$pristine_tree"
 
+# Test files for hardware Omadora does not support; neither tree runs them.
+skip_file="$FEDORA_DIR/tests/upstream-skipped.txt"
+mapfile -t skipped < <(grep -vE '^\s*(#|$)' "$skip_file" | awk '{ print $1 }' | sort -u)
+
 # Failed test files of one tree, one per line; the full output stays in
 # $build/upstream-tests-<name>.log for triage. Runs each file as test/shell
 # does, but under a time limit: a hung file counts as failed and is named on
@@ -55,6 +59,7 @@ failures() {
   for test in "$tree"/test/shell.d/*-test.sh "$tree/test/cli"; do
     name=${test#"$tree"/}
     [[ $name == "test/shell.d/base-test.sh" ]] && continue
+    [[ " ${skipped[*]} " == *" $name "* ]] && continue
     printf '==> %s\n' "$name" >>"$log"
     status=0
     (cd "$tree" && timeout -k 10 300 bash "$name") >>"$log" 2>&1 </dev/null || status=$?
@@ -80,8 +85,16 @@ unexpected=$(comm -23 <(printf '%s\n' "${failed[@]}" | sed '/^$/d') <(printf '%s
 # pristine upstream here proves nothing either way).
 fixed=$(comm -13 <(printf '%s\n' "${fedora[@]}" | sed '/^$/d') <(printf '%s\n' "${expected[@]}" | sed '/^$/d'))
 
-echo "  pristine upstream: ${#baseline[@]} failing files; Fedora tree: ${#fedora[@]}; Fedora only: ${#failed[@]}; listed: ${#expected[@]}"
+# Skipped files upstream has since renamed or removed.
+gone=$(for file in "${skipped[@]}"; do [[ -e $pristine_tree/$file ]] || echo "$file"; done)
+
+echo "  pristine upstream: ${#baseline[@]} failing files; Fedora tree: ${#fedora[@]}; Fedora only: ${#failed[@]}; listed: ${#expected[@]}; skipped: ${#skipped[@]}"
 status=0
+if [[ -n $gone ]]; then
+  echo "Skipped but no longer in upstream (remove them from $skip_file):"
+  printf '  %s\n' $gone
+  status=1
+fi
 if [[ -n $unexpected ]]; then
   echo "Failing only on the Fedora tree, and not listed:"
   for file in $unexpected; do

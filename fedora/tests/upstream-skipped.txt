@@ -1,0 +1,12 @@
+# Upstream test files that test hardware Omadora does not support, one per
+# line: the path, then the hardware. fedora/tests/upstream-tests.sh does not
+# run them on either tree. Omadora supports one laptop, the HP ZBook 8 G2i 14"
+# with Intel graphics (docs/HARDWARE.md); a test of anything else belongs here,
+# while a test of code Omadora replaces belongs in upstream-expected-failures.txt.
+
+test/shell.d/brcmfmac-supplicant-test.sh              Broadcom Wi-Fi in Intel Macs
+test/shell.d/mkinitcpio-apple-drop-ins-test.sh        Apple Silicon Macs
+test/shell.d/nvidia-kms-hook-test.sh                  NVIDIA graphics
+test/shell.d/xps13-ptl-firmware-test.sh               Dell XPS 13
+test/shell.d/xps13-sidecar-amps-test.sh               Dell XPS 13
+test/shell.d/yt6801-driver-test.sh                    Motorcomm yt6801 Ethernet

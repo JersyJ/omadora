@@ -1,6 +1,7 @@
 # Upstream test files expected to fail on the assembled Fedora tree, one per
 # line: the path, then why. fedora/tests/upstream-tests.sh fails on any other
-# failure, and on a listed file that passes again.
+# failure, and on a listed file that passes again. Tests of hardware Omadora
+# does not support are not run at all (upstream-skipped.txt).
 
 # Firewall: firewalld replaces ufw (DECISIONS.md); these assert ufw commands.
 test/shell.d/firewall-config-test.sh                  ufw rules in install/config/firewall.sh
@@ -20,8 +21,6 @@ test/shell.d/channel-sudo-boundary-test.sh            pacman channels (Phase 3)
 # Boot: GRUB and dracut replace Limine and mkinitcpio.
 test/shell.d/limine-defaults-test.sh                  default/limine is excluded
 test/shell.d/mkinitcpio-hooks-test.sh                 etc/mkinitcpio.conf.d is excluded
-test/shell.d/mkinitcpio-apple-drop-ins-test.sh        etc/mkinitcpio.conf.d is excluded
-test/shell.d/nvidia-kms-hook-test.sh                  mkinitcpio hooks; and no NVIDIA support
 test/shell.d/hyprland-keyboard-layout-test.sh         reads etc/mkinitcpio.conf.d, which is excluded
 test/shell.d/settings-runtime-profile-test.sh         the profile lists default/limine, which is excluded
 test/shell.d/plymouth-set-test.sh                     expects mkinitcpio; Fedora rebuilds with dracut
@@ -60,12 +59,6 @@ test/shell.d/setup-form-test.sh                       install/provisioning is ex
 test/shell.d/typing-setup-test.sh                     install/provisioning is excluded
 test/shell.d/provision-owner-keyboard-test.sh         install/provisioning is excluded
 test/shell.d/image-deferred-hardware-test.sh          hardware steps differ (install/hardware/all.sh override)
-
-# Hardware for other laptops, left out of install/hardware/all.sh.
-test/shell.d/brcmfmac-supplicant-test.sh              Apple Broadcom Wi-Fi
-test/shell.d/xps13-ptl-firmware-test.sh               Dell XPS 13
-test/shell.d/xps13-sidecar-amps-test.sh               Dell XPS 13
-test/shell.d/yt6801-driver-test.sh                    Motorcomm yt6801 Ethernet
 
 # Menu: the guards answer from Omadora's package layer ($OMARCHY_PATH/fedora/pkg.sh);
 # the test runs them without OMARCHY_PATH and with pacman stubs.
