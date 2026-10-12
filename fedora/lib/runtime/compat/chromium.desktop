@@ -1,0 +1,15 @@
+# Omadora compatibility entry: Omarchy names Chromium's desktop entry
+# chromium.desktop (default browser, MIME defaults, web apps); Fedora's is
+# chromium-browser.desktop. Hidden, so launchers list Fedora's entry only.
+[Desktop Entry]
+Type=Application
+Name=Chromium
+GenericName=Web Browser
+Exec=chromium-browser %U
+TryExec=chromium-browser
+Icon=chromium-browser
+Terminal=false
+NoDisplay=true
+Categories=Network;WebBrowser;
+MimeType=text/html;application/xhtml+xml;x-scheme-handler/http;x-scheme-handler/https;
+StartupWMClass=chromium-browser

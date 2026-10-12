@@ -176,6 +176,11 @@ install -D -m 0644 default/nautilus-python/extensions/localsend.py "$skel/.local
 install -D -m 0644 default/nautilus-python/extensions/transcode.py "$skel/.local/share/nautilus-python/extensions/transcode.py"
 install -D -m 0644 default/tensaku/state.toml "$skel/.local/state/tensaku/state.toml"
 
+# Fedora compatibility: Omarchy calls Chromium `chromium` and its entry
+# chromium.desktop; Fedora's are chromium-browser and chromium-browser.desktop.
+ln -s chromium-browser %{buildroot}%{_bindir}/chromium
+install -D -m 0644 fedora/compat/chromium.desktop %{buildroot}%{_datadir}/applications/chromium.desktop
+
 # Support binaries needed before the full omarchy package is installed.
 for helper in omarchy-upload-log omarchy-debug omarchy-debug-idle; do
   install -m 0755 "bin/$helper" %{buildroot}%{_bindir}/"$helper"

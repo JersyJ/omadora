@@ -162,6 +162,8 @@ install -m 0755 "\$tree"/bin/* /usr/bin/
 cp -a "\$tree"/install "\$tree"/themes "\$tree"/migrations "\$tree"/shell "\$tree"/default "\$tree"/config /usr/share/omarchy/
 install -m 0644 "\$tree"/fedora/pkg.sh /usr/share/omarchy/fedora/pkg.sh
 install -m 0644 "\$tree"/fedora/packages/map.tsv /usr/share/omarchy/fedora/packages/map.tsv
+ln -sfn chromium-browser /usr/bin/chromium
+install -m 0644 "\$tree"/fedora/compat/chromium.desktop /usr/share/applications/chromium.desktop
 echo "Overlaid \$(cat "\$tree"/version) from $overlay"
 %end
 
@@ -181,7 +183,9 @@ omarchy-apply-system --install-user $user --first-install
 # upstream's first-boot owner setup uses: Node.js comes from the network (the
 # ISO context expects a tarball the ISO bundles), and the theme is applied
 # without a display, as in the ISO.
-runuser -u $user -- env HOME=/home/$user USER=$user OMARCHY_INSTALL_LOG_FILE=\$OMARCHY_INSTALL_LOG_FILE \\
+# Root's XDG_RUNTIME_DIR must not leak in: the user's commands would put their
+# locks in /run/user/0.
+runuser -u $user -- env -u XDG_RUNTIME_DIR HOME=/home/$user USER=$user OMARCHY_INSTALL_LOG_FILE=\$OMARCHY_INSTALL_LOG_FILE \\
   OMARCHY_SETUP_CONTEXT=provision-owner omarchy-provision-user --first-install
 
 # Omarchy's boot splash lives in the initramfs.

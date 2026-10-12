@@ -48,6 +48,7 @@ dnf -y install --setopt=install_weak_deps=False "${rpms[@]}"
 info "Checking the installed packages"
 rpm -V omadora-repos omarchy-settings omarchy || die "rpm -V reports changed files"
 for path in /usr/bin/omarchy /usr/share/omarchy/fedora/packages/map.tsv /etc/skel/.config/hypr \
+            /usr/share/applications/chromium.desktop \
             /usr/share/plymouth/themes/omarchy/omarchy.plymouth /etc/sudoers.d/omarchy-tzupdate \
             /etc/yum.repos.d/omadora.repo /etc/dnf/versionlock.toml; do
   [[ -e $path ]] || die "missing after install: $path"
