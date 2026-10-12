@@ -29,7 +29,7 @@ jobs:
           if [[ $GITHUB_EVENT_NAME == "schedule" ]] && (( 10#$(date +%V) % 2 == 1 )); then
             echo "skip=true" >>"$GITHUB_OUTPUT"
           fi
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         if: steps.week.outputs.skip != 'true'
         with:
           fetch-depth: 0
