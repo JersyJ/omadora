@@ -1,0 +1,166 @@
+# Review state of upstream migrations; see fedora/bin/migrations-status.
+migration	sha256	hint	decision	reason	summary
+1778623107.sh	a241f1e25c123fda	pkg-helpers	unreviewed		Install MPRIS support for mpv
+1780057136.sh	1db3b17ef227a36d	neutral	unreviewed		Make Shift+Enter distinguishable for terminals and Codex
+1780294774.sh	b1b0bc4311d9fe37	neutral	unreviewed		Remove leading zero from bar clock date
+1780517689.sh	7ec9fc5242d04a7a	pkg-helpers	unreviewed		Add yt-dlp download extension (Alt+Shift+D) to Chromium-based browsers
+1780739888.sh	4171e59eb32d3bc7	pkg-helpers	unreviewed		Use dua for Disk Usage TUI
+1781043107.sh	957f724d6c36697f	neutral	unreviewed		Move current Omarchy theme state to ~/.local/state
+1781063758.sh	df2699b76f61e79f	neutral	unreviewed		Update Hyprland Lua entrypoint to load Omarchy bootstrap
+1781158082.sh	ba1fa06b0faa1cd8	neutral	unreviewed		Relink Neovim theme to Omarchy current state
+1781286586.sh	ef1a86368753f8f2	pkg-helpers	unreviewed		Replace Satty with Tensaku
+1781485962.sh	92be3a71bb52f634	neutral	unreviewed		Move stock Hyprland user overrides into package defaults
+1781587663.sh	ee9db61af45b7118	neutral	unreviewed		Enable secure remote Neovim clipboard support
+1781793381.sh	d458f8eac90dca05	pkg-helpers	unreviewed		Auto-mount removable drives by default with udiskie
+1781984677.sh	3a0353ebd4ebae36	arch-boot	unreviewed		Normalize Snapper snapshot services
+1782002156.sh	b26d4ac1d5f6fa6c	pkg-helpers	unreviewed		Retire systemd-networkd in favor of NetworkManager
+1782049344.sh	b369d816aac95c20	arch-boot	unreviewed		Disable Limine Snapper warning notifier
+1784401744.sh	1b1c29f7ffe21ec8	pkg-helpers	unreviewed		Backfill hardware support and tmux settings added before Omarchy quattro
+1784476564.sh	0106e33f6dd8aa72	arch-boot	unreviewed		Keep non-Latin keyboard layouts out of the initramfs so the LUKS passphrase stays typeable
+1784479832.sh	70afbf89657237b6	neutral	unreviewed		Enable Kitty cwd lookup through a remote control socket
+1784508556.sh	b8e8bb5583cff821	neutral	unreviewed		Pin browser password store to gnome-libsecret (prevents cookie/login loss on Hyprland)
+1784510887.sh	782a955124d9a4ca	pkg-helpers	unreviewed		Switch Brave Origin from the beta to the stable release
+1784521870.sh	942d6352430391da	neutral	unreviewed		Stop the migration notifier from re-triggering itself in a loop
+1784568652.sh	c3ac13f831ae5b52	neutral	unreviewed		Stop waiting for the network before showing the desktop
+1784672586.sh	3ece6a4467210783	arch-pacman	unreviewed		Switch to the Omarchy quickshell-git build so shell restarts wait for instance exit
+1784763917.sh	fe3f5d4f8db1065d	neutral	unreviewed		Install the native messaging host for the Chromium Copy URL extension
+1784767406.sh	3a19f46dcc3dd442	neutral	unreviewed		Remove the obsolete Voxtype Hyprland toggle
+1784809452.sh	6a942278438c24d4	neutral	unreviewed		Remove Snapper timeline snapshots leaked by earlier defaults
+1784818437.sh	e3cbec96d9a62e9e	neutral	unreviewed		Gate sudo and polkit fingerprint auth behind the lid state (password when the lid is shut)
+1784909971.sh	0ef24ac1a78690a1	neutral	unreviewed		Regenerate mise wrappers to stop them recursing through PATH
+1784914435.sh	c173aea1f0cd3093	neutral	unreviewed		Keep Wi-Fi power save off for lower latency
+1784917531.sh	34d0bf03b7d628f7	arch-boot	unreviewed		Unpack the initramfs synchronously so Plymouth survives early boot
+1784960000.sh	f4215d430842f747	pkg-helpers	unreviewed		Install the speaker tuning for XPS 2026 14/16
+1784961000.sh	f58126e21c597443	neutral	unreviewed		Tune reclaim for swap on zram
+1784970000.sh	084e8e2c054d18f2	neutral	unreviewed		Give the pre-suspend lock a window it can actually finish in
+1784989000.sh	57ee2e1692488baf	neutral	unreviewed		Move the bar indicators to the left of the clock
+1785002349.sh	8fdaff61483c562b	neutral	unreviewed		Repair Neovim theme symlinks the earlier relink missed
+1785013000.sh	b4d1e97ec81e8f63	arch-pacman	unreviewed		Move zram tuning to a vendor drop-in
+1785090473.sh	46633bfcb5b9256e	pkg-helpers	unreviewed		Repair fingerprint support left without a libfprint
+1785095882.sh	244163257e20ba6f	arch-pacman	unreviewed		Only check for pending migrations at login, not on every package update
+1785101000.sh	1e92d8159a7739a8	neutral	unreviewed		Save incoming Taildrop files to ~/Downloads
+1785166747.sh	ac3eb47fbd7e01c5	neutral	unreviewed		Register the native messaging hosts for the bundled Chromium extensions
+1785167800.sh	90c9033be8cb8cb8	neutral	unreviewed		Supervise fcitx5 so CapsLock compose sequences can't silently die
+1785189600.sh	5cb15c2d84e97ac5	neutral	unreviewed		Remove the tmux alert hooks and its bar indicator
+1785273276.sh	498f462c56ec3b6c	arch-boot	unreviewed		Rename the T2 Mac BCE module (apple-bce → t2bce) and repair the boot image
+1785344985.sh	d95d381ec037398e	neutral	unreviewed		Add the agents widget to the bar
+1785351479.sh	cc064884af736e75	arch-pacman	unreviewed		Drop Kvantum now that Qt apps follow the theme through the GTK platform theme
+1785424256.sh	509553fa03774a95	neutral	unreviewed		Let systemd-oomd kill a runaway app instead of the whole session
+1785511354.sh	5bd3bb7a2a12ef4c	pkg-helpers	unreviewed		Install qrencode for Wi-Fi QR sharing
+1785543725.sh	79d06a25b5e5f1a3	neutral	unreviewed		Add WhatsApp Slim extension to Chromium-based browsers
+1785591762.sh	0f531e530b4a94a7	neutral	unreviewed		Add WhatsApp Slim extension to Brave Origin flags for existing installs
+1785608166.sh	e1531373f9479544	neutral	unreviewed		Repair the pre-suspend lock monitor's graphical session environment
+1785608251.sh	e270f6778f9b392a	pkg-helpers	unreviewed		Install ddcutil for external monitor brightness control
+1785617047.sh	b3ec0e14f60c2820	neutral	unreviewed		Install oh-my-pi (omp) via mise wrapper
+1785633225.sh	9b8437e61b905ace	neutral	unreviewed		Speed up mouse scrolling in foot
+1785637426.sh	872a1d2e068dcff7	pkg-helpers	unreviewed		Replace GNOME Calculator with Omacalc
+1785846769.sh	cd70541bada47a40	neutral	unreviewed		Install default coding agent mise wrappers
+1785944594.sh	462f92c4de3e0a21	arch-boot	unreviewed		Update T2 Mac suspend, Touch Bar, and fan defaults
+1786098807.sh	656f95f07fea01f6	neutral	unreviewed		Relink agent skill symlinks to default/agents/skills/omarchy
+1786099804.sh	1f56248f7e849365	neutral	unreviewed		Rename the model usage widget to agents and prime its data files
+1786137597.sh	79138fe9e6f95396	neutral	unreviewed		Re-run the T2 defaults migration that a broken hardware check skipped
+1786181929.sh	d0bfc92e590595dd	neutral	unreviewed		Give SSH commands the user-level tool paths via the PAM environment
+1786183928.sh	0ee0af26131c67a7	neutral	unreviewed		Refresh mise stubs so tools take new releases immediately
+1786273938.sh	7c228f6e86c7500a	pkg-helpers	unreviewed		Install herdr from the Omarchy package repo and seed its config
+1786278735.sh	a7c6aefd93eb521c	neutral	unreviewed		Detect dropped SSH connections quickly instead of leaving terminals hung
+1786279107.sh	6ae8f2e4b0728d63	neutral	unreviewed		Add the keyboard layout widget to the bar
+1786355450.sh	6842f84af0329d40	pkg-helpers	unreviewed		Replace terminaltexteffects with ttfx
+1786380259.sh	e0f70e82ed6cf2ea	neutral	unreviewed		Remember Bluetooth on and off through the rfkill soft block
+1786386460.sh	d2b3190a0ebc504a	pkg-helpers	unreviewed		Generate image picker thumbnails with libvips
+1786391100.sh	af9b2fbc160ea568	neutral	unreviewed		Run the WPA handshake in software on Macs with Broadcom Wi-Fi
+1786447584.sh	242e704e869e87f3	pkg-helpers	unreviewed		Install QR code scanning support
+1786451567.sh	c2c94582895dda94	neutral	unreviewed		Repair theme symlinks the state-move migration left dangling
+1786482992.sh	0864233cb1d9b6e9	arch-boot	unreviewed		Rebuild the boot image when it predates the Limine kernel command line
+1786517850.sh	c3779a2239113694	neutral	unreviewed		Drop the retired notification image cache
+1786539345.sh	07a72a24c32bb24c	neutral	unreviewed		Announce process crashes and offer an AI diagnosis
+1786549201.sh	54d465910c57a72b	neutral	unreviewed		Invite existing installs to pick a default agent
+1786567036.sh	cc0a19ab8708030d	neutral	unreviewed		Unmask wpa_supplicant so NetworkManager can bring wifi back
+1786605598.sh	4508bd76f3ce2d7d	arch-pacman	unreviewed		Rebuild the initramfs so NVIDIA-only systems shed nouveau's unused GSP firmware
+1786609204.sh	af4a8a0b43142f1a	neutral	unreviewed		Native video dependencies are superseded by the OWE migration
+1786643346.sh	8be667fe62f5443e	neutral	unreviewed		Repair the Copy URL shortcut for profiles that predate its pinned extension id
+1786719479.sh	559dfa33c135960c	neutral	unreviewed		Replace the Gemini coding agent with Antigravity
+1786782461.sh	bd217bde4299b47f	neutral	unreviewed		Remove the literal \\n[text-bindings] line an earlier migration wrote into foot.ini
+1786952219.sh	be46d562fc277642	arch-pacman	unreviewed		Switch mise to the mise-bin package from the Omarchy repo
+1787133200.sh	a6d92d46eac7cf4e	pkg-helpers	unreviewed		Add webp decoding to the shell
+1787215483.sh	b130c5920b650487	neutral	unreviewed		Stop mise upgrades from pruning versions still in use
+1787215824.sh	d35cdc2a104e8165	neutral	unreviewed		Install hey (hey-cli) via mise wrapper
+1787342993.sh	dbf56cceb6f7fbed	neutral	unreviewed		Install ori (OpenRouter's agent harness) via mise wrapper
+1787399318.sh	0550769617a7ea54	arch-pacman	unreviewed		Switch back to the packaged quickshell now that 0.3.1 kills synchronously
+1787481315.sh	75df8e60ac43d0b4	neutral	unreviewed		Re-stage the current theme so an installed theme's code is dropped
+1787494718.sh	0c925531f6be01b9	neutral	unreviewed		Take ownership of the FIDO2 authfile so it cannot be rewritten without root
+1787515927.sh	1eea7f579bf104eb	neutral	unreviewed		Stop world-writable Chromium and Firefox policy directories
+1787573629.sh	eeae74c3d3153d14	neutral	unreviewed		Regenerate mise wrappers that still print mise's own output to stdout
+1787580187.sh	ddb28c590e3948db	neutral	unreviewed		Move this install to the opt-in docker group default (the group is root-equivalent)
+1787589206.sh	63fd8e9a02097d86	arch-pacman	unreviewed		Require signed packages from the Omarchy repository
+1787618700.sh	3b9adc0d7c9b941b	neutral	unreviewed		Store Hyprland input-device names as data instead of generated Lua
+1787666837.sh	20970c343b775ac4	neutral	unreviewed		Enable Dell XPS 13 sidecar speaker amplifiers
+1787679775.sh	b7e417ef840d46d9	neutral	unreviewed		Drop saved workspace layouts belonging to named workspaces
+1787691200.sh	ed5608805fce3477	neutral	unreviewed		Skip Chromium's new first-run EULA on machines already on Quattro
+1787760281.sh	00cfad01c19b6681	neutral	unreviewed		Install the Hermes CLI wrapper for existing installs
+1787815267.sh	7d8bd46c8dbc0cd3	pkg-helpers	unreviewed		Separate printer discovery from root and print-filter access
+1787843905.sh	26d382b135be3cee	neutral	unreviewed		Link Omarchy agent skills into Hermes skill directories
+1787865477.sh	c83ad7b2d40bad20	arch-pacman	unreviewed		Drop the default input group grant, which allowed unprivileged keylogging
+1788009111.sh	e23e06ae9e1b514e	arch-pacman	unreviewed		Temporarily remove automatic printer discovery
+1788025225.sh	d29bba2a2839fb3a	neutral	unreviewed		Remove privileged files left behind by retired Omarchy installers
+1788102906.sh	022fe18a9cfe3862	neutral	unreviewed		Repair legacy XCompose and remove vulnerable Omarchy 3 power udev rules
+1788112314.sh	b08f8dc8bfab9b32	arch-pacman	unreviewed		Point rc-channel installs at the rc package repository
+1788124236.sh	7d600316b3146e8b	neutral	run	Keep upstream's sshd hardening (decided 2026-10-12)	Disable SSH password authentication, or sshd itself when no key is authorized
+1788129995.sh	6c41d13d6d10d5cf	pkg-helpers	unreviewed		Replace Satty and Tensaku with Omasnap
+1788163635.sh	1cc2247352b5284e	neutral	unreviewed		Remove legacy temporary passwordless sudo grants
+1788256455.sh	5d83353e2e673a30	neutral	unreviewed		Restore polkit brute-force protection on machines that enabled fingerprint or FIDO2 auth
+1788261467.sh	3c158ab157792e59	neutral	unreviewed		Expose GNOME Keyring to sandboxed apps through the Secret portal
+1788279117.sh	f2ec6cea4990c81a	arch-pacman	unreviewed		Replace the YT6801 vendor DKMS driver with the upstream kernel driver
+1788281348.sh	8cf978ee651406d4	neutral	unreviewed		Re-stage the active theme with packaged intro videos
+1788577553.sh	aa3d55480497aabc	neutral	unreviewed		Install Cursor CLI via mise wrapper
+1788595060.sh	46a933c26be719bf	neutral	unreviewed		Register the Chromium extension native messaging hosts for Brave Origin
+1788596255.sh	f3aa4596e31c01d3	pkg-helpers	unreviewed		Add vi as a standard terminal editor
+1788619462.sh	9b88a155cd4bace4	pkg-helpers	unreviewed		Hand Hermes Desktop the Omarchy theme as a skin
+1788662350.sh	6c40ba5ec6c0a90c	neutral	unreviewed		Repair user-owned system-sleep hooks and hybrid GPU service configuration
+1788724825.sh	2ab07d502a4a5c42	neutral	unreviewed		Install Muse Code via mise wrapper
+1788745941.sh	4367fefeeb8efe2d	neutral	unreviewed		Update Kitty configuration
+1788848726.sh	1e15718a79ce287e	neutral	unreviewed		Retire the stock user icon font missed by the Quattro upgrade
+1788862626.sh	93cb43601b3790db	neutral	unreviewed		Expose the Elgato Cam Link 4K as a 16:9 virtual camera
+1788941927.sh	69c83e36764ab8d9	neutral	unreviewed		Install basecamp (basecamp-cli) via mise wrapper
+1788996284.sh	31508b271d508f2c	arch-pacman	unreviewed		Repair remote Neovim clipboard yanks and paste
+1789091250.sh	326dca6a33de3a3b	pkg-helpers	unreviewed		Activate the Omarchy theme for existing T3 Code installs
+1789095456.sh	5d2037abbce10d1d	neutral	unreviewed		Remove automatic project bin directories from PATH
+1789130779.sh	ffaed427a09dda6d	neutral	unreviewed		Keep the KEF LSX II LT USB sink from suspending
+1789294350.sh	e969fcd056d4e3f8	neutral	unreviewed		Switch TCP congestion control to BBR with fq pacing
+1789310715.sh	56dec2bc7baa6e96	neutral	unreviewed		Install cf (Cloudflare CLI) via mise wrapper
+1789325478.sh	34f5374c4d92eb0f	arch-boot	unreviewed		Install the Omarchy kernel and make it the first Limine boot entry
+1789444024.sh	774584d820d0e4ac	pkg-helpers	unreviewed		Install missing headers for the Omarchy or T2 kernel
+1789764927.sh	f36d4cd5a4edb4d7	pkg-helpers	unreviewed		Enable OWE desktop video backgrounds and lock feed
+1790017600.sh	7b338f6d7cadc30c	neutral	unreviewed		Retire the Hermes that mise built; Hermes now updates itself
+1790042972.sh	021eb579d0921fd8	neutral	unreviewed		Put Elsewhen, the world clock, on the bar
+1790114905.sh	6123497d64fb4c30	neutral	unreviewed		Ask RTKit directly for the speaker tuning's realtime priority
+1790282866.sh	6eb1d98a981c5d5d	neutral	unreviewed		Apply the NVIDIA video driver fix on hybrid laptops
+1790397381.sh	5c921ae968fc6052	pkg-helpers	unreviewed		Move OpenClaw to a self-updating install under ~/.openclaw
+1790457067.sh	35ee19e7bb90dfc0	neutral	unreviewed		Loosen the offline install's exact Node pin so mise up tracks new releases
+1790528634.sh	1979416fbe418d7d	pkg-helpers	unreviewed		Move Elsewhen, the world clock, into Omarchy as omarchy.elsewhen
+1790539857.sh	e609427197feb2f2	pkg-helpers	unreviewed		Install Monologue, the webcam recorder
+1790542069.sh	6702d6af07615ffb	pkg-helpers	unreviewed		Install Hype, the Markdown presentation app
+1790702362.sh	14154f7492d7ed34	pkg-helpers	unreviewed		Install the compiler and Qt pieces for building Omarchy-style apps
+1790702606.sh	5cbcaae5e5a6069e	neutral	unreviewed		Link the omarchy-app agent skill for building apps
+1790863209.sh	662a2ed052d33ea5	neutral	unreviewed		Install Grok through mise's first-party package
+1791112479.sh	f3f93fc14b31aca2	neutral	unreviewed		Make agent account selection apply to scripts and subprocesses
+1791123731.sh	36e9b8ff4ecd4a81	neutral	unreviewed		Add an example for opting applications in to transparency
+1791125650.sh	0b8d719a54d484a4	neutral	unreviewed		Install the fingerprint resume hook on existing fingerprint setups
+1791265613.sh	84a67d29efdf31b4	neutral	unreviewed		Install the Dell XPS 13 Panther Lake speaker firmware
+1791345484.sh	a48cf0e452354e9e	pkg-helpers	unreviewed		Replace the Disk Usage TUI with Disktree
+1791367434.sh	b5dc5a2ef3ea1138	pkg-helpers	unreviewed		Configure shared input-method defaults and free desktop shortcuts
+1791376887.sh	0dd7e88f60900ed2	neutral	unreviewed		Enable overlay scrollbars in Chromium-based browsers
+1791403252.sh	fb380a285eca3a1f	arch-pacman	unreviewed		Prioritize the Omarchy package repository over Arch repositories
+1791403310.sh	b67c6aac8febe17f	pkg-helpers	unreviewed		Install titlebars for floating workspaces
+1791470456.sh	80032c7b9a63626e	neutral	unreviewed		Repair background selections after bundled images moved to WebP
+1791479273.sh	09c98a85fdfef232	pkg-helpers	unreviewed		Preserve Voxtype as the default for existing dictation users
+1791542175.sh	9cac2b985d0777c6	pkg-helpers	unreviewed		Install Gliff, the Hyprland remote desktop over SSH
+1791581004.sh	ad3fa638d9cdc597	arch-boot	unreviewed		Stop the boot from waiting on a black screen for the console to answer
+1791640449.sh	89fa58e0a8ac66b7	neutral	unreviewed		Move the keyboard layout widget to the right side of the bar
+1791676907.sh	8a9d0fd4442e1a8d	neutral	unreviewed		Let a lone Shift switch out of an input method and back
+1791696584.sh	8417a755e0ea7dfc	neutral	unreviewed		Name web app windows in their launchers, so titlebars show the app's name
+1791698594.sh	ab55c59ac2fc16f2	neutral	unreviewed		Save workspace layouts as modes, so a default layout keeps them
+1791705142.sh	b24ed8f518eaf72a	neutral	unreviewed		Keep windows opaque where animations are turned off
+1791708587.sh	1dcc1df34b40fddb	pkg-helpers	unreviewed		Install Signed, the PDF signing app
+1791722809.sh	d6e9eb3fb03a4428	neutral	unreviewed		Let herdr's tab bar show the terminal's background, so it turns glassy too
+1791723398.sh	d645e06e1154b46a	neutral	unreviewed		Let Neovim's current line and status line show the terminal background
+1791769486.sh	eb9b5688d7bb30d7	arch-pacman	unreviewed		Remove approval for new USB and Thunderbolt devices
