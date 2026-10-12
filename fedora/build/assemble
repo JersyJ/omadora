@@ -113,9 +113,10 @@ done
 shopt -u nullglob
 
 # 5. Fedora runtime data and version. Upstream's version file is not kept up
-# to date (it still says 4.0.0.alpha at v4.0.4), so use the synced release.
+# to date (it still says 4.0.0.alpha at v4.0.4), so write the RPM version.
 install -D -m 644 "$FEDORA_DIR/packages/map.tsv" "$out/fedora/packages/map.tsv"
-echo "$UPSTREAM_VERSION" >"$out/version"
+cp -a "$FEDORA_DIR/repos" "$out/fedora/repos"
+omadora_version >"$out/version"
 cat >"$out/fedora/build-info" <<INFO
 upstream_ref=$UPSTREAM_REF
 upstream_commit=$UPSTREAM_COMMIT

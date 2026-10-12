@@ -40,6 +40,25 @@ set_lock_value() {
   fi
 }
 
+# RPM version of the pinned upstream commit, in upstream's own omarchy-dev
+# format: <last release>.r<total commits>.g<short hash>, e.g. 4.0.0.r6912.gdefbf90.
+# Needs load_lock. Uses no tags, so it works in clones without them.
+omadora_version() {
+  local count
+
+  count=$(git -C "$FEDORA_ROOT" rev-list --count "$UPSTREAM_COMMIT") || return 1
+  echo "${UPSTREAM_VERSION%%-*}.r$count.g${UPSTREAM_COMMIT:0:7}"
+}
+
+# RPM release for the fork's HEAD: fork commits since the pinned upstream
+# commit, then HEAD's short hash, e.g. 26.g98bd9ac. It only grows on main.
+omadora_release() {
+  local count
+
+  count=$(git -C "$FEDORA_ROOT" rev-list --count "$UPSTREAM_COMMIT..HEAD") || return 1
+  echo "$count.g$(git -C "$FEDORA_ROOT" rev-parse --short=7 HEAD)"
+}
+
 # Pathspecs that select upstream-owned paths only, one per line.
 upstream_pathspec() {
   local path

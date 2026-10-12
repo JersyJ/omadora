@@ -8,6 +8,11 @@
 # packs the SRPM. COPR runs this through .copr/Makefile (the make_srpm
 # method); it also works on any Fedora machine or container.
 #
+# Recipes with an assemble marker (omarchy, omarchy-settings, omadora-repos)
+# are built from this repository instead of a download: build-srpm runs
+# fedora/build/assemble, packs the result as Source0, and fills the spec's
+# @VERSION@ and @RELEASE@ from fedora/upstream.lock and the fork's HEAD.
+#
 # Usage: fedora/rpm/build-srpm <spec> <outdir>
 #
 # Adapted from kamm3r/omadora-pkg's .copr/Makefile (MIT).
@@ -30,11 +35,11 @@ name=$(basename "$spec" .spec)
 [[ -f $recipe/sources.sha256 ]] || die "$recipe/sources.sha256 is missing; every remote source must be pinned"
 
 missing=()
-for tool in spectool rpmbuild rpmspec sha256sum; do
+for tool in spectool rpmbuild rpmspec sha256sum git patch; do
   command -v "$tool" >/dev/null || missing+=("$tool")
 done
 if (( ${#missing[@]} > 0 )); then
-  dnf -y install rpmdevtools rpm-build
+  dnf -y install rpmdevtools rpm-build git-core patch
 fi
 
 mkdir -p "$outdir"
@@ -42,11 +47,28 @@ mkdir -p "$outdir"
 # The spec plus any local files it ships (patches, units), but not the
 # recipe's own metadata.
 find "$recipe" -maxdepth 1 -type f \
-  ! -name sources.sha256 ! -name cargo-vendor ! -name go-vendor \
+  ! -name sources.sha256 ! -name cargo-vendor ! -name go-vendor ! -name assemble \
   -exec cp -t "$outdir" {} +
 
+# Built from this repository: the assembled Fedora tree is Source0.
+if [[ -f $recipe/assemble ]]; then
+  # shellcheck source=../lib/common.sh
+  source "$(dirname "$(realpath "$0")")/../lib/common.sh"
+  load_lock
+  git config --global --add safe.directory "$FEDORA_ROOT" 2>/dev/null || :
+  rpm_version=$(omadora_version)
+  rpm_release=$(omadora_release)
+  sed -i -e "s/@VERSION@/$rpm_version/g" -e "s/@RELEASE@/$rpm_release/g" "$outdir/$name.spec"
+  tree="$outdir/assemble/omarchy-$rpm_version"
+  "$FEDORA_DIR/build/assemble" --out "$tree"
+  tar -C "$outdir/assemble" -czf "$outdir/omarchy-$rpm_version.tar.gz" "omarchy-$rpm_version"
+  rm -rf "$outdir/assemble"
+fi
+
 spectool --get-files --directory "$outdir" "$outdir/$name.spec"
-(cd "$outdir" && sha256sum --check --quiet "$recipe/sources.sha256")
+if [[ -s $recipe/sources.sha256 ]]; then
+  (cd "$outdir" && sha256sum --check --quiet "$recipe/sources.sha256")
+fi
 
 version=$(rpmspec --query --srpm --queryformat '%{VERSION}' "$outdir/$name.spec")
 
