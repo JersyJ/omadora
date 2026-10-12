@@ -69,6 +69,7 @@ jobs:
     # Fedora tree; deliberate differences are listed in
     # fedora/tests/upstream-expected-failures.txt.
     runs-on: ubuntu-latest
+    timeout-minutes: 40
     container: registry.fedoraproject.org/fedora:45
     steps:
       - name: Install tools

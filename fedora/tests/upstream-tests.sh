@@ -45,16 +45,24 @@ mkdir -p "$pristine_tree"
 git archive "$UPSTREAM_COMMIT" | tar -x -C "$pristine_tree"
 
 # Failed test files of one tree, one per line; the full output stays in
-# $build/upstream-tests-<name>.log for triage.
+# $build/upstream-tests-<name>.log for triage. Runs each file as test/shell
+# does, but under a time limit: a hung file counts as failed and is named on
+# stderr instead of stalling the job.
 failures() {
-  local tree=$1 log="$build/upstream-tests-$2.log"
+  local tree=$1 log="$build/upstream-tests-$2.log" test name status
 
-  (cd "$tree" && ./test/shell) >"$log" 2>&1 || true
-  # test/shell ends with "N of M test files failed:" and one line per file.
-  sed -n '/test files failed:$/,$p' "$log" | grep -oE 'test/shell\.d/[^ ]+-test\.sh' || true
-  if ! (cd "$tree" && ./test/cli) >>"$log" 2>&1; then
-    echo "test/cli"
-  fi
+  : >"$log"
+  for test in "$tree"/test/shell.d/*-test.sh "$tree/test/cli"; do
+    name=${test#"$tree"/}
+    [[ $name == "test/shell.d/base-test.sh" ]] && continue
+    printf '==> %s\n' "$name" >>"$log"
+    status=0
+    (cd "$tree" && timeout -k 10 300 bash "$name") >>"$log" 2>&1 </dev/null || status=$?
+    if (( status == 124 || status == 137 )); then
+      echo "  $2: $name timed out after 300s" >&2
+    fi
+    (( status == 0 )) || echo "$name"
+  done
 }
 
 info "Running upstream's test suites on pristine upstream (the baseline)"
