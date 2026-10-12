@@ -13,12 +13,15 @@ zone=public
 
 # Ask firewalld itself: in Anaconda's chroot `systemctl is-active` reports
 # success for anything, while firewall-cmd sees no daemon.
+# Offline, --remove-service is a legacy lokkit option that refuses --zone.
 if firewall-cmd --state >/dev/null 2>&1; then
   running=1
   firewall=(firewall-cmd --permanent)
+  remove_service=--remove-service
 else
   running=0
   firewall=(firewall-offline-cmd)
+  remove_service=--remove-service-from-zone
 fi
 
 # firewalld treats a change that is already in place as an error
@@ -35,7 +38,7 @@ fi
 for service in $("${firewall[@]}" --zone="$zone" --list-services); do
   case $service in
     dhcpv6-client | mdns) ;;
-    *) "${firewall[@]}" --zone="$zone" --remove-service="$service" >/dev/null ;;
+    *) "${firewall[@]}" --zone="$zone" "$remove_service=$service" >/dev/null ;;
   esac
 done
 for service in dhcpv6-client mdns; do
