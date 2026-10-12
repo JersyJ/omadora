@@ -15,3 +15,19 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y shellcheck patch
       - name: Static checks
         run: fedora/tests/static.sh
+
+  resolve:
+    # Does Omarchy's package set install on Fedora with only the allowed
+    # repositories? Runs in a throwaway Fedora container; installs nothing.
+    runs-on: ubuntu-latest
+    container: registry.fedoraproject.org/fedora:45
+    steps:
+      - name: Install tools
+        run: dnf -y -q install git-core
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Resolve the package set
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          fedora/tests/resolve.sh

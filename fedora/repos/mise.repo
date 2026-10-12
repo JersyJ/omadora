@@ -1,0 +1,8 @@
+# mise's vendor repository (https://mise.jdx.dev/installing-mise.html#dnf).
+[mise-repo]
+name=mise repo
+baseurl=https://mise.jdx.dev/rpm
+enabled=1
+gpgcheck=1
+gpgkey=https://mise.jdx.dev/gpg-key.pub
+includepkgs=mise

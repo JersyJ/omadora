@@ -1,0 +1,34 @@
+# dnf versionlock for packages whose version upstream Omarchy pins. Installed
+# as /etc/dnf/versionlock.toml. Move a lock during an upstream sync, never on
+# its own: see fedora/docs/SYNC.md.
+version = "1.0"
+
+# omarchy-hyprland-titlebars requires hyprland=0.56.2, and Omarchy's Lua config
+# targets it. Any nett00n rebuild of 0.56.2 is fine.
+[[packages]]
+name = "hyprland"
+[packages.metadata]
+comment = "Omarchy pins Hyprland 0.56.2"
+[[packages.conditions]]
+key = "evr"
+comparator = ">="
+value = "0.56.2"
+[[packages.conditions]]
+key = "evr"
+comparator = "<"
+value = "0.56.3"
+
+# Omarchy's shell needs Quickshell 0.3.1 or newer (migration 1787399318); a
+# new minor release changes its QML API.
+[[packages]]
+name = "quickshell"
+[packages.metadata]
+comment = "Omarchy's shell is written for Quickshell 0.3"
+[[packages.conditions]]
+key = "evr"
+comparator = ">="
+value = "0.3.1"
+[[packages.conditions]]
+key = "evr"
+comparator = "<"
+value = "0.4"

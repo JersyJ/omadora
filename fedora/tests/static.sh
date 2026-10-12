@@ -82,6 +82,33 @@ rpm_recipes_are_pinned() {
   return $status
 }
 
+# Every package mapped to a COPR, to our COPR ("ours") or to a vendor repository
+# is allowed by that repository's includepkgs in fedora/repos.
+repos_cover_map() {
+  local bad
+
+  bad=$(awk -F'\t' '
+    FNR == 1 { file++ }
+    file == 1 && /^\[/ { section = substr($0, 2, length($0) - 2) }
+    file == 1 && /^includepkgs=/ {
+      sub(/^includepkgs=/, "")
+      n = split($0, names, " ")
+      for (i = 1; i <= n; i++) allowed[section, names[i]] = 1
+    }
+    file == 2 && !/^#/ && $3 ~ /^(copr:|ours$|repo:)/ {
+      section = $3
+      if (section == "ours") section = "copr:jersyj/omadora"
+      if (section ~ /^copr:/) { split(substr(section, 6), op, "/"); section = "copr:copr.fedorainfracloud.org:" op[1] ":" op[2] }
+      if (section ~ /^repo:/) section = substr(section, 6) "-repo"
+      n = split($2, names, " ")
+      for (i = 1; i <= n; i++) if (!((section, names[i]) in allowed)) print $1 ": " names[i] " is not in includepkgs of [" section "]"
+    }' <(cat fedora/repos/*.repo) fedora/packages/map.tsv)
+  if [[ -n $bad ]]; then
+    sed 's/^/  /' <<<"$bad"
+    return 1
+  fi
+}
+
 report_missing_recipes() {
   local missing
 
@@ -113,6 +140,7 @@ check "Package map is well-formed" package_map_is_valid
 check "Every package in upstream's package lists is mapped" listed_packages_are_mapped
 check "Every upstream migration has an up-to-date review row" fedora/bin/migrations-status --check
 check "Fedora tree assembles (layout, exclusions, overrides, patches)" fedora/build/assemble --out "$FEDORA_DIR/.build/static-check"
+check "Repository files allow every mapped package" repos_cover_map
 check "RPM recipes pin their sources" rpm_recipes_are_pinned
 check "Shellcheck" shellcheck_fedora_scripts
 

@@ -1,0 +1,13 @@
+# Omadora's own COPR: the packages with source "ours" in fedora/packages/map.tsv.
+# fedora/tests/static.sh checks that includepkgs covers every package mapped to it.
+[copr:copr.fedorainfracloud.org:jersyj:omadora]
+name=Copr repo for omadora owned by jersyj
+baseurl=https://download.copr.fedorainfracloud.org/results/jersyj/omadora/fedora-$releasever-$basearch/
+type=rpm-md
+skip_if_unavailable=False
+gpgcheck=1
+gpgkey=https://download.copr.fedorainfracloud.org/results/jersyj/omadora/pubkey.gpg
+repo_gpgcheck=0
+enabled=1
+enabled_metadata=1
+includepkgs=aether cliamp disktree-bin gliff herdr hype hyprland-preview-share-picker monologue omacalc omacut omarchy omarchy-settings omarchy-hyprland-titlebars omarchy-nvim omasnap omawrite owe owe-lockfeed signed starship superwhisper-bin tensaku try ttf-ia-writer ttf-jetbrains-mono-nerd-basic ttfx tzupdate
