@@ -67,9 +67,9 @@ qemu_common=(
 )
 
 info "Installing (log: $work/install.log); this downloads and installs about 3 GB"
-"${qemu_common[@]}" \
+timeout 2h "${qemu_common[@]}" \
   -cdrom "$iso" -kernel images/pxeboot/vmlinuz -initrd images/pxeboot/initrd.img \
-  -append "inst.stage2=hd:LABEL=$label inst.ks=http://10.0.2.2:$port/omadora.ks inst.text inst.notmux console=ttyS0" \
+  -append "inst.stage2=hd:LABEL=$label inst.ks=http://10.0.2.2:$port/omadora.ks inst.cmdline inst.notmux console=ttyS0" \
   -serial file:install.log -no-reboot
 
 if ! grep -q "reboot: Restarting system\|reboot: Power down\|Restarting system" install.log; then

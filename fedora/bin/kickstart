@@ -74,7 +74,14 @@ rpmfusion_lines() {
     include=$(awk -v section="[rpmfusion-$kind]" '$0 == section { found = 1; next } found && /^includepkgs=/ { print substr($0, 13); exit }' \
       fedora/repos/repos.override.d/*.repo | tr ' ' ',')
     echo "repo --name=rpmfusion-$kind --mirrorlist=https://mirrors.rpmfusion.org/mirrorlist?repo=$kind-fedora-$release&arch=\$basearch --includepkgs=$include"
-    echo "repo --name=rpmfusion-$kind-updates --mirrorlist=https://mirrors.rpmfusion.org/mirrorlist?repo=$kind-fedora-updates-released-$release&arch=\$basearch --includepkgs=$include"
+    # RPM Fusion opens a release's updates repository only when Fedora ships
+    # it, and Anaconda fails on a repository that does not exist yet.
+    updates="https://mirrors.rpmfusion.org/mirrorlist?repo=$kind-fedora-updates-released-$release&arch=x86_64"
+    if curl -sf --max-time 30 "$updates" | grep -q '^http'; then
+      echo "repo --name=rpmfusion-$kind-updates --mirrorlist=${updates%x86_64}\$basearch --includepkgs=$include"
+    else
+      echo "# rpmfusion-$kind-updates: not open yet for Fedora $release"
+    fi
   done
 }
 
