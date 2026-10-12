@@ -6,7 +6,7 @@ Do not use GitHub's "Sync fork" button: it merges without updating `upstream.loc
 
 ## Why syncing never conflicts
 
-`fedora/bin/sync-upstream <ref>` records a real merge of `<ref>` (so `git log` shows every upstream commit) but builds the result tree mechanically: upstream-owned paths are taken verbatim from `<ref>`, fork-owned paths (`fedora/`, `.github/workflows/`, `.github/README.md`) verbatim from the current branch. Nothing is ever merged hunk by hunk, so there is nothing to conflict, even when switching between upstream lines (the v4.0.x release branches diverge from `quattro`; a plain `git merge` between them conflicts in 20+ files), so moving `main` to a stable tag later stays possible.
+`fedora/bin/sync-upstream <ref>` records a real merge of `<ref>` (so `git log` shows every upstream commit) but builds the result tree mechanically: upstream-owned paths are taken verbatim from `<ref>`, fork-owned paths (`fedora/`, `.copr/`, `.github/workflows/`, `.github/README.md`) verbatim from the current branch. Nothing is ever merged hunk by hunk, so there is nothing to conflict, even when switching between upstream lines (the v4.0.x release branches diverge from `quattro`; a plain `git merge` between them conflicts in 20+ files), so moving `main` to a stable tag later stays possible.
 
 The cost moves from merge conflicts to review: changes upstream made to files we override or patch must be ported by hand. The checks below find all of them.
 

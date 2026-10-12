@@ -17,7 +17,7 @@ Recipes for the packages our COPR, [jersyj/omadora](https://copr.fedorainfraclou
 
 ## Building
 
-COPR builds each package as an SCM package: clone `https://github.com/JersyJ/omadora.git`, subdirectory `fedora/rpm`, spec `<name>/<name>.spec`, method `make_srpm`. `.copr/Makefile` calls `build-srpm`, which downloads and verifies the sources, vendors crates and packs the SRPM. On a Fedora machine:
+COPR builds each package as an SCM package: clone `https://github.com/JersyJ/omadora.git`, spec `fedora/rpm/<name>/<name>.spec`, method `make_srpm`. The repository root's `.copr/Makefile` (COPR only looks there) calls `build-srpm`, which downloads and verifies the sources, vendors crates and packs the SRPM. On a Fedora machine:
 
 ```bash
 fedora/rpm/build-srpm fedora/rpm/tzupdate/tzupdate.spec /tmp/srpm

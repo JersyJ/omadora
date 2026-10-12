@@ -4,7 +4,7 @@ Everything that makes this fork Omarchy-on-Fedora lives here. Upstream files els
 
 ## The one rule
 
-Do not edit files outside `fedora/`, `.github/workflows/` and `.github/README.md`. `fedora/bin/check-invariant` (and CI) fails if you do. To change an upstream file, use one of the tools below.
+Do not edit files outside `fedora/`, `.copr/`, `.github/workflows/` and `.github/README.md`. `fedora/bin/check-invariant` (and CI) fails if you do. To change an upstream file, use one of the tools below.
 
 | Need | Tool | Where |
 | --- | --- | --- |

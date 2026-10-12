@@ -47,7 +47,7 @@ while IFS= read -r path; do
     repo-only) ;;
     *) unknown+=("$path") ;;
   esac
-done < <(git ls-tree --name-only HEAD | grep -vxF fedora)
+done < <(git ls-tree --name-only HEAD | grep -vxF -e fedora -e .copr)
 
 (( ${#unknown[@]} == 0 )) ||
   die "unclassified top-level upstream paths: ${unknown[*]} (classify them in fedora/build/layout.tsv)"

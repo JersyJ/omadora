@@ -8,7 +8,7 @@ FEDORA_LOCK="$FEDORA_DIR/upstream.lock"
 # Paths this fork owns. Everything else belongs to upstream and must stay
 # byte-identical to the commit pinned in fedora/upstream.lock. Fedora changes to
 # upstream files live in fedora/overrides and fedora/patches instead.
-FORK_OWNED_PATHS=(fedora .github/workflows .github/README.md)
+FORK_OWNED_PATHS=(fedora .copr .github/workflows .github/README.md)
 
 die() {
   echo -e "\033[31merror:\033[0m $*" >&2
