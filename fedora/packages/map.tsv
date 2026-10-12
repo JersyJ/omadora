@@ -1,6 +1,6 @@
 # Arch package name -> Fedora 45 source. Read by the Fedora omarchy-pkg-* helpers.
 # Columns (tab-separated): arch_name, fedora_names (space-separated; empty for drop), source, note
-# source: fedora | copr:<owner>/<project> | rpmfusion-free | rpmfusion-nonfree | repo:<name> | ours (our omadora COPR)
+# source: fedora | copr:<owner>/<project> | rpmfusion-free | rpmfusion-nonfree | repo:<name> | ours (COPR jersyj/omadora)
 #         | flatpak (fedora_names = Flathub app id) | mise:<tool> | drop (succeed, install nothing) | todo (fail loudly)
 # Seeded 2026-10-12 from a full F45 pass (Koji, COPR API, mdapi) and whelanh/omarchy-fedora's packages.yaml (MIT).
 arch_name	fedora_names	source	note
