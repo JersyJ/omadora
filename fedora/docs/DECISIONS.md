@@ -21,7 +21,7 @@ Decided 2026-10-12 unless noted. Reasons are kept short; `RESEARCH.md` has the e
 | System files | Keep Fedora's `os-release`, `nsswitch.conf` and `cups-files.conf` | Upstream's versions set `ID_LIKE=arch` (breaks dnf copr, toolbox and management agents), fight authselect, and hardcode Arch's cups user 209 |
 | SELinux | Enforcing; releases gated on zero AVC denials | Company laptops; RPM installs label files correctly |
 | Hardware | HP ZBook 8 G2i 14" only | See `HARDWARE.md` |
-| Hardware probe | Postponed to Phase 2 (decided 2026-10-12) | Phases 1 and most of 2 do not depend on it; it is needed before the first install on a real ZBook, and it decides only the camera package and which `install/hardware` scripts ship |
+| Hardware probe | Done 2026-10-12 on SKU C75Z7AV (`HARDWARE.md`) | USB camera, Elan fingerprint reader supported by libfprint, Intel-only graphics, Wi-Fi 7 BE211; nothing needs a closed driver |
 | Keyring | GNOME Keyring with an encrypted `login` keyring, unlocked by the SDDM password through `pam_gnome_keyring`; no passwordless `Default_keyring` and no autologin | Decided 2026-10-12. Microsoft Intune's identity broker stores its tokens in GNOME Keyring through libsecret. Overrides: `install/user/default-keyring.sh` (creates nothing), `install/login/sddm.sh` (keeps the PAM lines upstream deletes). To verify in Phase 2: the keyring password follows `passwd` changes (Fedora's sddm PAM has no `password` line for it) |
 | Passwordless sudo rules | Keep upstream's NOPASSWD rules | Decided 2026-10-12 |
 | Log upload | Never upload to logs.omarchy.org; save the log in the home directory instead | Decided 2026-10-12: upstream's support service is for Arch-based Omarchy, not forks. Overrides: `bin/omarchy-upload-log`, `bin/omarchy-debug` |
@@ -38,4 +38,3 @@ Decided 2026-10-12 unless noted. Reasons are kept short; `RESEARCH.md` has the e
 | --- | --- | --- |
 | Flatpak or RPM for obsidian, localsend, pinta | Flathub (current map) or RPMs in our COPR (kamm3r specs) | Flatpaks need small wrappers where Omarchy launches the apps by command name |
 | Codecs | RPM Fusion `ffmpeg` and `intel-media-driver` (current map) or Fedora's free builds | Full H.264/HEVC encode needs RPM Fusion; screen recording uses it |
-| Camera | Depends on the hardware probe (Phase 2) | MIPI/IPU7 cameras need an akmod plus closed-source userspace (the hardest item in the port); USB cameras need nothing |

@@ -115,7 +115,7 @@ imagemagick	ImageMagick	fedora
 imv	imv	fedora	
 inetutils	hostname iputils	fedora	Arch inetutils provides hostname; Fedora splits it
 inotify-tools	inotify-tools	fedora	
-intel-ipu7-camera		todo	only if the ZBook probe finds the MIPI IPU7 camera (ACPI OVTI08F4); akmod + closed userspace
+intel-ipu7-camera		drop	the ZBook's camera is USB UVC, not MIPI/IPU7 (probe 2026-10-12)
 intel-lpmd	intel-lpmd	fedora	
 intel-media-driver	intel-media-driver	rpmfusion-nonfree	full codec build; Fedora's libva-intel-media-driver lacks some codecs
 inxi	inxi	fedora	
@@ -291,7 +291,7 @@ usage	usage	mise:usage	installed per user with mise use -g usage
 usbguard	usbguard	fedora	
 usbutils	usbutils	fedora	
 uwsm	uwsm	copr:nett00n/hyprland	verify uwsm-app is shipped (whelanh needed a shim)
-v4l2-relayd		todo	needed only with the MIPI/IPU7 camera; decided with the hardware probe
+v4l2-relayd		drop	part of the IPU7 camera stack; the ZBook's camera is USB UVC
 v4l2loopback-dkms	akmod-v4l2loopback	rpmfusion-free	
 v4l2loopback-utils	v4l2loopback	rpmfusion-free	
 vi	vim-minimal	fedora	provides vi
