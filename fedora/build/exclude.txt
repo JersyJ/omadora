@@ -8,3 +8,5 @@ etc/limine-entry-tool.d   # Limine entry tool drop-ins
 install/provisioning      # first-boot owner, LUKS rekey and factory reset for Omarchy's ISO; Anaconda does this on Fedora
 etc/nsswitch.conf         # Fedora generates it with authselect; Arch's copy breaks that (DECISIONS.md)
 etc/cups/cups-files.conf  # hardcodes Arch's cups user and group 209 (DECISIONS.md)
+bin/omarchy-upgrade-to-quattro     # migrates an Arch Omarchy 3 install to 4; nothing to upgrade on Fedora
+bin/omarchy-update-pacman-guard    # only run by the excluded ALPM update-guard hook
