@@ -1,0 +1,18 @@
+Fedora fork: rebuild the initramfs with dracut instead of mkinitcpio or Limine's
+hook after changing the Plymouth theme.
+
+--- a/bin/omarchy-plymouth-set	2026-10-12 18:12:27.519117713 +0200
++++ b/bin/omarchy-plymouth-set	2026-10-12 18:12:27.527582587 +0200
+@@ -373,9 +373,7 @@
+ if [[ $mode != "refresh-sddm" ]]; then
+   sudo plymouth-set-default-theme omarchy
+ 
+-  if omarchy-cmd-present limine-mkinitcpio; then
+-    sudo limine-mkinitcpio
+-  else
+-    sudo mkinitcpio -P
+-  fi
++  # Fedora fork: Fedora's initramfs comes from dracut; rebuild every
++  # installed kernel's so the splash shows whichever one boots.
++  sudo dracut --force --regenerate-all
+ fi
