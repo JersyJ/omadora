@@ -1,0 +1,44 @@
+# Fedora layer
+
+Everything that makes this fork Omarchy-on-Fedora lives here. Upstream files elsewhere in the repo are never edited; they stay byte-identical to the upstream commit pinned in `upstream.lock`, which is what lets the fork take every upstream sync without merge conflicts.
+
+## The one rule
+
+Do not edit files outside `fedora/`, `.github/workflows/` and `.github/README.md`. `fedora/bin/check-invariant` (and CI) fails if you do. To change an upstream file, use one of the tools below.
+
+| Need | Tool | Where |
+| --- | --- | --- |
+| Replace an upstream file that is wholly Arch-specific (pacman helpers, update pipeline) | Full override, pinned to the upstream version it was reviewed against | `overrides/<upstream path>` + `overrides.lock` (`bin/pin-override`) |
+| Change a few lines in an otherwise portable, fast-moving file | Patch | `patches/NNNN-name.patch` (applied with `patch -p1` in name order) |
+| Drop an Arch-only path | Exclusion | `build/exclude.txt` |
+| Map an Arch package name to its Fedora source | Package map | `packages/map.tsv` |
+| Decide whether an upstream migration runs on Fedora | Review row | `migrations/classify.tsv` (`bin/migrations-status`) |
+| Take one upstream fix before the next sync | Backport patch | `patches/backport-<sha>.patch`, deleted once the synced commit contains it |
+
+## Layout
+
+| Path | Purpose |
+| --- | --- |
+| `upstream.lock` | Pinned upstream `quattro` commit, omarchy-pkgs commit, Fedora release |
+| `bin/sync-upstream <ref>` | Sync upstream-owned paths to a commit (see `docs/SYNC.md`) |
+| `bin/check-invariant` | Verify upstream-owned paths match the pinned commit |
+| `bin/pin-override <path>` | Record that an override was reviewed against the current upstream file |
+| `bin/migrations-status` | Summarize, check (`--check`) or add (`--update`) migration review rows |
+| `bin/port-status [--list]` | Porting backlog: shipped files still referencing pacman, AUR, Limine, mkinitcpio or ufw |
+| `bin/probe-hardware` | Read-only hardware report for a target laptop |
+| `build/assemble` | Build the installable tree in `.build/` from upstream + this layer |
+| `build/layout.tsv` | Every upstream top-level path, marked `ship` or `repo-only` |
+| `packages/map.tsv` | Arch package name to Fedora name and source |
+| `tests/static.sh` | Everything CI checks |
+| `docs/` | Research, decisions, sync runbook, hardware notes |
+
+## Common commands
+
+```bash
+fedora/tests/static.sh               # all checks, as CI runs them
+fedora/build/assemble                # build fedora/.build/omarchy-<version>/
+fedora/bin/port-status --list        # what is left to port
+fedora/bin/sync-upstream upstream/quattro  # take upstream's latest quattro
+```
+
+The upstream remote is called `upstream` (https://github.com/omacom/omarchy.git).
