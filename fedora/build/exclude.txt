@@ -5,7 +5,7 @@ default/pacman            # pacman.conf and mirrorlist templates
 default/limine            # Limine boot menu; Fedora boots with GRUB2
 etc/mkinitcpio.conf.d     # mkinitcpio drop-ins; Fedora builds its initramfs with dracut
 etc/limine-entry-tool.d   # Limine entry tool drop-ins
-install/provisioning      # first-boot owner, LUKS rekey and factory reset for Omarchy's ISO; Anaconda does this on Fedora
+install/provisioning/*.service  # first-boot owner, hardware and factory-reset units for Omarchy's ISO; Anaconda and the kickstart do this on Fedora (luks-rekey.sh and setup-form.sh ship: omarchy-drive-password and the keyboard picker source them)
 etc/nsswitch.conf         # Fedora generates it with authselect; Arch's copy breaks that (DECISIONS.md)
 etc/cups/cups-files.conf  # hardcodes Arch's cups user and group 209 (DECISIONS.md)
 bin/omarchy-upgrade-to-quattro     # migrates an Arch Omarchy 3 install to 4; nothing to upgrade on Fedora
