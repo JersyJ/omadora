@@ -9,6 +9,9 @@ reinstalling.
 Usage: fedora/tests/vm-console.py [--root] [--screenshot] 'command' ['command' ...]
   --root        run the commands through sudo
   --screenshot  save the screen to fedora/.build/vm/console-screen.png afterwards
+
+  OMADORA_VM_SB_VARS=<file>  boot with Secure Boot on, using these OVMF variables
+                             (Microsoft's keys enrolled; a copy is used)
 """
 import os
 import re
@@ -77,10 +80,17 @@ def main():
 
     if os.path.exists(SOCK):
         os.unlink(SOCK)
+    firmware = ["-machine", "q35",
+                "-drive", "if=pflash,format=raw,readonly=on,file=/usr/share/edk2/x64/OVMF_CODE.4m.fd",
+                "-drive", f"if=pflash,format=raw,file={WORK}/vars.fd"]
+    sb_vars = os.environ.get("OMADORA_VM_SB_VARS")
+    if sb_vars:
+        subprocess.run(["cp", sb_vars, f"{WORK}/vars-secboot.fd"], check=True)
+        firmware = ["-machine", "q35,smm=on", "-global", "driver=cfi.pflash01,property=secure,value=on",
+                    "-drive", "if=pflash,format=raw,readonly=on,file=/usr/share/edk2/x64/OVMF_CODE.secboot.4m.fd",
+                    "-drive", f"if=pflash,format=raw,file={WORK}/vars-secboot.fd"]
     qemu = subprocess.Popen([
-        "qemu-system-x86_64", "-enable-kvm", "-machine", "q35", "-cpu", "host", "-smp", "4", "-m", "6144",
-        "-drive", "if=pflash,format=raw,readonly=on,file=/usr/share/edk2/x64/OVMF_CODE.4m.fd",
-        "-drive", f"if=pflash,format=raw,file={WORK}/vars.fd",
+        "qemu-system-x86_64", "-enable-kvm", "-cpu", "host", "-smp", "4", "-m", "6144", *firmware,
         "-drive", f"file={WORK}/disk.qcow2,if=virtio,format=qcow2",
         "-netdev", "user,id=net0", "-device", "virtio-net-pci,netdev=net0",
         "-device", "virtio-vga", "-display", "none",
