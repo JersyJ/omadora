@@ -26,10 +26,18 @@ Do not edit files outside `fedora/`, `.copr/`, `.github/workflows/` and `.github
 | `bin/migrations-status` | Summarize, check (`--check`) or add (`--update`) migration review rows |
 | `bin/port-status [--list]` | Porting backlog: shipped files still referencing pacman, AUR, Limine, mkinitcpio or ufw |
 | `bin/probe-hardware` | Read-only hardware report for a target laptop |
+| `bin/kickstart` | Print the Anaconda kickstart that installs Omadora from the Fedora netinst ISO |
 | `build/assemble` | Build the installable tree in `.build/` from upstream + this layer |
 | `build/layout.tsv` | Every upstream top-level path, marked `ship` or `repo-only` |
+| `overrides/`, `patches/` | Fedora replacements for upstream files (see the table above) |
 | `packages/map.tsv` | Arch package name to Fedora name and source |
-| `tests/static.sh` | Everything CI checks |
+| `lib/runtime/pkg.sh` | The package layer behind the `omarchy-pkg-*` overrides; installed at `/usr/share/omarchy/fedora/pkg.sh` |
+| `repos/` | Repository files, limits and version locks (`repos/README.md`) |
+| `rpm/` | RPM recipes for our COPR, including `omarchy`, `omarchy-settings` and `omadora-repos` built from this tree (`rpm/README.md`) |
+| `tests/static.sh` | The fast checks CI runs on every push |
+| `tests/resolve.sh` | CI: resolve the base and optional package sets in a Fedora container |
+| `tests/rpm.sh` | CI: build and install omarchy, omarchy-settings and omadora-repos, then exercise the package helpers |
+| `tests/vm-install.sh` | Local: install Omadora into a KVM virtual machine from the netinst ISO and report its first boot |
 | `docs/` | Research, decisions, sync runbook, hardware notes |
 
 ## Common commands
@@ -39,6 +47,8 @@ fedora/tests/static.sh                     # all checks, as CI runs them
 fedora/build/assemble                      # build fedora/.build/omarchy-<version>/
 fedora/bin/port-status --list              # what is left to port
 fedora/bin/sync-upstream upstream/quattro  # take upstream's latest quattro
+fedora/bin/kickstart --user NAME --password-hash "$(openssl passwd -6)" >omadora.ks
+fedora/tests/vm-install.sh Fedora-Everything-netinst-x86_64-45.iso  # full install test
 ```
 
 Remotes: `origin` is this fork (https://github.com/JersyJ/omadora), `upstream` is https://github.com/omacom/omarchy.git. A fresh clone needs `git remote add upstream https://github.com/omacom/omarchy.git` before syncing.
