@@ -146,7 +146,7 @@ shellcheck_fedora_scripts() {
     return 0
   fi
   shellcheck -x -S warning fedora/lib/common.sh fedora/bin/* fedora/build/assemble fedora/rpm/build-srpm fedora/tests/*.sh &&
-    find fedora/overrides -type f -exec shellcheck -s bash -S warning {} +
+    find fedora/overrides/bin fedora/overrides/install -type f -exec shellcheck -s bash -S warning {} +
 }
 
 check "Upstream-owned paths match the pinned upstream commit" fedora/bin/check-invariant

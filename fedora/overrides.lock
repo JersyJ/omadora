@@ -14,5 +14,12 @@ bin/omarchy-pkg-missing	b282d2f33683fd2cf18aea08ec389871bc4f06a7
 bin/omarchy-pkg-present	0a0645bda16700d914a4d064043fd4edef58f1f2
 bin/omarchy-pkg-remove	37ca448e9b592c32902d073c4380990449884f93
 bin/omarchy-upload-log	134d9174180bf9a241ccc2a35e162404ceccbe8c
+etc/security/faillock.conf	431f5e75402574daf3d43ad95f616ac0889605a4
+install/config/enable-services.sh	964f08675f91c64f15e578b20149c1f8fdbf14c6
+install/config/firewall.sh	de38943167dd1ce1b3ecd3525b577f157211a8f3
+install/config/increase-lockout-limit.sh	e0fd9511b894f29fd0296b854404f8e69165b18d
+install/config/locale.sh	e70713fb358011b48ea6b2e19eee47c50df65dae
+install/config/snapper.sh	3e936ec141c69461a9a0f2119d0e0f154e9159b5
+install/config/theme-system.sh	1527e17e7b1e5d5d904e2f6c4e8d3bb169165d74
 install/login/sddm.sh	250ce80e1f7e105e02f86e4a0f30a10b6e68bf18
 install/user/default-keyring.sh	63f70798c0a426a6dfe2ab871846850d8b76aa38

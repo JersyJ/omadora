@@ -1,0 +1,23 @@
+Fedora fork: the lock screen's PAM files include Fedora's system-auth; Arch's
+system-local-login does not exist on Fedora.
+
+--- a/bin/omarchy-apply-lock	2026-10-12 17:58:34.282763271 +0200
++++ b/bin/omarchy-apply-lock	2026-10-12 17:58:34.283763282 +0200
+@@ -37,7 +37,7 @@
+ auth       optional                    pam_permit.so
+ auth       required                    pam_env.so
+ auth       required                    pam_faillock.so authsucc
+-account    include                     system-local-login
++account    include                     system-auth
+ EOF
+ 
+ # Install resume recovery alongside fingerprint PAM, so setup and upgrades
+@@ -62,7 +62,7 @@
+   as_root tee /etc/pam.d/omarchy-lock-fingerprint >/dev/null <<'EOF'
+ #%PAM-1.0
+ auth       required                    pam_fprintd.so
+-account    include                     system-local-login
++account    include                     system-auth
+ EOF
+ elif [[ $fingerprint_status == "no" ]] || grep -qi 'has no fingers enrolled' <<< "$fingerprint_status"; then
+   as_root rm -f /etc/pam.d/omarchy-lock-fingerprint "$resume_hook_dst"
