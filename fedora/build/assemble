@@ -118,6 +118,7 @@ install -D -m 644 "$FEDORA_DIR/packages/map.tsv" "$out/fedora/packages/map.tsv"
 cp -a "$FEDORA_DIR/repos" "$out/fedora/repos"
 install -m 644 "$FEDORA_DIR/lib/runtime/pkg.sh" "$out/fedora/pkg.sh"
 cp -a "$FEDORA_DIR/lib/runtime/compat" "$out/fedora/compat"
+cp -a "$FEDORA_DIR/lib/runtime/etc" "$out/fedora/etc"
 omadora_version >"$out/version"
 cat >"$out/fedora/build-info" <<INFO
 upstream_ref=$UPSTREAM_REF

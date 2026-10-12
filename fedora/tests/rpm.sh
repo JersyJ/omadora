@@ -57,6 +57,12 @@ done
 visudo -c >/dev/null || die "sudoers no longer parses"
 grep -q '^deny = 10' /etc/security/faillock.conf || die "faillock override not applied"
 grep -q 'Theme=omarchy' /etc/plymouth/plymouthd.conf || die "plymouth override not applied"
+# The company password policy: 12 characters with a digit, a lowercase and an
+# uppercase letter.
+for weak in Xq7vRm2pLk9 xq7vrm2plk9wt XQ7VRM2PLK9WT Xqavrmbplkcwt; do
+  pwscore <<<"$weak" >/dev/null 2>&1 && die "the password policy accepts $weak"
+done
+pwscore <<<Xq7vRm2pLk9w >/dev/null || die "the password policy rejects a compliant password"
 
 info "Checking the package helpers"
 omarchy-pkg-missing yay pacman-contrib && die "dropped Arch tooling should count as present"

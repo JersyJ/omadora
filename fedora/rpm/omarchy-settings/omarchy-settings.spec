@@ -40,6 +40,8 @@ Requires:       plymouth
 Requires:       plymouth-plugin-script
 Requires:       abattis-cantarell-vf-fonts
 Requires:       util-linux
+# Reads the password policy drop-in in /etc/security/pwquality.conf.d
+Requires:       libpwquality
 Requires(pre):  coreutils
 Requires(post): systemd
 Requires(post): coreutils
@@ -105,6 +107,8 @@ for path in %{etc_overrides}; do
 done
 rmdir %{buildroot}%{_sysconfdir}/security %{buildroot}%{_sysconfdir}/cups %{buildroot}%{_sysconfdir}/plymouth 2>/dev/null || :
 install -m 0644 default/bashrc "$share/etc-overrides/dot.bashrc"
+# Omadora's own system configuration (fedora/lib/runtime/etc).
+cp -a fedora/etc/. %{buildroot}%{_sysconfdir}/
 chmod 0644 "$share/etc-overrides"/*
 
 # /etc/skel/.local/share/applications.
