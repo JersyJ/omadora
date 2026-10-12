@@ -140,9 +140,12 @@ rpmfusion-nonfree-release
 $(package_lines)
 %end
 
-%post --log=/var/log/omadora-kickstart.log --erroronfail
+%post --interpreter=/bin/bash --log=/var/log/omadora-kickstart.log --erroronfail
 set -euo pipefail
+$( (( test )) && echo "exec > >(tee /dev/ttyS0) 2>&1  # test only: everything below also goes to the serial console" )
 export OMARCHY_INSTALL_LOG_FILE=/var/log/omarchy-install.log
+# Anaconda reports a failed %post only generically; put the reason in this log.
+trap 'echo "Omadora setup failed; the last lines of \$OMARCHY_INSTALL_LOG_FILE:"; tail -n 60 "\$OMARCHY_INSTALL_LOG_FILE" 2>/dev/null' ERR
 
 # Omarchy's system setup, as the ISO runs it in the target chroot.
 omarchy-apply-system --install-user $user --first-install
@@ -167,7 +170,7 @@ if (( test )); then
 
 # Test only (fedora/tests/vm-install.sh): log straight into the Omarchy
 # session and report to the serial console once the desktop had time to start.
-%post --log=/var/log/omadora-kickstart-test.log --erroronfail
+%post --interpreter=/bin/bash --log=/var/log/omadora-kickstart-test.log --erroronfail
 cat >/etc/sddm.conf.d/90-omadora-test-autologin.conf <<'CONF'
 [Autologin]
 User=@USER@
