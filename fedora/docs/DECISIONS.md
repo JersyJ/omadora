@@ -37,7 +37,9 @@ Decided 2026-10-12 unless noted. Reasons are kept short; `RESEARCH.md` has the e
 | MIME defaults | Omarchy's list ships as `/usr/share/applications/hyprland-mimeapps.list` | Fedora's `shared-mime-info` owns `mimeapps.list`; the desktop-specific list wins in the Hyprland session only |
 | Installer | Fedora Everything netinst + generated kickstart (`fedora/bin/kickstart`): btrfs on LUKS2, Omarchy's system setup, then its user setup in upstream's first-boot owner context (Node.js from the network) | Decided 2026-10-12. Tested end to end in a KVM VM (`fedora/tests/vm-install.sh`) |
 | RPM Fusion updates during install | Left out of the kickstart until RPM Fusion opens them for the release | Before Fedora 45's release they do not exist and Anaconda fails on them; the installed system's own repo files still list them |
-| Intune | Phase 4 (pilot), once IT has given its requirements | Decided 2026-10-12. Microsoft supports Intune on Ubuntu and RHEL, not Fedora, so the pilot includes a test enrollment on F45. The keyring decision above is already in place for it |
+| Intune | Phase 4 (pilot). The requirements arrived 2026-10-12 and are in `INTUNE.md`: Edge and Defender in the base install, Intune Portal with Java 11 from Temurin, a 12-character password policy, automatic security updates and a full update every two weeks | Secure Boot, disk encryption, GNOME Keyring and the polkit prompt are already in place |
+| Passwordless sudo (confirmed) | Omarchy's NOPASSWD rules stay although the company guide discourages passwordless sudo for daily use | Decided 2026-10-12 |
+| Slack | Not offered on company laptops | The company discontinued Slack |
 
 ## Open
 
