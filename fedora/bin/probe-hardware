@@ -2,7 +2,8 @@
 
 # Collect the hardware facts the Fedora port needs from a target laptop.
 # Read-only and safe to run from any Linux live USB (Fedora live works well).
-# It records no serial numbers. With --sudo it also reads the kernel log.
+# It records no serial numbers, and MAC addresses are masked. With --sudo it
+# also reads the kernel log.
 #
 # Usage: fedora/bin/probe-hardware [--sudo] [output-file]
 
@@ -114,7 +115,7 @@ read_file() {
     section "Kernel messages: firmware, IPU, SOF, iwlwifi, nvidia"
     sudo dmesg 2>&1 | grep -iE 'firmware|ipu|sof|iwlwifi|nvidia|i915|xe |fred' | tail -n 200
   fi
-} | tee "$output"
+} | sed -E 's/([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}/xx:xx:xx:xx:xx:xx/g' | tee "$output"
 
 echo
 echo "Saved to $output"
