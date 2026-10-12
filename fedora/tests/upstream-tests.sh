@@ -27,6 +27,12 @@ if [[ -n ${WAYLAND_DISPLAY:-}${HYPRLAND_INSTANCE_SIGNATURE:-}${DISPLAY:-} ]]; th
   die "refusing to run inside a graphical session: upstream's tests can reach the live desktop. Run it in CI or a VM."
 fi
 
+# As root, many upstream tests skip rather than act on the machine, so a root
+# run would hide failures the expected list accounts for.
+if (( EUID == 0 )); then
+  die "run as an unprivileged user: as root, upstream's tests skip much of what they check"
+fi
+
 build="$FEDORA_DIR/.build"
 fedora_tree="$build/upstream-tests-fedora"
 pristine_tree="$build/upstream-tests-pristine"
