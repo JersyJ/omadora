@@ -42,6 +42,8 @@ Requires:       abattis-cantarell-vf-fonts
 Requires:       util-linux
 # Reads the password policy drop-in in /etc/security/pwquality.conf.d
 Requires:       libpwquality
+# Without the dictionary pwquality rejects every password (only a weak dependency)
+Requires:       cracklib-dicts
 Requires(pre):  coreutils
 Requires(post): systemd
 Requires(post): coreutils
