@@ -20,6 +20,13 @@ source "$(dirname "$(realpath "$0")")/../lib/common.sh"
 cd "$FEDORA_ROOT"
 load_lock
 
+# Some upstream tests talk to whatever Hyprland or Quickshell they can reach.
+# Inside a desktop session that is the user's own desktop, so refuse: run this
+# in CI's container or a VM.
+if [[ -n ${WAYLAND_DISPLAY:-}${HYPRLAND_INSTANCE_SIGNATURE:-}${DISPLAY:-} ]]; then
+  die "refusing to run inside a graphical session: upstream's tests can reach the live desktop. Run it in CI or a VM."
+fi
+
 build="$FEDORA_DIR/.build"
 fedora_tree="$build/upstream-tests-fedora"
 pristine_tree="$build/upstream-tests-pristine"

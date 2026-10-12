@@ -65,3 +65,7 @@ test/shell.d/brcmfmac-supplicant-test.sh              Apple Broadcom Wi-Fi
 test/shell.d/xps13-ptl-firmware-test.sh               Dell XPS 13
 test/shell.d/xps13-sidecar-amps-test.sh               Dell XPS 13
 test/shell.d/yt6801-driver-test.sh                    Motorcomm yt6801 Ethernet
+
+# Menu: the guards answer from Omadora's package layer ($OMARCHY_PATH/fedora/pkg.sh);
+# the test runs them without OMARCHY_PATH and with pacman stubs.
+test/shell.d/menu-guards-test.sh                      package guards read the package map and rpm, not pacman
