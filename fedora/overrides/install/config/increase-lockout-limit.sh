@@ -3,5 +3,7 @@
 # is a link into /etc/authselect), so instead of editing them, turn on
 # authselect's faillock feature; pam_faillock then reads deny and unlock_time
 # from /etc/security/faillock.conf, which omarchy-settings installs.
+# omadora-authselect does that, and also selects Intune Portal's profile,
+# which the installer's own authselect step may have replaced.
 # Omadora has no SDDM autologin, so upstream's sddm-autologin change is moot.
-authselect enable-feature with-faillock
+/usr/libexec/omadora/omadora-authselect

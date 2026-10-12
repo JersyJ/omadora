@@ -26,6 +26,7 @@ License:        MIT
 URL:            https://github.com/JersyJ/omadora
 Source0:        omarchy-%{omarchy_version}.tar.gz
 Source1:        omarchy-settings-transition
+Source2:        omadora-authselect
 BuildArch:      noarch
 
 BuildRequires:  ImageMagick
@@ -40,6 +41,8 @@ Requires:       plymouth
 Requires:       plymouth-plugin-script
 Requires:       abattis-cantarell-vf-fonts
 Requires:       util-linux
+# omadora-authselect, run by the pam_intune.so file triggers
+Requires:       authselect
 # Reads the password policy drop-in in /etc/security/pwquality.conf.d
 Requires:       libpwquality
 # Without the dictionary pwquality rejects every password (only a weak dependency)
@@ -168,6 +171,7 @@ for helper in omarchy-sudo-passwordless omarchy-security-functions; do
   ln -s %{_bindir}/"$helper" "$share/bin/$helper"
 done
 install -D -m 0755 %{SOURCE1} %{buildroot}%{_libexecdir}/omadora/omarchy-settings-transition
+install -D -m 0755 %{SOURCE2} %{buildroot}%{_libexecdir}/omadora/omadora-authselect
 
 # Branding.
 install -m 0644 logo.txt logo.svg icon.txt icon.png "$share/"
@@ -268,6 +272,14 @@ fi
 if [ "$1" -eq 0 ]; then
   rm -f /etc/sudoers.d/99-omarchy-nopasswd-*
 fi
+
+# intune-portal's scriptlets reselect the authselect profile without our
+# features, and its upgrades end on plain sssd (omadora-authselect).
+%transfiletriggerin -- %{_libdir}/security/pam_intune.so
+%{_libexecdir}/omadora/omadora-authselect || :
+
+%transfiletriggerpostun -- %{_libdir}/security/pam_intune.so
+%{_libexecdir}/omadora/omadora-authselect || :
 
 %files -f %{_builddir}/omarchy-settings.files
 %license LICENSE

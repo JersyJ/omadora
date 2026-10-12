@@ -1,0 +1,54 @@
+#!/bin/bash
+
+# Puts Omadora's authselect configuration back after Intune Portal changes it.
+#
+# intune-portal's %post builds the profile custom/intune-profile (sssd with
+# pam_intune.so) and selects it with no features, which drops pam_faillock.
+# Its %postun is not guarded against upgrades: it runs after the new version's
+# %post, selects sssd and deletes the profile, so every intune-portal update
+# leaves PAM without pam_intune.so. omarchy-settings runs this at the end of
+# each transaction that touches pam_intune.so, and the install runs it once.
+#
+# While pam_intune.so is installed this selects custom/intune-profile,
+# rebuilding it as intune-portal's %post does if it is gone. On whichever
+# profile is in use, it keeps the enabled features and adds Omadora's.
+#
+# Usage: omadora-authselect
+
+set -euo pipefail
+
+features=(with-faillock)
+intune_profile=custom/intune-profile
+
+# Copied from intune-portal 1.2609.5's %post; compare on every intune-portal update.
+create_intune_profile() {
+  local file
+
+  authselect create-profile intune-profile -b sssd --symlink-meta --symlink-pam >/dev/null
+  for file in /etc/authselect/$intune_profile/{system-auth,password-auth}; do
+    sed -i 's/^\(auth[[:space:]]\+\)sufficient[[:space:]]\+pam_unix.so/\1required                                   pam_unix.so/' "$file"
+    sed -i 's/^\(password[[:space:]]\+\)sufficient[[:space:]]\+pam_unix.so/\1required                                   pam_unix.so/' "$file"
+    sed -i '/^auth[[:space:]]\+required[[:space:]]\+pam_unix.so/a\auth        sufficient                                     pam_intune.so' "$file"
+    sed -i '/^password[[:space:]]\+required[[:space:]]\+pam_unix.so/a\password    sufficient                                     pam_intune.so' "$file"
+    sed -i '/^session[[:space:]]\+required[[:space:]]\+pam_unix.so/a\session     optional                                     pam_intune.so' "$file"
+  done
+}
+
+# "profile feature..." as authselect reports it; Fedora's default without one.
+if ! read -ra current < <(authselect current --raw 2>/dev/null) || (( ${#current[@]} == 0 )); then
+  current=(local)
+fi
+profile=${current[0]}
+wanted=("${current[@]:1}")
+for feature in "${features[@]}"; do
+  [[ " ${wanted[*]} " == *" $feature "* ]] || wanted+=("$feature")
+done
+
+if [[ -e /usr/lib64/security/pam_intune.so ]]; then
+  [[ -d /etc/authselect/$intune_profile ]] || create_intune_profile
+  profile=$intune_profile
+fi
+
+if [[ "$profile ${wanted[*]}" != "${current[*]}" ]]; then
+  authselect select "$profile" "${wanted[@]}" --force >/dev/null
+fi
