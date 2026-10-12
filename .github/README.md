@@ -2,7 +2,7 @@
 
 A Fedora 45 fork of [Omarchy](https://github.com/omacom/omarchy), the Hyprland desktop by DHH, for a team whose policy allows only Fedora-based systems. The supported laptop is the HP ZBook 8 G2i 14" (Intel Panther Lake).
 
-**Status: Phase 0 (scaffolding). Not installable yet.** See [`fedora/docs/RESEARCH.md`](../fedora/docs/RESEARCH.md) for the plan and [`fedora/docs/DECISIONS.md`](../fedora/docs/DECISIONS.md) for what has been decided.
+**Status: Phase 1 done (package repositories, our COPR, version locks). Not installable yet; Phase 2 builds the `omarchy` RPMs and installer.** See [`fedora/docs/RESEARCH.md`](../fedora/docs/RESEARCH.md) for the plan and [`fedora/docs/DECISIONS.md`](../fedora/docs/DECISIONS.md) for what has been decided.
 
 ## How the fork works
 

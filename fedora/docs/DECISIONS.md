@@ -13,7 +13,7 @@ Decided 2026-10-12 unless noted. Reasons are kept short; `RESEARCH.md` has the e
 | Hyprland stack | nett00n/hyprland COPR (hyprland, uwsm, quickshell, portals, hypr* tools), versionlocked to the Hyprland version upstream Omarchy pins | Most complete and most current Fedora Hyprland COPR; rebuilds Quickshell against Fedora's Qt. Fedora retired Hyprland after F42 |
 | Omarchy's own apps | Our COPR, starting from whelanh's MIT specs | Decided 2026-10-12. About 20 apps (aether, hype, monologue, omasnap, …); each upstream app release means a spec bump |
 | Our COPR [`jersyj/omadora`](https://copr.fedorainfracloud.org/coprs/jersyj/omadora/) (public, signed by COPR; fedora-45-x86_64) | `omarchy`, `omarchy-settings`, Omarchy's apps (above), `omarchy-hyprland-titlebars`, `omarchy-nvim`, `ttf-jetbrains-mono-nerd-basic`, `ttf-ia-writer`, `tzupdate`, `starship` (`source` = `ours` in `packages/map.tsv`) | Specs start from kamm3r/omadora-pkg and whelanh/omarchy-fedora (both MIT; keep their notices). atim/starship has no F45 build. The titlebars plugin must match nett00n's Hyprland build exactly |
-| Third-party repo hardening | `includepkgs=` on every third-party repo; versionlock on the Hyprland stack; pilot group first | A COPR must never be able to replace sudo, glibc or the kernel |
+| Third-party repo hardening | `includepkgs=` on every third-party repo, RPM Fusion included (through a dnf5 `repos.override.d` drop-in); versionlock on Hyprland and Quickshell; pilot group first | A COPR must never be able to replace sudo, glibc or the kernel. CI proves each limit takes effect (`fedora/repos/README.md`) |
 | Bootloader | GRUB2 (Fedora default) + snapper + grub-btrfs; no Limine | Limine is not packaged for Fedora, needs Secure Boot off or per-machine keys (Omarchy's manual says to disable Secure Boot), and its Omarchy glue is mkinitcpio-only. GRUB keeps Secure Boot, TPM2 unlock and fwupd working |
 | Initramfs | dracut | Fedora default; Omarchy's mkinitcpio drop-ins become dracut config |
 | Firewall | firewalld | Fedora's maintained default; ufw on Fedora is 0.35 and `ufw-docker` has no package anywhere. Costs one override (`install/config/firewall.sh`) and four small patches |
@@ -27,6 +27,9 @@ Decided 2026-10-12 unless noted. Reasons are kept short; `RESEARCH.md` has the e
 | Log upload | Never upload to logs.omarchy.org; save the log in the home directory instead | Decided 2026-10-12: upstream's support service is for Arch-based Omarchy, not forks. Overrides: `bin/omarchy-upload-log`, `bin/omarchy-debug` |
 | mise | Keep `install/user/mise.sh` (about 20 CLIs from the internet) | Decided 2026-10-12 |
 | sshd migration `1788124236` | Run it (disables SSH password logins, or sshd when no key is authorized) | Decided 2026-10-12 |
+| Optional apps, proprietary with a vendor RPM repository | The vendor's repository, added on demand and limited to that app (Chrome, Edge, VS Code, 1Password, Brave, Sublime Text, NordVPN, Dropbox, Symfony CLI, Cursor) | Decided 2026-10-12. Native packages updated by the vendor, as on any Fedora machine |
+| Optional apps without a vendor repository | A maintained COPR when one exists (Zen Browser: sneexy, Zed: che, Sunshine: LizardByte's own, xpadneo: neovi), otherwise Flathub (Spotify, Signal, Slack, Bitwarden, Heroic, Minecraft) | Decided 2026-10-12 |
+| Omarchy's own optional extras | Built in our COPR on demand (`todo` in the map until someone asks) | Decided 2026-10-12. 16 packages: omarchy-emacs, omazed, elsewhen, voxtype, t3code, ONCE, Hermes, the AI desktop apps, ghostty, LM Studio, umu-launcher, ollama-cuda |
 | Intune | Phase 4 (pilot), once IT has given its requirements | Decided 2026-10-12. Microsoft supports Intune on Ubuntu and RHEL, not Fedora, so the pilot includes a test enrollment on F45. The keyring decision above is already in place for it |
 
 ## Open
@@ -36,4 +39,3 @@ Decided 2026-10-12 unless noted. Reasons are kept short; `RESEARCH.md` has the e
 | Flatpak or RPM for obsidian, localsend, pinta | Flathub (current map) or RPMs in our COPR (kamm3r specs) | Flatpaks need small wrappers where Omarchy launches the apps by command name |
 | Codecs | RPM Fusion `ffmpeg` and `intel-media-driver` (current map) or Fedora's free builds | Full H.264/HEVC encode needs RPM Fusion; screen recording uses it |
 | Camera | Depends on the hardware probe (Phase 2) | MIPI/IPU7 cameras need an akmod plus closed-source userspace (the hardest item in the port); USB cameras need nothing |
-| Optional installers | 104 package names used by Omarchy's optional install menu are not mapped yet | Phase 1 |
