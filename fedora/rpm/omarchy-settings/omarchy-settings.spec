@@ -179,25 +179,27 @@ for helper in omarchy-upload-log omarchy-debug omarchy-debug-idle; do
 done
 
 # File list: /etc files are configuration (sudoers.d at 0440), /etc/skel is
-# seed content, and these directory trees are wholly ours.
+# seed content, and these directory trees are wholly ours. Paths are quoted:
+# some launchers have spaces in their names.
 cd %{buildroot}
 {
   for dir in %{_datadir}/omarchy %{_datadir}/sddm/themes/omarchy %{_datadir}/plymouth/themes/omarchy \
              %{_datadir}/fonts/omarchy %{_libexecdir}/omadora; do
-    echo "$dir"
+    echo "\"$dir\""
   done
-  find ./%{_sysconfdir}/skel -mindepth 1 -type d -printf '%%%%dir /%%P\n' | sed 's|^%%dir /|%%dir %{_sysconfdir}/skel/|'
+  find ./%{_sysconfdir}/skel -mindepth 1 -type d -printf '%%P\n' | sort | while read -r path; do
+    echo "%%dir \"%{_sysconfdir}/skel/$path\""
+  done
   find ./%{_sysconfdir} \( -type f -o -type l \) -printf '%%P\n' | sort | while read -r path; do
     case $path in
-      skel/*) echo "%{_sysconfdir}/$path" ;;
-      fonts/conf.d/*) echo "%{_sysconfdir}/$path" ;;
-      sudoers.d/*) echo "%%attr(0440,root,root) %%config(noreplace) %{_sysconfdir}/$path" ;;
-      *) echo "%%config(noreplace) %{_sysconfdir}/$path" ;;
+      skel/* | fonts/conf.d/*) echo "\"%{_sysconfdir}/$path\"" ;;
+      sudoers.d/*) echo "%%attr(0440,root,root) %%config(noreplace) \"%{_sysconfdir}/$path\"" ;;
+      *) echo "%%config(noreplace) \"%{_sysconfdir}/$path\"" ;;
     esac
   done
   find ./usr \( -type f -o -type l \) -printf '/usr/%%P\n' | sort | grep -v \
     -e '^%{_datadir}/omarchy/' -e '^%{_datadir}/sddm/themes/omarchy/' -e '^%{_datadir}/plymouth/themes/omarchy/' \
-    -e '^%{_datadir}/fonts/omarchy/' -e '^%{_libexecdir}/omadora/'
+    -e '^%{_datadir}/fonts/omarchy/' -e '^%{_libexecdir}/omadora/' | sed 's/.*/"&"/'
 } >%{_builddir}/omarchy-settings.files
 cd -
 
