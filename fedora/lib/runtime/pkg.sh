@@ -186,3 +186,49 @@ omadora_pkg_drop() {
     mise unuse --global "$name" || return 1
   done
 }
+
+# Batch mode for callers that ask many questions in one process, such as the
+# Quickshell menu's guards (shell/plugins/menu/MenuModel.js): load the map and
+# what is installed once, then answer without starting a process per name.
+omadora_pkg_cache_load() {
+  local arch source names name
+
+  declare -gA OMADORA_MAP_SOURCE=() OMADORA_MAP_NAMES=() OMADORA_RPM_INSTALLED=() OMADORA_FLATPAK_INSTALLED=()
+  while IFS=$'\x1f' read -r arch source names; do
+    OMADORA_MAP_SOURCE[$arch]=$source
+    OMADORA_MAP_NAMES[$arch]=$names
+  done < <(awk -F'\t' '!/^#/ && NF >= 3 { print $1 "\x1f" $3 "\x1f" $2 }' "$OMADORA_PKG_MAP" 2>/dev/null)
+  while read -r name; do
+    OMADORA_RPM_INSTALLED[$name]=1
+  done < <(rpm -qa --queryformat '%{NAME}\n' 2>/dev/null)
+  if command -v flatpak &>/dev/null; then
+    while read -r name; do
+      OMADORA_FLATPAK_INSTALLED[$name]=1
+    done < <(flatpak list --system --app --columns=application 2>/dev/null)
+  fi
+}
+
+# omadora_pkg_present against the cache; true of no names at all.
+omadora_pkg_cached_present() {
+  local pkg source names name
+
+  for pkg in "$@"; do
+    source=${OMADORA_MAP_SOURCE[$pkg]-fedora}
+    names=${OMADORA_MAP_NAMES[$pkg]-$pkg}
+    case $source in
+      drop) ;;
+      todo) return 1 ;;
+      flatpak)
+        for name in $names; do
+          [[ -n ${OMADORA_FLATPAK_INSTALLED[$name]-} ]] || return 1
+        done
+        ;;
+      mise:*) command -v "${source#mise:}" &>/dev/null || return 1 ;;
+      *)
+        for name in $names; do
+          [[ -n ${OMADORA_RPM_INSTALLED[$name]-} ]] || return 1
+        done
+        ;;
+    esac
+  done
+}
