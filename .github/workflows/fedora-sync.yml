@@ -14,6 +14,11 @@ permissions:
   contents: write
   pull-requests: write
 
+# A manual run and the schedule must not open two sync branches at once.
+concurrency:
+  group: fedora-sync
+  cancel-in-progress: false
+
 jobs:
   sync:
     runs-on: ubuntu-latest
