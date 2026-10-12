@@ -77,7 +77,10 @@ install -D -m 0644 default/fontconfig/conf.avail/50-omarchy.conf %{buildroot}%{_
 install -d %{buildroot}%{_sysconfdir}/fonts/conf.d
 ln -sfn %{_datadir}/fontconfig/conf.avail/50-omarchy.conf %{buildroot}%{_sysconfdir}/fonts/conf.d/50-omarchy.conf
 install -D -m 0644 default/xdg-terminal-exec/hyprland-xdg-terminals.list %{buildroot}%{_datadir}/xdg-terminal-exec/hyprland-xdg-terminals.list
-install -D -m 0644 default/applications/mimeapps.list %{buildroot}%{_datadir}/applications/mimeapps.list
+# Fedora's shared-mime-info owns /usr/share/applications/mimeapps.list. The
+# desktop-specific list in the same directory takes precedence over it in the
+# Hyprland session (XDG_CURRENT_DESKTOP=Hyprland) and leaves other desktops alone.
+install -D -m 0644 default/applications/mimeapps.list %{buildroot}%{_datadir}/applications/hyprland-mimeapps.list
 for unit in bt-agent omarchy-sleep-lock omarchy-recover-internal-monitor omarchy-migrate-notify \
             omarchy-tailscale-receive omarchy-fcitx5 omarchy-crash-watch \
             omarchy-brightness-keyboard-auto omarchy-usb-authorization omarchy-thunderbolt-authorization; do
