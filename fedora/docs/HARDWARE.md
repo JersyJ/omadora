@@ -8,7 +8,7 @@ The only supported laptop. A real unit was probed on 2026-10-12 (report: [`probe
 | --- | --- | --- |
 | Model | HP ZBook 8 G2i 14", SKU C75Z7AV, board 8ED9, BIOS Y70 01.01.07 (2026-07-07) | |
 | CPU | Intel Core Ultra 7 366H (Panther Lake) | Kernel 6.19 already drives everything; F45's 7.2 is newer. No `fred` CPU flag without `fred=on`, so upstream's `intel/fred.sh` applies (as a `grubby` argument) |
-| GPU | Intel Panther Lake graphics only (`8086:b0a0`, `xe` driver, GuC/HuC firmware loaded); eDP 1920×1200 | **No NVIDIA on this SKU.** The NVIDIA path stays mapped for SKUs with the RTX PRO 500 but isn't tested on this unit |
+| GPU | Intel Panther Lake graphics only (`8086:b0a0`, `xe` driver, GuC/HuC firmware loaded); eDP 1920×1200 | No NVIDIA. The company buys only SKUs without the RTX PRO 500, so the port has no NVIDIA support at all (decided 2026-10-12) |
 | Camera | HP 5MP Camera, USB UVC (Chicony `04f2:b882`), plus an IR sensor (`/dev/video2`, `video3`); no IPU PCI device, no MIPI sensor in ACPI | **Plain UVC, works out of the box.** The IPU7 stack (`intel-ipu7-camera`, `v4l2-relayd`) is not needed and is dropped. The IR camera is only for Windows Hello-style face login; not used |
 | Fingerprint | Elan `04f3:0c9f` (match-on-chip) | Supported by libfprint's `elanmoc` driver: `fprintd` + `fprintd-pam` through authselect |
 | Wi-Fi, Bluetooth | Intel Wi-Fi 7 BE211 320 MHz (CNVi `8086:e340`, `iwlwifi` with the `iwlmld` op mode), Intel Bluetooth over PCIe (`btintel_pcie`) | Both load firmware and work. Upstream's `intel/fix-wifi7-eht.sh` needs a check against this card in Phase 2 |
@@ -39,7 +39,6 @@ Boot any Linux live USB on the laptop and run `fedora/bin/probe-hardware --sudo 
 | `intel/video-acceleration.sh`, `intel/thermald.sh`, `intel/lpmd.sh`, `intel/sof-firmware.sh` | Package names through `packages/map.tsv` only |
 | `intel/fix-wifi7-eht.sh` | None (modprobe option) |
 | `intel/fred.sh` | Rewrite: `grubby --update-kernel=ALL --args=fred=on` instead of a Limine drop-in |
-| `nvidia.sh` | Rewrite: RPM Fusion akmod, dracut instead of mkinitcpio, MOK enrollment. Only for SKUs with the RTX PRO 500; not on the probed unit |
 | `vulkan.sh`, `bluetooth.sh`, `network.sh`, `set-wireless-regdom.sh` | Package names only |
 
-Everything else (Apple, ASUS, Dell, Surface, Framework, Lenovo, Tuxedo, Broadcom, Elgato, yt6801, speaker tuning for other models) is left out by a Fedora override of `install/hardware/all.sh`.
+Everything else (NVIDIA, Apple, ASUS, Dell, Surface, Framework, Lenovo, Tuxedo, Broadcom, Elgato, yt6801, speaker tuning for other models) is left out by a Fedora override of `install/hardware/all.sh`.

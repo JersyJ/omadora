@@ -21,6 +21,7 @@ Decided 2026-10-12 unless noted. Reasons are kept short; `RESEARCH.md` has the e
 | System files | Keep Fedora's `os-release`, `nsswitch.conf` and `cups-files.conf` | Upstream's versions set `ID_LIKE=arch` (breaks dnf copr, toolbox and management agents), fight authselect, and hardcode Arch's cups user 209 |
 | SELinux | Enforcing; releases gated on zero AVC denials | Company laptops; RPM installs label files correctly |
 | Hardware | HP ZBook 8 G2i 14" only | See `HARDWARE.md` |
+| NVIDIA | Not supported; every NVIDIA package is dropped and RPM Fusion is limited to codecs and Steam | Decided 2026-10-12: the company ZBooks are bought without the RTX PRO 500. Removes the akmod, MOK enrollment and Secure Boot signing work |
 | Hardware probe | Done 2026-10-12 on SKU C75Z7AV (`HARDWARE.md`) | USB camera, Elan fingerprint reader supported by libfprint, Intel-only graphics, Wi-Fi 7 BE211; nothing needs a closed driver |
 | Keyring | GNOME Keyring with an encrypted `login` keyring, unlocked by the SDDM password through `pam_gnome_keyring`; no passwordless `Default_keyring` and no autologin | Decided 2026-10-12. Microsoft Intune's identity broker stores its tokens in GNOME Keyring through libsecret. Overrides: `install/user/default-keyring.sh` (creates nothing), `install/login/sddm.sh` (keeps the PAM lines upstream deletes). To verify in Phase 2: the keyring password follows `passwd` changes (Fedora's sddm PAM has no `password` line for it) |
 | Passwordless sudo rules | Keep upstream's NOPASSWD rules | Decided 2026-10-12 |

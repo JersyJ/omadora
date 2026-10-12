@@ -126,8 +126,8 @@ kitty	kitty	fedora
 lazydocker	lazydocker	copr:atim/lazydocker	removed upstream on quattro; atim/lazydocker F45 build present (0.23.3-1)
 lazygit	lazygit	copr:boobaa/lazygit	
 less	less	fedora	
-lib32-nvidia-580xx-utils		drop	legacy NVIDIA branch; Blackwell uses the open modules
-lib32-nvidia-utils	xorg-x11-drv-nvidia-libs.i686	rpmfusion-nonfree	only needed for 32-bit games (Steam)
+lib32-nvidia-580xx-utils		drop	the company ZBooks have no NVIDIA GPU (decided 2026-10-12)
+lib32-nvidia-utils		drop	the company ZBooks have no NVIDIA GPU (decided 2026-10-12)
 libappindicator-gtk3	libappindicator-gtk3	fedora	
 libfido2	libfido2	fedora	
 libfprint	libfprint	fedora	
@@ -136,7 +136,7 @@ libpulse	pulseaudio-libs	fedora
 libreoffice-fresh	libreoffice	fedora	
 libsecret	libsecret	fedora	
 libva-intel-driver		drop	legacy i965 driver for pre-Broadwell GPUs; not needed on Panther Lake
-libva-nvidia-driver	libva-nvidia-driver	fedora	
+libva-nvidia-driver		drop	the company ZBooks have no NVIDIA GPU (decided 2026-10-12)
 libvips	vips	fedora	
 libvpl	libvpl	fedora	
 libyaml	libyaml	fedora	
@@ -181,16 +181,16 @@ noto-fonts	google-noto-sans-fonts google-noto-serif-fonts google-noto-sans-mono-
 noto-fonts-cjk	google-noto-sans-cjk-fonts	fedora	
 noto-fonts-emoji	google-noto-color-emoji-fonts	fedora	
 nss-mdns	nss-mdns	fedora	
-nvidia-580xx-dkms		drop	legacy NVIDIA branch; Blackwell uses the open modules
-nvidia-580xx-utils		drop	legacy NVIDIA branch; Blackwell uses the open modules
-nvidia-dkms	akmod-nvidia	rpmfusion-nonfree	
-nvidia-open-dkms	akmod-nvidia	rpmfusion-nonfree	open kernel modules required for Blackwell (RTX PRO 500); akmods signs with a MOK for Secure Boot
-nvidia-utils	xorg-x11-drv-nvidia	rpmfusion-nonfree	
+nvidia-580xx-dkms		drop	the company ZBooks have no NVIDIA GPU (decided 2026-10-12)
+nvidia-580xx-utils		drop	the company ZBooks have no NVIDIA GPU (decided 2026-10-12)
+nvidia-dkms		drop	the company ZBooks have no NVIDIA GPU (decided 2026-10-12)
+nvidia-open-dkms		drop	the company ZBooks have no NVIDIA GPU (decided 2026-10-12)
+nvidia-utils		drop	the company ZBooks have no NVIDIA GPU (decided 2026-10-12)
 nvim	neovim	fedora	
 obs-studio	obs-studio	fedora	
 obsidian	md.obsidian.Obsidian	flatpak	needs a command-name wrapper where Omarchy launches obsidian
 ollama	ollama	fedora	
-ollama-cuda		todo	on demand: build in our COPR when someone needs it (needs NVIDIA's CUDA repository)
+ollama-cuda		drop	the company ZBooks have no NVIDIA GPU (decided 2026-10-12)
 ollama-rocm	ollama-rocm	fedora	
 ollama-vulkan	ollama-vulkan	fedora	
 omacalc	omacalc	ours	Spec: whelanh/omarchy-fedora (MIT)

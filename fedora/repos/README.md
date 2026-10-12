@@ -19,7 +19,7 @@ Every package Omadora installs comes from Fedora, from a repository in this dire
 
 ## Changing a limit
 
-Add the package to the map, then to the repository's `includepkgs` (globs are fine for subpackage families such as `xorg-x11-drv-nvidia*`). When a new dependency from a limited repository appears, the resolution test names it.
+Add the package to the map, then to the repository's `includepkgs` (globs are fine for subpackage families such as `kmod-v4l2loopback*`). When a new dependency from a limited repository appears, the resolution test names it.
 
 ## After Fedora 45's release (2026-10-20)
 
