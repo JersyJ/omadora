@@ -208,7 +208,7 @@ if (( test )); then
 cat >/etc/sddm.conf.d/90-omadora-test-autologin.conf <<'CONF'
 [Autologin]
 User=@USER@
-Session=omarchy
+Session=omarchy.desktop
 CONF
 
 cat >/usr/local/sbin/omadora-selftest <<'SCRIPT'
@@ -218,6 +218,8 @@ echo "=== OMADORA SELFTEST BEGIN"
 echo "--- system: $(systemctl is-system-running)"
 echo "--- failed units:"
 systemctl --failed --no-legend --plain
+echo "--- failed user units (@USER@):"
+systemctl --machine=@USER@@.host --user --failed --no-legend --plain 2>&1 | head -n 20
 echo "--- sddm: $(systemctl is-active sddm)"
 echo "--- sessions:"
 loginctl list-sessions --no-legend

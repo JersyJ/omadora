@@ -66,6 +66,7 @@ version=$(git describe --tags --abbrev=8 "$commit" 2>/dev/null || echo "$short")
 set_lock_value UPSTREAM_REF "${ref#upstream/}"
 set_lock_value UPSTREAM_COMMIT "$commit"
 set_lock_value UPSTREAM_VERSION "${version#v}"
+set_lock_value UPSTREAM_COUNT "$(git rev-list --count "$commit")"
 git add fedora/upstream.lock
 
 mapfile -t spec < <(upstream_pathspec)

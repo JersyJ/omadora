@@ -42,11 +42,12 @@ set_lock_value() {
 
 # RPM version of the pinned upstream commit, in upstream's own omarchy-dev
 # format: <last release>.r<total commits>.g<short hash>, e.g. 4.0.0.r6912.gdefbf90.
-# Needs load_lock. Uses no tags, so it works in clones without them.
+# Needs load_lock. The commit count comes from upstream.lock (sync-upstream
+# records it with the full history at hand): COPR clones are shallow.
 omadora_version() {
-  local count
+  local count=${UPSTREAM_COUNT:-}
 
-  count=$(git -C "$FEDORA_ROOT" rev-list --count "$UPSTREAM_COMMIT") || return 1
+  [[ -n $count ]] || count=$(git -C "$FEDORA_ROOT" rev-list --count "$UPSTREAM_COMMIT") || return 1
   echo "${UPSTREAM_VERSION%%-*}.r$count.g${UPSTREAM_COMMIT:0:7}"
 }
 
