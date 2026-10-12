@@ -15,6 +15,9 @@
 # what COPR built from the pushed main branch.
 #
 # Usage: fedora/tests/vm-install.sh <Fedora-Everything-netinst.iso> [workdir]
+#   OMADORA_VM_PACKAGED=1     test the packages exactly as COPR built them; by
+#                             default the local assembled tree is laid over
+#                             them, so local changes are tested before a rebuild
 #   OMADORA_VM_SECURE_BOOT=1  boot the installed system with Secure Boot on
 #                             (needs OVMF_VARS with Microsoft's keys enrolled at
 #                             $OMADORA_VM_SB_VARS)
@@ -39,16 +42,25 @@ rm -rf "$work"
 mkdir -p "$work"
 cd "$work"
 
+port=$(python3 -c 'import socket; s = socket.socket(); s.bind(("127.0.0.1", 0)); print(s.getsockname()[1])')
+
+overlay_args=()
+if [[ ${OMADORA_VM_PACKAGED:-0} != "1" ]]; then
+  info "Assembling the local tree to lay over the packaged files"
+  "$FEDORA_DIR/build/assemble" --out "$work/tree/omarchy-local" >/dev/null
+  tar -C "$work/tree" -czf "$work/overlay.tar.gz" omarchy-local
+  overlay_args=(--overlay "http://10.0.2.2:$port/overlay.tar.gz")
+fi
+
 info "Generating the test kickstart"
 "$FEDORA_DIR/bin/kickstart" --user "$user" --password-hash "$(openssl passwd -6 "$password")" \
-  --disk vda --reboot --test >omadora.ks
+  --disk vda --reboot --test "${overlay_args[@]}" >omadora.ks
 
 info "Extracting the installer kernel"
 bsdtar -xf "$iso" images/pxeboot/vmlinuz images/pxeboot/initrd.img
 label=$(dd if="$iso" bs=1 skip=32808 count=32 status=none | tr -d ' ')
 [[ -n $label ]] || die "cannot read the ISO's volume label"
 
-port=$(python3 -c 'import socket; s = socket.socket(); s.bind(("127.0.0.1", 0)); print(s.getsockname()[1])')
 python3 -m http.server --bind 127.0.0.1 "$port" --directory "$work" >http.log 2>&1 &
 http_pid=$!
 trap 'kill "$http_pid" 2>/dev/null || true' EXIT

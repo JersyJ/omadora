@@ -20,6 +20,10 @@
 #   --lang LOCALE            default en_US.UTF-8
 #   --disk DEVICE            install to this disk only, e.g. vda or nvme0n1
 #   --reboot                 reboot when done instead of waiting
+#   --overlay URL            test only: before setup, lay this assembled tree
+#                            (a .tar.gz from fedora/build/assemble) over the
+#                            installed omarchy files, to test local changes
+#                            without rebuilding the packages
 #   --test                   for fedora/tests/vm-install.sh only: no disk
 #                            encryption, SDDM logs the user straight in, and a
 #                            self-test reports to the serial console
@@ -27,7 +31,7 @@
 set -euo pipefail
 source "$(dirname "$(realpath "$0")")/../lib/common.sh"
 
-user="" password_hash="" luks_passphrase="" timezone=Europe/Prague keyboard=us lang=en_US.UTF-8 disk="" reboot=0 test=0
+user="" password_hash="" luks_passphrase="" timezone=Europe/Prague keyboard=us lang=en_US.UTF-8 disk="" reboot=0 test=0 overlay=""
 while (( $# > 0 )); do
   case $1 in
     --user) user=$2; shift 2 ;;
@@ -39,6 +43,7 @@ while (( $# > 0 )); do
     --disk) disk=$2; shift 2 ;;
     --reboot) reboot=1; shift ;;
     --test) test=1; shift ;;
+    --overlay) overlay=$2; shift 2 ;;
     *) die "unknown option $1 (see the header of fedora/bin/kickstart)" ;;
   esac
 done
@@ -143,6 +148,22 @@ rpmfusion-nonfree-release
 $(package_lines)
 %end
 
+$( [[ -n $overlay ]] && cat <<OVERLAY
+%post --interpreter=/bin/bash --log=/var/log/omadora-kickstart-overlay.log --erroronfail
+# Test only: the local tree replaces the packaged omarchy files.
+set -euo pipefail
+mkdir -p /tmp/omadora-overlay
+curl -sf "$overlay" | tar -xz -C /tmp/omadora-overlay
+tree=\$(echo /tmp/omadora-overlay/omarchy-*)
+install -m 0755 "\$tree"/bin/* /usr/bin/
+cp -a "\$tree"/install "\$tree"/themes "\$tree"/migrations "\$tree"/shell "\$tree"/default "\$tree"/config /usr/share/omarchy/
+install -m 0644 "\$tree"/fedora/pkg.sh /usr/share/omarchy/fedora/pkg.sh
+install -m 0644 "\$tree"/fedora/packages/map.tsv /usr/share/omarchy/fedora/packages/map.tsv
+echo "Overlaid \$(cat "\$tree"/version) from $overlay"
+%end
+
+OVERLAY
+)
 %post --interpreter=/bin/bash --log=/var/log/omadora-kickstart.log --erroronfail
 set -euo pipefail
 $( (( test )) && echo "exec > >(tee /dev/ttyS0) 2>&1  # test only: everything below also goes to the serial console" )
