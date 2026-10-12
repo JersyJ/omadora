@@ -192,7 +192,7 @@ superwhisper-bin	superwhisper-bin	ours	Spec: whelanh/omarchy-fedora (MIT)
 sushi	sushi	fedora	
 system-config-printer	system-config-printer	fedora	
 t2fanrd		drop	hardware not supported by this fork (HP ZBook 8 G2i only)
-tensaku	tensaku	ours	removed upstream on quattro (replaced by omasnap); Spec: whelanh/omarchy-fedora (MIT)
+tensaku		drop	removed upstream on quattro (omasnap replaced it; migration 1788129995 drops it)
 tesseract	tesseract	fedora	
 tesseract-data-eng	tesseract-langpack-eng	fedora	
 thermald	thermald	fedora	
