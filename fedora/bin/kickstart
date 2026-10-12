@@ -132,6 +132,9 @@ user --name=$user --groups=wheel$( [[ -n $password_hash ]] && echo " --iscrypted
 
 %packages
 @core
+# Arch's systemd includes resolved; Fedora ships it separately, and
+# install/config/enable-services.sh enables it.
+systemd-resolved
 omadora-repos
 omarchy-settings
 omarchy
