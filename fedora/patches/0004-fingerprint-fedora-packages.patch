@@ -1,0 +1,19 @@
+Fedora fork: install the fingerprint packages through the package map instead
+of pacman.
+
+--- a/bin/omarchy-setup-security-fingerprint	2026-10-12 18:12:59.949841551 +0200
++++ b/bin/omarchy-setup-security-fingerprint	2026-10-12 18:12:59.958233696 +0200
+@@ -68,9 +68,12 @@
+ # needs a pin bump in omarchy-pkgs. It conflicts with stock libfprint, and
+ # --noconfirm answers that prompt with N; --ask 4 accepts the replacement in
+ # one transaction, so a failed install leaves the existing driver in place.
++# Fedora fork: Omadora's package map installs Fedora's libfprint for
++# libfprint-git (the ZBook's Elan reader is in its elanmoc table), and fprintd
++# with fprintd-pam, the package that carries pam_fprintd.so on Fedora.
+ if omarchy-pkg-missing libfprint-git fprintd usbutils; then
+   echo "Installing required packages..."
+-  sudo pacman -S --needed --noconfirm --ask 4 -- libfprint-git fprintd usbutils
++  omarchy-pkg-add libfprint-git fprintd usbutils
+ fi
+ 
+ # Enroll first fingerprint

@@ -80,7 +80,7 @@ firefox	firefox	fedora
 flatpak	flatpak	fedora	
 fontconfig	fontconfig	fedora	
 foot	foot	fedora	
-fprintd	fprintd	fedora	
+fprintd	fprintd fprintd-pam	fedora	Fedora ships pam_fprintd.so in fprintd-pam
 freerdp	freerdp	fedora	
 fwupd	fwupd	fedora	
 fzf	fzf	fedora	
