@@ -232,6 +232,11 @@ echo "--- omarchy install log (failures):"
 grep -E 'Failed|Error' /var/log/omarchy-install.log | head -n 20
 echo "--- packages:"
 rpm -q omarchy omarchy-settings omadora-repos hyprland quickshell sddm kernel
+echo "--- wayland sessions: $(ls /usr/share/wayland-sessions /usr/local/share/wayland-sessions 2>/dev/null | tr '\n' ' ')"
+echo "--- sddm log:"
+journalctl -b -u sddm --no-pager -o cat | tail -n 30 | cut -c1-240
+echo "--- @USER@'s journal:"
+journalctl -b _UID="$(id -u @USER@)" --no-pager -o short-monotonic | tail -n 40 | cut -c1-240
 echo "--- errors in this boot's journal:"
 journalctl -b -p err --no-pager -o short-monotonic | tail -n 40 | cut -c1-240
 echo "=== OMADORA SELFTEST END"
