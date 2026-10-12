@@ -26,6 +26,8 @@ rpmbuild --rebuild /tmp/srpm/tzupdate-*.src.rpm
 
 The project has network access enabled because `omarchy-nvim` runs LazyVim's plugin sync during its build. Rust recipes still build offline from their vendored crates.
 
+Build roots also see two repositories that runtime installs limit with `includepkgs`: nett00n/hyprland (`hyprland-devel` for `omarchy-hyprland-titlebars`, which pins itself to that exact Hyprland build) and RPM Fusion free (full `ffmpeg`, whose H.264 encoder `owe`'s tests need). Until Fedora 45's release on 2026-10-20, RPM Fusion serves Fedora 45 from `development/45` and `updates/testing/45`; after it, switch the project to `releases/45/Everything/$basearch/os/` and `updates/45/$basearch/` with `copr-cli modify jersyj/omadora --repo …`.
+
 ## Credits
 
 Several recipes and `build-srpm` start from [kamm3r/omadora-pkg](https://github.com/kamm3r/omadora-pkg) and [whelanh/omarchy-fedora](https://github.com/whelanh/omarchy-fedora), both MIT licensed. Each spec names its origin in its header.

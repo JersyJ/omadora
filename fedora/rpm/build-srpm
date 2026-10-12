@@ -3,10 +3,10 @@
 # Build the source RPM for one recipe, fedora/rpm/<name>/<name>.spec.
 #
 # Downloads the spec's remote sources, verifies them against the recipe's
-# sources.sha256, vendors Rust crates when the recipe has a cargo-vendor marker
-# (so the binary build needs no network), and packs the SRPM. COPR runs this
-# through .copr/Makefile (the make_srpm method); it also works on any Fedora
-# machine or container.
+# sources.sha256, vendors Rust crates or Go modules when the recipe has a
+# cargo-vendor or go-vendor marker (so the binary build needs no network), and
+# packs the SRPM. COPR runs this through .copr/Makefile (the make_srpm
+# method); it also works on any Fedora machine or container.
 #
 # Usage: fedora/rpm/build-srpm <spec> <outdir>
 #
@@ -42,7 +42,7 @@ mkdir -p "$outdir"
 # The spec plus any local files it ships (patches, units), but not the
 # recipe's own metadata.
 find "$recipe" -maxdepth 1 -type f \
-  ! -name sources.sha256 ! -name cargo-vendor \
+  ! -name sources.sha256 ! -name cargo-vendor ! -name go-vendor \
   -exec cp -t "$outdir" {} +
 
 spectool --get-files --directory "$outdir" "$outdir/$name.spec"
@@ -50,27 +50,44 @@ spectool --get-files --directory "$outdir" "$outdir/$name.spec"
 
 version=$(rpmspec --query --srpm --queryformat '%{VERSION}' "$outdir/$name.spec")
 
-# Rust: vendor the locked crate graph next to the source archive. The marker
-# may name the archive's top directory, with %version substituted; it
-# defaults to <name>-<version>.
+# Rust and Go: vendor the locked dependency graph into
+# <name>-vendor-<version>.tar.gz next to the source archive. A marker may name
+# the archive's top directory, with %version substituted; it defaults to
+# <name>-<version>.
+work=$(mktemp -d)
+trap 'rm -rf "$work"' EXIT
+
+source_root() {
+  local marker=$1 root="$name-$version"
+
+  if [[ -s $marker ]]; then
+    root=$(sed "s/%version/$version/g" "$marker")
+  fi
+  tar -xzf "$outdir/$name-$version.tar.gz" -C "$work"
+  [[ -d $work/$root ]] || die "no $root in $name-$version.tar.gz; name the archive's top directory in $marker"
+  echo "$work/$root"
+}
+
 if [[ -f $recipe/cargo-vendor ]]; then
   command -v cargo >/dev/null || dnf -y install cargo
-
-  root="$name-$version"
-  if [[ -s $recipe/cargo-vendor ]]; then
-    root=$(sed "s/%version/$version/g" "$recipe/cargo-vendor")
-  fi
-
-  work=$(mktemp -d)
-  trap 'rm -rf "$work"' EXIT
-  tar -xzf "$outdir/$name-$version.tar.gz" -C "$work"
-  [[ -f $work/$root/Cargo.lock ]] || die "no Cargo.lock in $root; set the archive's top directory in $recipe/cargo-vendor"
-
+  root=$(source_root "$recipe/cargo-vendor")
+  [[ -f $root/Cargo.lock ]] || die "no Cargo.lock in $root"
   (
-    cd "$work/$root"
+    cd "$root"
     mkdir -p .cargo
     cargo vendor --locked --versioned-dirs cargo-vendor >.cargo/config.toml
     tar -czf "$outdir/$name-vendor-$version.tar.gz" cargo-vendor .cargo
+  )
+fi
+
+if [[ -f $recipe/go-vendor ]]; then
+  command -v go >/dev/null || dnf -y install golang
+  root=$(source_root "$recipe/go-vendor")
+  [[ -f $root/go.sum ]] || die "no go.sum in $root"
+  (
+    cd "$root"
+    GOTOOLCHAIN=auto go mod vendor
+    tar -czf "$outdir/$name-vendor-$version.tar.gz" vendor
   )
 fi
 
