@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# omarchy:summary=Returns true if any of the named packages are missing from the system (or false if they're all there).
+# omarchy:args=<packages...>
+
+# Fedora fork: checks the packages Omadora's package map gives for the Arch names.
+source /usr/share/omarchy/fedora/pkg.sh
+
+if omadora_pkg_present "$@"; then
+  exit 1
+fi
+
+exit 0

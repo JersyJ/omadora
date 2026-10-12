@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# omarchy:summary=Add the named packages to the system from the AUR if they're missing. Returns false if it couldn't be done.
+# omarchy:args=<packages...>
+
+# Fedora fork: there is no AUR. Omadora's package map names a Fedora source for
+# every package Omarchy takes from the AUR, so this is omarchy-pkg-add.
+source /usr/share/omarchy/fedora/pkg.sh
+
+omadora_pkg_add "$@"

@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# omarchy:summary=Show a fuzzy-finder TUI for picking new AUR packages to install.
+# omarchy:requires-sudo=true
+
+# Fedora fork: there is no AUR. Every configured repository, COPRs included,
+# is already in the regular package picker.
+exec omarchy-pkg-install

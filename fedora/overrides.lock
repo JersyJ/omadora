@@ -4,6 +4,15 @@
 # file changes, so its change gets ported before the override ships again.
 # Update a pin with: fedora/bin/pin-override <path>
 bin/omarchy-debug	59fbc4fce48b667bc166e08251ef0fdff64a2827
+bin/omarchy-pkg-add	1f5e40913d3320f418fa33064b63867e3d1f4725
+bin/omarchy-pkg-aur-accessible	fae95172a9e2464854e7cadcc49175078b841167
+bin/omarchy-pkg-aur-add	64ad097c6202581526c75b5bca00c7e2f4243920
+bin/omarchy-pkg-aur-install	dc393b8dc304555d97766196f7b2eb7b6e661953
+bin/omarchy-pkg-drop	7b173c8de9d3f080f5ff90be2c41955bb9816845
+bin/omarchy-pkg-install	e5e0fb429f8f3215b737ac7bbbc76ac459d4d7aa
+bin/omarchy-pkg-missing	b282d2f33683fd2cf18aea08ec389871bc4f06a7
+bin/omarchy-pkg-present	0a0645bda16700d914a4d064043fd4edef58f1f2
+bin/omarchy-pkg-remove	37ca448e9b592c32902d073c4380990449884f93
 bin/omarchy-upload-log	134d9174180bf9a241ccc2a35e162404ceccbe8c
 install/login/sddm.sh	250ce80e1f7e105e02f86e4a0f30a10b6e68bf18
 install/user/default-keyring.sh	63f70798c0a426a6dfe2ab871846850d8b76aa38

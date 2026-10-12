@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# omarchy:summary=Returns true if the AUR is up and available.
+
+# Fedora fork: there is no AUR. The packages Omarchy takes from it come from
+# COPR on Fedora, so this checks that COPR answers instead.
+curl -sf --connect-timeout 30 --retry 3 --retry-delay 3 -A "omarchy-update" \
+  "https://copr.fedorainfracloud.org/api_3/" >/dev/null

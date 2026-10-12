@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# omarchy:summary=Install Arch packages if they are missing
+# omarchy:args=<packages...>
+# omarchy:examples=omarchy pkg add jq ripgrep
+# omarchy:requires-sudo=true
+
+# Fedora fork: the Arch names are translated through Omadora's package map
+# and installed with dnf, Flathub or mise (/usr/share/omarchy/fedora/pkg.sh).
+source /usr/share/omarchy/fedora/pkg.sh
+
+omadora_pkg_add "$@"

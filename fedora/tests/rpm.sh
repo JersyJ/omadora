@@ -56,4 +56,19 @@ done
 visudo -c >/dev/null || die "sudoers no longer parses"
 grep -q '^deny = 10' /etc/security/faillock.conf || die "faillock override not applied"
 grep -q 'Theme=omarchy' /etc/plymouth/plymouthd.conf || die "plymouth override not applied"
+
+info "Checking the package helpers"
+omarchy-pkg-missing yay pacman-contrib && die "dropped Arch tooling should count as present"
+omarchy-pkg-present yay pacman-contrib || die "omarchy-pkg-present fails on dropped packages"
+omarchy-pkg-present fd && die "fd (fd-find) should not be installed yet"
+omarchy-pkg-add fd ttf-jetbrains-mono-nerd-basic || die "omarchy-pkg-add failed"
+rpm -q --quiet fd-find || die "omarchy-pkg-add fd did not install fd-find"
+omarchy-pkg-present fd ttf-jetbrains-mono-nerd-basic || die "omarchy-pkg-present misses what was just added"
+if omarchy-pkg-add claude-desktop 2>/tmp/todo.err; then
+  die "a todo package must fail"
+fi
+grep -q "Not packaged for Omadora yet" /tmp/todo.err || die "a todo package must say why it failed"
+omarchy-pkg-drop fd || die "omarchy-pkg-drop failed"
+rpm -q --quiet fd-find && die "omarchy-pkg-drop fd left fd-find installed"
+
 info "Packages build and install"
