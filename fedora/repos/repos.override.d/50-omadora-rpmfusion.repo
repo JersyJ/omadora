@@ -1,0 +1,24 @@
+# Limits RPM Fusion to the packages Omadora takes from it. RPM Fusion's own
+# release packages own its .repo files, so the limit is a dnf5 override,
+# installed in /etc/dnf/repos.override.d/.
+# Free: full ffmpeg (H.264/HEVC encode) and its codec libraries.
+# Nonfree: Intel's full media driver, the NVIDIA open-module stack (akmod,
+# signed with a MOK for Secure Boot) and fdk-aac.
+
+[rpmfusion-free]
+includepkgs=rpmfusion-free-* ffmpeg ffmpeg-libs libavdevice vvenc-libs x264-libs x265-libs
+
+[rpmfusion-free-updates]
+includepkgs=rpmfusion-free-* ffmpeg ffmpeg-libs libavdevice vvenc-libs x264-libs x265-libs
+
+[rpmfusion-free-updates-testing]
+includepkgs=rpmfusion-free-* ffmpeg ffmpeg-libs libavdevice vvenc-libs x264-libs x265-libs
+
+[rpmfusion-nonfree]
+includepkgs=rpmfusion-nonfree-* intel-media-driver fdk-aac akmod-nvidia nvidia-modprobe nvidia-settings nvidia-persistenced xorg-x11-drv-nvidia*
+
+[rpmfusion-nonfree-updates]
+includepkgs=rpmfusion-nonfree-* intel-media-driver fdk-aac akmod-nvidia nvidia-modprobe nvidia-settings nvidia-persistenced xorg-x11-drv-nvidia*
+
+[rpmfusion-nonfree-updates-testing]
+includepkgs=rpmfusion-nonfree-* intel-media-driver fdk-aac akmod-nvidia nvidia-modprobe nvidia-settings nvidia-persistenced xorg-x11-drv-nvidia*

@@ -26,7 +26,34 @@ install -m 0644 fedora/repos/versionlock.toml /etc/dnf/versionlock.toml
 dnf -y -q install \
   "https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$FEDORA_RELEASE.noarch.rpm" \
   "https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$FEDORA_RELEASE.noarch.rpm"
+install -m 0644 -D -t /etc/dnf/repos.override.d fedora/repos/repos.override.d/*.repo
 dnf versionlock list
+
+# includepkgs must actually take effect: every package a limited repository
+# offers has to match one of its patterns. A typo in a section name would
+# otherwise leave a repository unrestricted without any error.
+info "Checking repository limits"
+mapfile -t limited < <(awk -F= '/^\[/ { section = substr($0, 2, length($0) - 2) } /^includepkgs=/ { print section "=" $2 }' \
+  fedora/repos/*.repo fedora/repos/repos.override.d/*.repo)
+for entry in "${limited[@]}"; do
+  repo=${entry%%=*}
+  read -ra patterns <<<"${entry#*=}"
+  dnf repo list --enabled --quiet "$repo" 2>/dev/null | grep -q . || continue
+  offered=0
+  while read -r name; do
+    offered=$((offered + 1))
+    matched=0
+    for pattern in "${patterns[@]}"; do
+      # shellcheck disable=SC2053 # the pattern is a glob on purpose
+      if [[ $name == $pattern ]]; then
+        matched=1
+        break
+      fi
+    done
+    (( matched )) || die "$repo offers $name, which its includepkgs does not allow; the limit is not applied"
+  done < <(dnf repoquery --quiet --repo "$repo" --queryformat '%{name}\n' | sort -u)
+  printf '  %-60s %d packages offered\n' "$repo" "$offered"
+done
 
 # Fedora package names for everything in upstream's lists, by source.
 packages=()
@@ -62,8 +89,11 @@ sed -n '/^Transaction Summary/,/^$/p' "$log"
 # a third-party repository showing up here unexpectedly is worth a look.
 info "Packages by repository"
 awk '
+  /^Package +Arch +Version +Repository/ { table = 1; next }
+  /^Transaction Summary/ { table = 0 }
+  !table { next }
   /^[A-Z][A-Za-z ]*:$/ { section = $0; next }
-  /^ / && NF >= 5 && section != "" {
+  /^ / && NF >= 5 && $1 != "replacing" && section != "" {
     repo = $4
     count[repo]++
     if (repo !~ /^(fedora|updates|updates-testing)$/) third[repo] = third[repo] " " $1

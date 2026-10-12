@@ -82,8 +82,9 @@ rpm_recipes_are_pinned() {
   return $status
 }
 
-# Every package mapped to a COPR, to our COPR ("ours") or to a vendor repository
-# is allowed by that repository's includepkgs in fedora/repos.
+# Every package mapped to a COPR, to our COPR ("ours"), to RPM Fusion or to a
+# vendor repository is allowed by that repository's includepkgs in
+# fedora/repos (patterns may be globs).
 repos_cover_map() {
   local bad
 
@@ -93,16 +94,28 @@ repos_cover_map() {
     file == 1 && /^includepkgs=/ {
       sub(/^includepkgs=/, "")
       n = split($0, names, " ")
-      for (i = 1; i <= n; i++) allowed[section, names[i]] = 1
+      for (i = 1; i <= n; i++) {
+        pattern = names[i]
+        gsub(/[.+]/, "\\\\&", pattern)
+        gsub(/\*/, ".*", pattern)
+        allowed[section] = allowed[section] " ^" pattern "$"
+      }
     }
-    file == 2 && !/^#/ && $3 ~ /^(copr:|ours$|repo:)/ {
+    file == 2 && !/^#/ && $3 ~ /^(copr:|ours$|repo:|rpmfusion-)/ {
       section = $3
       if (section == "ours") section = "copr:jersyj/omadora"
       if (section ~ /^copr:/) { split(substr(section, 6), op, "/"); section = "copr:copr.fedorainfracloud.org:" op[1] ":" op[2] }
       if (section ~ /^repo:/) section = substr(section, 6) "-repo"
       n = split($2, names, " ")
-      for (i = 1; i <= n; i++) if (!((section, names[i]) in allowed)) print $1 ": " names[i] " is not in includepkgs of [" section "]"
-    }' <(cat fedora/repos/*.repo) fedora/packages/map.tsv)
+      for (i = 1; i <= n; i++) {
+        name = names[i]
+        sub(/\.(i686|x86_64|noarch)$/, "", name)
+        m = split(allowed[section], patterns, " ")
+        ok = 0
+        for (j = 1; j <= m; j++) if (name ~ patterns[j]) ok = 1
+        if (!ok) print $1 ": " name " is not in includepkgs of [" section "]"
+      }
+    }' <(cat fedora/repos/*.repo fedora/repos/repos.override.d/*.repo) fedora/packages/map.tsv)
   if [[ -n $bad ]]; then
     sed 's/^/  /' <<<"$bad"
     return 1
