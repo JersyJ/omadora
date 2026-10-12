@@ -56,5 +56,23 @@ if grep -qE '^(Problem|No match for argument|Failed to resolve)' "$log" || ! gre
   cat "$log"
   die "the package set does not resolve"
 fi
-sed -n '/^Transaction Summary/,$p' "$log"
+sed -n '/^Transaction Summary/,/^$/p' "$log"
+
+# Where packages come from, and anything that would touch what is installed:
+# a third-party repository showing up here unexpectedly is worth a look.
+info "Packages by repository"
+awk '
+  /^[A-Z][A-Za-z ]*:$/ { section = $0; next }
+  /^ / && NF >= 5 && section != "" {
+    repo = $4
+    count[repo]++
+    if (repo !~ /^(fedora|updates|updates-testing)$/) third[repo] = third[repo] " " $1
+    if (section ~ /^(Upgrading|Replacing|Removing|Downgrading)/) touched = touched "\n  " section " " $1 " (" repo ")"
+  }
+  END {
+    for (repo in count) printf "  %-60s %d\n", repo, count[repo]
+    for (repo in third) printf "\n  %s:%s\n", repo, third[repo]
+    if (touched != "") printf "\nChanges to installed packages:%s\n", touched
+  }' "$log"
+
 info "Package set resolves"
