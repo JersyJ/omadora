@@ -4,9 +4,11 @@
 #
 # Fails on: upstream drift, unmapped or malformed package entries, migrations
 # missing a review row or changed since review, a failing assemble (unknown
-# top-level path, drifted override, rejected patch) and shellcheck errors.
+# top-level path, drifted override, rejected patch), RPM recipes with unpinned
+# sources or a stale omarchy-pkgs commit, and shellcheck errors.
 # Reports, without failing: unreviewed migrations, optional package names
-# used in scripts but not mapped yet, and the remaining porting backlog.
+# used in scripts but not mapped yet, packages for our COPR without a recipe,
+# and the remaining porting backlog.
 
 set -uo pipefail
 source "$(dirname "$(realpath "$0")")/../lib/common.sh"
@@ -55,6 +57,39 @@ listed_packages_are_mapped() {
   fi
 }
 
+# Every recipe pins its remote sources, and recipes built from omarchy-pkgs use
+# the commit pinned in fedora/upstream.lock.
+rpm_recipes_are_pinned() {
+  local dir name commit status=0
+
+  load_lock
+  for dir in fedora/rpm/*/; do
+    name=$(basename "$dir")
+    if [[ ! -f $dir/$name.spec ]]; then
+      echo "  $dir: missing $name.spec"
+      status=1
+    fi
+    if [[ ! -f $dir/sources.sha256 ]]; then
+      echo "  $dir: missing sources.sha256"
+      status=1
+    fi
+    commit=$(sed -n 's/^%global pkgs_commit[[:space:]]\+//p' "$dir/$name.spec" 2>/dev/null)
+    if [[ -n $commit && $commit != "$PKGS_COMMIT" ]]; then
+      echo "  $name: pkgs_commit ${commit:0:10} differs from PKGS_COMMIT ${PKGS_COMMIT:0:10} in upstream.lock"
+      status=1
+    fi
+  done
+  return $status
+}
+
+report_missing_recipes() {
+  local missing
+
+  missing=$(grep -v '^#' fedora/packages/map.tsv | awk -F'\t' '$3 == "ours" { print $2 }' | tr ' ' '\n' | sort -u |
+    while read -r name; do [[ -d fedora/rpm/$name ]] || echo "$name"; done)
+  echo "  $(grep -c . <<<"$missing") packages for our COPR have no recipe in fedora/rpm yet"
+}
+
 report_optional_packages() {
   local unmapped
 
@@ -69,7 +104,7 @@ shellcheck_fedora_scripts() {
     echo "  shellcheck not installed; skipped"
     return 0
   fi
-  shellcheck -x -S warning fedora/lib/common.sh fedora/bin/* fedora/build/assemble fedora/tests/*.sh &&
+  shellcheck -x -S warning fedora/lib/common.sh fedora/bin/* fedora/build/assemble fedora/rpm/build-srpm fedora/tests/*.sh &&
     find fedora/overrides -type f -exec shellcheck -s bash -S warning {} +
 }
 
@@ -78,11 +113,13 @@ check "Package map is well-formed" package_map_is_valid
 check "Every package in upstream's package lists is mapped" listed_packages_are_mapped
 check "Every upstream migration has an up-to-date review row" fedora/bin/migrations-status --check
 check "Fedora tree assembles (layout, exclusions, overrides, patches)" fedora/build/assemble --out "$FEDORA_DIR/.build/static-check"
+check "RPM recipes pin their sources" rpm_recipes_are_pinned
 check "Shellcheck" shellcheck_fedora_scripts
 
 echo
 info "Backlog (informational)"
 report_optional_packages
+report_missing_recipes
 fedora/bin/port-status
 
 echo

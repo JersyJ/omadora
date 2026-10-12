@@ -1,0 +1,80 @@
+#!/bin/bash
+
+# Build the source RPM for one recipe, fedora/rpm/<name>/<name>.spec.
+#
+# Downloads the spec's remote sources, verifies them against the recipe's
+# sources.sha256, vendors Rust crates when the recipe has a cargo-vendor marker
+# (so the binary build needs no network), and packs the SRPM. COPR runs this
+# through .copr/Makefile (the make_srpm method); it also works on any Fedora
+# machine or container.
+#
+# Usage: fedora/rpm/build-srpm <spec> <outdir>
+#
+# Adapted from kamm3r/omadora-pkg's .copr/Makefile (MIT).
+
+set -euo pipefail
+
+die() {
+  echo "error: $*" >&2
+  exit 1
+}
+
+(( $# == 2 )) || die "usage: build-srpm <spec> <outdir>"
+
+spec=$(realpath "$1")
+outdir=$(realpath -m "$2")
+recipe=$(dirname "$spec")
+name=$(basename "$spec" .spec)
+
+[[ $(basename "$recipe") == "$name" ]] || die "$spec must live in a directory named $name"
+[[ -f $recipe/sources.sha256 ]] || die "$recipe/sources.sha256 is missing; every remote source must be pinned"
+
+missing=()
+for tool in spectool rpmbuild rpmspec sha256sum; do
+  command -v "$tool" >/dev/null || missing+=("$tool")
+done
+if (( ${#missing[@]} > 0 )); then
+  dnf -y install rpmdevtools rpm-build
+fi
+
+mkdir -p "$outdir"
+
+# The spec plus any local files it ships (patches, units), but not the
+# recipe's own metadata.
+find "$recipe" -maxdepth 1 -type f \
+  ! -name sources.sha256 ! -name cargo-vendor \
+  -exec cp -t "$outdir" {} +
+
+spectool --get-files --directory "$outdir" "$outdir/$name.spec"
+(cd "$outdir" && sha256sum --check --quiet "$recipe/sources.sha256")
+
+version=$(rpmspec --query --srpm --queryformat '%{VERSION}' "$outdir/$name.spec")
+
+# Rust: vendor the locked crate graph next to the source archive. The marker
+# may name the archive's top directory, with %version substituted; it
+# defaults to <name>-<version>.
+if [[ -f $recipe/cargo-vendor ]]; then
+  command -v cargo >/dev/null || dnf -y install cargo
+
+  root="$name-$version"
+  if [[ -s $recipe/cargo-vendor ]]; then
+    root=$(sed "s/%version/$version/g" "$recipe/cargo-vendor")
+  fi
+
+  work=$(mktemp -d)
+  trap 'rm -rf "$work"' EXIT
+  tar -xzf "$outdir/$name-$version.tar.gz" -C "$work"
+  [[ -f $work/$root/Cargo.lock ]] || die "no Cargo.lock in $root; set the archive's top directory in $recipe/cargo-vendor"
+
+  (
+    cd "$work/$root"
+    mkdir -p .cargo
+    cargo vendor --locked --versioned-dirs cargo-vendor >.cargo/config.toml
+    tar -czf "$outdir/$name-vendor-$version.tar.gz" cargo-vendor .cargo
+  )
+fi
+
+rpmbuild -bs \
+  --define "_sourcedir $outdir" \
+  --define "_srcrpmdir $outdir" \
+  "$outdir/$name.spec"
