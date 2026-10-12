@@ -140,6 +140,9 @@ user --name=$user --groups=wheel$( [[ -n $password_hash ]] && echo " --iscrypted
 # Arch's systemd includes resolved; Fedora ships it separately, and
 # install/config/enable-services.sh enables it.
 systemd-resolved
+# omarchy-provision-user runs xdg-user-dirs-update; Arch pulls it in through
+# other packages, Fedora's minimal install does not.
+xdg-user-dirs
 omadora-repos
 omarchy-settings
 omarchy

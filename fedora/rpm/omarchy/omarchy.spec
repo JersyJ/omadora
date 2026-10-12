@@ -46,6 +46,8 @@ Requires:       git
 Requires:       perl-interpreter
 # Package management (pacman and pacman-contrib on Arch)
 Requires:       dnf5
+# omarchy-provision-user sets up the user directories with it
+Requires:       xdg-user-dirs
 # System font the UI assumes
 Requires:       ttf-jetbrains-mono-nerd-basic
 # Snapshots (Limine and its hooks on Arch; Fedora boots with GRUB)
