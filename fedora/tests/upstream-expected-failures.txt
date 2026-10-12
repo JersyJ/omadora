@@ -1,0 +1,3 @@
+# Upstream test files expected to fail on the assembled Fedora tree, one per
+# line: the path, then why. fedora/tests/upstream-tests.sh fails on any other
+# failure, and on a listed file that passes again.

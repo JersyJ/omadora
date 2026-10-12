@@ -143,6 +143,8 @@ systemd-resolved
 # omarchy-provision-user runs xdg-user-dirs-update; Arch pulls it in through
 # other packages, Fedora's minimal install does not.
 xdg-user-dirs
+# uwsm imports the xdg module; nett00n's uwsm package does not require it.
+python3-pyxdg
 omadora-repos
 omarchy-settings
 omarchy
