@@ -20,6 +20,7 @@ test/shell.d/channel-sudo-boundary-test.sh            pacman channels (Phase 3)
 # Boot: GRUB and dracut replace Limine and mkinitcpio.
 test/shell.d/limine-defaults-test.sh                  default/limine is excluded
 test/shell.d/mkinitcpio-hooks-test.sh                 etc/mkinitcpio.conf.d is excluded
+test/shell.d/mkinitcpio-apple-drop-ins-test.sh        etc/mkinitcpio.conf.d is excluded
 test/shell.d/nvidia-kms-hook-test.sh                  mkinitcpio hooks; and no NVIDIA support
 test/shell.d/hyprland-keyboard-layout-test.sh         reads etc/mkinitcpio.conf.d, which is excluded
 test/shell.d/settings-runtime-profile-test.sh         the profile lists default/limine, which is excluded
