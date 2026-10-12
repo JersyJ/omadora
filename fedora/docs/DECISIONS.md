@@ -41,6 +41,8 @@ Decided 2026-10-12 unless noted. Reasons are kept short; `RESEARCH.md` has the e
 | WebKitGTK 4.0 for Intune Portal | COPR `dwrobel/webkit2gtk4.0`, limited to `webkit2gtk4.0` and `javascriptcoregtk4.0` | Decided 2026-10-12. The company guide takes it from end-of-life Fedora 42 instead. The COPR builds for every current Fedora, but lags upstream WebKitGTK; rebuild it in our COPR if it goes stale (`INTUNE.md`) |
 | Passwordless sudo (confirmed) | Omarchy's NOPASSWD rules stay although the company guide discourages passwordless sudo for daily use | Decided 2026-10-12 |
 | Slack | Not offered on company laptops | The company discontinued Slack |
+| Gaps in nett00n's packages | Our `omarchy` spec requires what nett00n's packages leave out: `xorg-x11-server-Xwayland` (Arch's Hyprland requires it; without it X11 apps such as Intune Portal crash) and `python3-pyxdg` (uwsm imports `xdg`). No issue filed upstream for now | Decided 2026-10-12. Drop each requirement once nett00n's packages carry it (`SYNC.md`, "Between syncs") |
+| dwrobel's WebKitGTK COPR (confirmed) | Keep it for now rather than rebuilding in our COPR | Decided 2026-10-12 |
 
 ## Open
 
