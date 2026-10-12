@@ -1,0 +1,44 @@
+Fedora fork: hide menu entries that cannot work on Fedora: Reset Computer
+(omarchy-system-factory-reset rebuilds a Limine/mkinitcpio install), AUR (no
+AUR; Install > Package already lists every configured repository) and the
+update channels (pacman repositories; Omadora follows one pinned upstream
+commit).
+
+--- a/default/omarchy/omarchy-menu.jsonc	2026-10-12 23:13:17.460251477 +0200
++++ b/default/omarchy/omarchy-menu.jsonc	2026-10-12 23:13:17.479689650 +0200
+@@ -230,7 +230,7 @@
+   "setup.config.hyprsunset": {"icon":"","label":"Hyprsunset","action":"omarchy-launch-config-editor ~/.config/hypr/hyprsunset.conf && omarchy-restart-hyprsunset"},
+   "setup.config.xcompose": {"icon":"󰞅","label":"XCompose","action":"omarchy-launch-config-editor ~/.XCompose && omarchy-restart-xcompose"},
+   "setup.direct-boot": {"icon":"","label":"Direct Boot","when":"! omarchy-hw-aarch64-apple","action":"omarchy-launch-floating-terminal-with-presentation omarchy-setup-direct-boot"},
+-  "setup.reset": {"icon":"󰑓","label":"Reset Computer","when":"[[ $(findmnt -no FSTYPE /) == btrfs ]]","action":"omarchy-launch-floating-terminal-with-presentation omarchy-system-factory-reset"},
++  "setup.reset": {"icon":"󰑓","label":"Reset Computer","when":"false","action":"omarchy-launch-floating-terminal-with-presentation omarchy-system-factory-reset"},
+ 
+   // Install
+   "install.package": {"icon":"󰣇","label":"Package","action":"xdg-terminal-exec --app-id=org.omarchy.terminal omarchy-pkg-install"},
+@@ -254,7 +254,6 @@
+   "install.terminal": {"icon":"","label":"Terminal"},
+   "install.tui": {"icon":"","label":"TUI","action":"omarchy-launch-floating-terminal-with-presentation omarchy-tui-install"},
+   "install.windows": {"icon":"󰍲","label":"Windows","when":"omarchy-hw-x86","disabled":"[[ -f $HOME/.local/share/applications/windows-vm.desktop ]]","action":"omarchy-launch-floating-terminal-with-presentation 'omarchy-windows-vm install'"},
+-  "install.aur": {"icon":"󰣇","label":"AUR","action":"xdg-terminal-exec --app-id=org.omarchy.terminal omarchy-pkg-aur-install"},
+   "install.preinstalls": {"icon":"󰏓","label":"Preinstalls","disabled":"[[ ! -f $HOME/.local/state/omarchy/preinstalls-removed ]]","action":"omarchy-launch-floating-terminal-with-presentation omarchy-install-preinstalls"},
+   "install.browser.chrome": {"icon":"","label":"Chrome","disabled":"omarchy-pkg-present google-chrome","action":"omarchy-launch-floating-terminal-with-presentation 'omarchy-install-browser chrome'"},
+   "install.browser.edge": {"icon":"󰇩","label":"Edge","when":"omarchy-hw-x86","disabled":"omarchy-pkg-present microsoft-edge-stable-bin","action":"omarchy-launch-floating-terminal-with-presentation 'omarchy-install-browser edge'"},
+@@ -398,7 +397,6 @@
+ 
+   // Update
+   "update.omarchy": {"icon":"","iconFont":"omarchy","label":"Omarchy","action":"omarchy-launch-floating-terminal-with-presentation omarchy-update"},
+-  "update.channel": {"icon":"󰔫","label":"Channel"},
+   "update.config": {"icon":"","label":"Config","title":"Reset to default"},
+   "update.themes": {"icon":"󰸌","label":"Extra Themes","when":"omarchy-theme-extras","action":"omarchy-launch-floating-terminal-with-presentation omarchy-theme-update"},
+   "update.process": {"icon":"","label":"Process","title":"Restart"},
+@@ -407,10 +405,6 @@
+   "update.password": {"icon":"","label":"Password"},
+   "update.timezone": {"icon":"","label":"Timezone","action":"omarchy-menu-timezone"},
+   "update.time": {"icon":"","label":"Time","action":"omarchy-launch-floating-terminal-with-presentation omarchy-update-time"},
+-  "update.channel.stable": {"icon":"🟢","label":"Stable","checked":"[[ \"$(omarchy-channel-current)\" == \"stable\" ]]","action":"omarchy-launch-floating-terminal-with-presentation 'omarchy-channel-set stable'"},
+-  "update.channel.rc": {"icon":"🟡","label":"RC","checked":"[[ \"$(omarchy-channel-current)\" == \"rc\" ]]","action":"omarchy-launch-floating-terminal-with-presentation 'omarchy-channel-set rc'"},
+-  "update.channel.edge": {"icon":"🟠","label":"Edge","checked":"[[ \"$(omarchy-channel-current)\" == \"edge\" ]]","action":"omarchy-launch-floating-terminal-with-presentation 'omarchy-channel-set edge'"},
+-  "update.channel.dev": {"icon":"🔴","label":"Dev","checked":"[[ \"$(omarchy-channel-current)\" == \"dev\" ]]","action":"omarchy-launch-floating-terminal-with-presentation 'omarchy-channel-set dev'"},
+   "update.process.hyprsunset": {"icon":"","label":"Hyprsunset","action":"omarchy-restart-hyprsunset"},
+   "update.process.shell": {"icon":"󰍜","label":"Shell","action":"omarchy-restart-shell"},
+   "update.config.hyprland": {"icon":"","label":"Hyprland","action":"omarchy-launch-floating-terminal-with-presentation omarchy-refresh-hyprland"},
