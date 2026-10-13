@@ -3,9 +3,9 @@
 # UPSTREAM_* values. Bump PKGS_COMMIT by hand after reviewing omarchy-pkgs.
 UPSTREAM_REPO=https://github.com/omacom/omarchy.git
 UPSTREAM_REF=quattro
-UPSTREAM_COMMIT=defbf90e893e741067e48f4a27d2ec694c71358e
-UPSTREAM_VERSION=4.0.0-840-gdefbf90e
-UPSTREAM_COUNT=6912
+UPSTREAM_COMMIT=492b8837deea69663c7a5418871f07ed075a9686
+UPSTREAM_VERSION=4.0.0-899-g492b8837
+UPSTREAM_COUNT=6971
 # omacom/omarchy-pkgs holds the PKGBUILDs (packaging recipes) for the same
 # commit; fedora/rpm/*.spec mirror them.
 PKGS_REPO=https://github.com/omacom/omarchy-pkgs.git
