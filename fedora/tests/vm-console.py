@@ -122,7 +122,8 @@ def main():
             line = command
             if root:
                 line = f"echo {PASSWORD} | sudo -S -p '' bash -c {shlex_quote(command)}"
-            conn.sendall(line.encode() + b"; echo __DONE__\r")
+            # Quoted apart so the echoed command line never contains the marker.
+            conn.sendall(line.encode() + b"; echo __DO''NE__\r")
             out = read_until(conn, [r"__DONE__\s*OMADORA\$ *$"], 300)
             out = out.rsplit("__DONE__", 1)[0]
             print(f"{'#' if root else '$'} {command}")
