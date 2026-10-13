@@ -28,7 +28,15 @@ test/shell.d/console-no-ansi-query-migration-test.sh  migration rebuilds the ini
 test/shell.d/kernel-headers-migration-test.sh         Arch's linux-omarchy kernel headers
 test/shell.d/omarchy-kernel-migration-test.sh         Arch's linux-omarchy kernel
 
-# Update pipeline: still Arch's until Phase 3.
+# Update pipeline: dnf replaces pacman (DECISIONS.md, "Update pipeline").
+test/shell.d/update-available-test.sh                 stubs pacman and checkupdates; Omadora asks dnf repoquery
+test/shell.d/update-file-conflict-test.sh             pacman file-conflict takeover; dnf has none (excluded)
+test/shell.d/update-keyring-test.sh                   pacman-key and archlinux-keyring; no keyring step on Fedora
+test/shell.d/update-pacman-test.sh                    omarchy-update-pacman is excluded
+test/shell.d/update-pkg-prune-test.sh                 paccache; Omadora runs dnf clean packages
+test/shell.d/version-test.sh                          stubs pacman -Q; Omadora reads the RPM database
+test/shell.d/launcher-remove-test.sh                  pacman -Qqo and -Rns; Omadora uses rpm -qf and dnf remove
+test/shell.d/platform-packages-test.sh                omarchy-reinstall-pkgs and the pacman channel commands; Omadora has one channel
 test/shell.d/update-boot-verify-test.sh               pacman and Limine update steps
 test/shell.d/update-disk-space-test.sh                pacman cache and Limine
 test/shell.d/update-hook-security-test.sh             ALPM hooks are excluded

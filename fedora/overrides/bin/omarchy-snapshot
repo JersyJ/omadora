@@ -23,6 +23,14 @@ fi
 # snapshot becomes a new subvolume under that name and the replaced root is
 # kept beside it as <name>.old-<time>. Snapper's own rollback needs the
 # default-subvolume layout Fedora does not use.
+# Kernel versions in /boot, newest first (rescue images left out).
+boot_kernels() {
+  local image
+  for image in /boot/vmlinuz-*; do
+    [[ -f $image && $image != *-rescue-* ]] && echo "${image#/boot/vmlinuz-}"
+  done | sort -rV
+}
+
 restore() {
   local root_name number snapshot device top stamp child kernel boot_kernel=""
 
@@ -56,6 +64,7 @@ restore() {
   top=$(mktemp -d)
   sudo mount -o subvolid=5 "$device" "$top"
   # Expanded now: $top is local, so it is gone when the EXIT trap runs.
+  # shellcheck disable=SC2064
   trap "sudo umount '$top'; rmdir '$top'" EXIT
 
   snapshot="$top/$root_name/.snapshots/$number/snapshot"
@@ -66,7 +75,7 @@ restore() {
 
   # /boot is outside btrfs, so the snapshot boots with a kernel still in
   # /boot: the newest one whose modules the snapshot has.
-  for kernel in $(ls -1 /boot/vmlinuz-* 2>/dev/null | grep -v rescue | sed 's|^/boot/vmlinuz-||' | sort -rV); do
+  for kernel in $(boot_kernels); do
     if sudo test -d "$snapshot/usr/lib/modules/$kernel"; then
       boot_kernel=$kernel
       break
@@ -105,7 +114,7 @@ restore() {
   fi
 
   echo -e "\e[32mRestored snapshot $number.\e[0m The replaced system is kept as the subvolume $root_name.old-$stamp."
-  if [[ $boot_kernel != "$(ls -1 /boot/vmlinuz-* | grep -v rescue | sed 's|^/boot/vmlinuz-||' | sort -rV | head -1)" ]]; then
+  if [[ $boot_kernel != "$(boot_kernels | head -1)" ]]; then
     echo "It boots with the older kernel $boot_kernel, which it has the modules for; the next update brings the newest kernel back."
   fi
   if gum confirm "Reboot now?"; then
