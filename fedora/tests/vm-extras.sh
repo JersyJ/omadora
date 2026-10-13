@@ -67,9 +67,12 @@ for extra in "${extras[@]}"; do
   commands+=("$session; printf '%s\\n' '$password' | sudo -S -v -p ''; if timeout 1200 omarchy-pkg-add $name >/tmp/extra-$name-install.log 2>&1; then if $test_line; then echo \"EXTRA $name ok\"; else echo \"EXTRA $name installed, check failed\"; tail -n 5 /tmp/extra-$name.log 2>/dev/null; fi; else echo \"EXTRA $name did not install\"; tail -n 8 /tmp/extra-$name-install.log; fi")
 done
 
-OMADORA_VM_COMMAND_TIMEOUT=1800 "$FEDORA_DIR/tests/vm-console.py" --sddm-login "${commands[@]}" "@shot extras-last" | tee "$work/extras.log" | grep -E '^EXTRA |^  ' || true
+OMADORA_VM_COMMAND_TIMEOUT=1800 "$FEDORA_DIR/tests/vm-console.py" --sddm-login "${commands[@]}" "@shot extras-last" | tee "$work/extras.log" | grep -av '^[$#] ' | grep -aoE 'EXTRA .*|^  .*' || true
 
-failed=$(grep -c '^EXTRA .* \(did not install\|check failed\)' "$work/extras.log" || true)
-passed=$(grep -c '^EXTRA .* ok$' "$work/extras.log" || true)
+# Terminal replies can precede a marker on its line, so markers match anywhere;
+# vm-console's echo of each command ("$ ...") holds the marker text too.
+results=$(grep -av '^[$#] ' "$work/extras.log" || true)
+failed=$(grep -ac 'EXTRA .* \(did not install\|check failed\)' <<<"$results" || true)
+passed=$(grep -ac 'EXTRA .* ok$' <<<"$results" || true)
 info "Extras: $passed ok, $failed failed (log: $work/extras.log)"
 (( failed == 0 && passed == ${#extras[@]} ))
