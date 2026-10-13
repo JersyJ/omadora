@@ -1,9 +1,12 @@
-# Microsoft's RHEL 9 repository: Intune Portal with its identity broker, and
+# Microsoft's RHEL 10 repository: Intune Portal with its identity broker, and
 # Defender for Endpoint, which company compliance requires (fedora/docs/INTUNE.md).
+# The RHEL 10 builds use WebKitGTK 6.0 and libsoup 3 from Fedora; the RHEL 9
+# ones need the WebKitGTK 4.0 API, which upstream dropped in 2.52.
 [packages-microsoft-com-prod]
-name=Microsoft RHEL 9 production
-baseurl=https://packages.microsoft.com/rhel/9/prod/
+name=Microsoft RHEL 10 production
+baseurl=https://packages.microsoft.com/rhel/10/prod/
 enabled=1
 gpgcheck=1
-gpgkey=https://packages.microsoft.com/keys/microsoft.asc
+repo_gpgcheck=1
+gpgkey=https://packages.microsoft.com/rhel/10/prod/repodata/repomd.xml.key
 includepkgs=intune-portal microsoft-identity-broker microsoft-identity-diagnostics mdatp

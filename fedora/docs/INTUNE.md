@@ -26,11 +26,10 @@ Intune checks these continuously; a failing one makes the device non-compliant a
 
 | Package | Repository | Notes |
 | --- | --- | --- |
-| `intune-portal` (Company Portal, pulls `microsoft-identity-broker`) | Microsoft RHEL 9 prod (`repos/microsoft.repo`) | Needs `libwebkit2gtk-4.0.so.37`, `libjavascriptcoregtk-4.0.so.18` and libsoup 2, which Fedora 43 and later lack WebKit for. Fedora 45 still ships `libsoup` 2.74 |
-| `mdatp` (Defender for Endpoint) | Microsoft RHEL 9 prod | Configured by Intune |
+| `intune-portal` (Company Portal, pulls `microsoft-identity-broker`) | Microsoft RHEL 10 prod (`repos/microsoft.repo`) | The RHEL 10 build links Fedora's own WebKitGTK 6.0 (`webkitgtk6.0`) and libsoup 3, which Fedora keeps patched. The RHEL 9 build (same version) needs the WebKitGTK 4.0 API, which upstream removed in 2.52 (2026-03); its last release, 2.50.6, gets no more security fixes |
+| `mdatp` (Defender for Endpoint) | Microsoft RHEL 10 prod | Configured by Intune |
 | `microsoft-edge-stable` | Microsoft Edge (`repos/microsoft-edge.repo`) | |
-| `webkit2gtk4.0`, `javascriptcoregtk4.0` | COPR `dwrobel/webkit2gtk4.0` (`repos/copr-dwrobel-webkit2gtk4.0.repo`), built for Fedora 43, 44, 45 and Rawhide | Replaces the guide's workaround of taking `webkit2gtk4.0` and `libicu76` from end-of-life Fedora 42 |
-| `xorg-x11-server-Xwayland` | Fedora | Intune Portal is an X11 (GTK 3) app; without Xwayland it panics with "Unable to initialize GTK+". The omarchy package requires it |
+| `xorg-x11-server-Xwayland` | Fedora | The RHEL 9 Intune Portal was an X11 (GTK 3) app and panicked without Xwayland ("Unable to initialize GTK+"); the RHEL 10 build runs on Wayland. The omarchy package still requires Xwayland for other X11 apps |
 | `libsecret` (`secret-tool`) | Fedora | Troubleshooting only |
 
 No Java 11 is needed. The current identity broker (3.x) is native code; only `microsoft-identity-diagnostics` asks for a JRE, and accepts Fedora's `java-25-openjdk` (`jre >= 17`). The guide's Temurin 11 steps date from the Java broker.
@@ -39,7 +38,7 @@ Verified 2026-10-12 in the test VM (Fedora 45): `intune-portal`, `mdatp` and `mi
 
 `intune-portal` adds `pam_intune` to the PAM stacks. Before enrollment it logs "Failed to process authtok: Failed to remove old password policy file" on console logins (seen 2026-10-13); SDDM logins and `passwd` work. Check on the pilot laptop that this stops after enrollment.
 
-Risk: the COPR's WebKitGTK 4.0 (2.50.0) lags upstream WebKitGTK (2.54.1), so it misses security fixes, and its maintainer may stop. Intune Portal only renders Microsoft's sign-in pages in it. If the COPR goes stale, rebuild it in Omadora's COPR.
+Verified 2026-10-13 in the test VM: the RHEL 10 `intune-portal` and `microsoft-identity-broker` install on Fedora 45 with no unresolved libraries, use `webkitgtk6.0` 2.54.1, and Intune Portal opens its sign-in window. Microsoft signs the RHEL 10 repository and its packages with a newer key (`repomd.xml.key`), so `repo_gpgcheck` is on. Until 2026-10-13 Omadora used the RHEL 9 build with WebKitGTK 4.0 2.50.0 from COPR `dwrobel/webkit2gtk4.0`, six point releases behind even the last 4.0 release.
 
 All of these repositories get `includepkgs` limits like every other third-party source (`repos/README.md`). The guide's own commands also add whole repositories without limits; Omadora will not.
 
