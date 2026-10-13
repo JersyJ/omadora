@@ -53,6 +53,12 @@ Requires:       gum
 Requires:       jq
 Requires:       git
 Requires:       perl-interpreter
+# Fedora splits Perl's core modules out of perl-interpreter; Arch's perl has
+# them all. Clipboard history, omarchy-menu-select and omarchy-menu-input build
+# JSON with these, and omarchy-games-retro-install uses the open pragma.
+Requires:       perl(Encode)
+Requires:       perl(JSON::PP)
+Requires:       perl(open)
 # Package management (pacman and pacman-contrib on Arch)
 Requires:       dnf5
 # omarchy-provision-user sets up the user directories with it

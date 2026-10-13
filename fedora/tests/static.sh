@@ -5,7 +5,8 @@
 # Fails on: upstream drift, unmapped or malformed package entries, migrations
 # missing a review row or changed since review, a failing assemble (unknown
 # top-level path, drifted override, rejected patch), RPM recipes with unpinned
-# sources or a stale omarchy-pkgs commit, and shellcheck errors.
+# sources or a stale omarchy-pkgs commit, Perl modules the omarchy package does
+# not require, and shellcheck errors.
 # Reports, without failing: unreviewed migrations, optional package names
 # used in scripts but not mapped yet, packages for our COPR without a recipe,
 # and the remaining porting backlog.
@@ -140,6 +141,22 @@ report_optional_packages() {
   echo "  $(grep -c . <<<"$unmapped") package names used by optional installers are not mapped yet (Phase 1 backlog)"
 }
 
+# Fedora splits Perl's core modules into their own packages (Arch's perl has
+# them all), so every module the shipped tree loads with `perl -M` must be a
+# perl(...) Requires of the omarchy package.
+perl_modules_are_required() {
+  local tree=$FEDORA_DIR/.build/static-check module missing=0
+
+  while read -r module; do
+    if ! grep -qxF "Requires:       perl($module)" fedora/rpm/omarchy/omarchy.spec; then
+      echo "  fedora/rpm/omarchy/omarchy.spec lacks: Requires: perl($module)"
+      missing=1
+    fi
+  done < <(grep -rhE '(^|[^[:alnum:]_-])perl( | .* )-M[A-Za-z]' "$tree"/{bin,shell,default,install,config} 2>/dev/null |
+    grep -oE -- ' -M[A-Za-z][A-Za-z0-9:]*' | sed 's/^ -M//' | sort -u)
+  (( missing == 0 ))
+}
+
 shellcheck_fedora_scripts() {
   if ! command -v shellcheck >/dev/null 2>&1; then
     echo "  shellcheck not installed; skipped"
@@ -156,6 +173,7 @@ check "Every upstream migration has an up-to-date review row" fedora/bin/migrati
 check "Fedora tree assembles (layout, exclusions, overrides, patches)" fedora/build/assemble --out "$FEDORA_DIR/.build/static-check"
 check "Repository files allow every mapped package" repos_cover_map
 check "RPM recipes pin their sources" rpm_recipes_are_pinned
+check "The omarchy package requires every Perl module its scripts load" perl_modules_are_required
 check "Shellcheck" shellcheck_fedora_scripts
 
 echo
