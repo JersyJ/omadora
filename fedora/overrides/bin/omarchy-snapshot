@@ -118,7 +118,7 @@ restore() {
     echo "It boots with the older kernel $boot_kernel, which it has the modules for; the next update brings the newest kernel back."
   fi
   if gum confirm "Reboot now?"; then
-    omarchy-system-reboot
+    omarchy-system reboot
   fi
 }
 

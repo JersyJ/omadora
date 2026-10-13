@@ -1,4 +1,4 @@
-# Mirrors omacom/omarchy-pkgs pkgbuilds/omarchy-hyprland-titlebars (0.2.1-1).
+# Mirrors omacom/omarchy-pkgs pkgbuilds/omarchy-hyprland-titlebars (0.2.2-1).
 # Based on whelanh/omarchy-fedora (MIT).
 
 %global debug_package %{nil}
@@ -9,7 +9,7 @@
 %global _lto_cflags %{nil}
 
 Name:           omarchy-hyprland-titlebars
-Version:        0.2.1
+Version:        0.2.2
 Release:        1%{?dist}
 Summary:        Titlebars for Omarchy's floating workspace mode
 
@@ -60,6 +60,9 @@ install -Dm644 LICENSE.MIT %{buildroot}%{_datadir}/licenses/%{name}/LICENSE.MIT
 %{_prefix}/lib/omarchy-hyprland-titlebars/titlebars.so
 
 %changelog
+* Tue Oct 13 2026 Dominik Lichnovsky <dlichnovsky1@gmail.com> - 0.2.2-1
+- Update to 0.2.2, following omarchy-pkgs.
+
 * Mon Oct 12 2026 Dominik Lichnovsky <dlichnovsky1@gmail.com> - 0.2.1-1
 - Package for Omadora, based on whelanh/omarchy-fedora.
 

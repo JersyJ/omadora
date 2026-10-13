@@ -69,7 +69,12 @@ for spec in fedora/rpm/*/*.spec; do
   fi
 
   status=ok
-  if [[ $pinned != "-" && $pinned != "?" && $pinned != "$ours" ]]; then
+  # The header's "Mirrors ... (<pkgver>-<pkgrel>)" note must follow the spec.
+  header=$(head -3 "$spec" | grep -oE '\([0-9][^)]*-[0-9]+\)' | head -1 | tr -d '()' || true)
+  if [[ -n $header && $header != "$ours" ]]; then
+    status="header comment says $header"
+    behind=1
+  elif [[ $pinned != "-" && $pinned != "?" && $pinned != "$ours" ]]; then
     status="differs from the pinned PKGBUILD: port it"
     behind=1
   elif [[ $latest == "?" || $pinned == "?" ]]; then
@@ -81,5 +86,5 @@ for spec in fedora/rpm/*/*.spec; do
 done
 
 if (( check && behind )); then
-  die "recipes differ from omarchy-pkgs at PKGS_COMMIT; port them (fedora/docs/SYNC.md)"
+  die "recipes differ from omarchy-pkgs at PKGS_COMMIT or from their header comment; port or correct them (fedora/docs/SYNC.md)"
 fi
