@@ -45,6 +45,7 @@ Do not edit files outside `fedora/`, `.copr/`, `.github/workflows/` and `.github
 | `tests/vm-install.sh` | Local: install Omadora into a KVM virtual machine from the netinst ISO and report its first boot; `OMADORA_VM_PASSWORD_LOGIN=1` installs and logs in as on a laptop and checks the login keyring across a `passwd` change |
 | `tests/vm-password-login.sh` | Local: on such a VM, unlock the disk, log in at SDDM, change the password with `passwd`, reboot and log in again, checking the login keyring each time |
 | `tests/vm-acceptance.sh` | Local: run upstream's graphical acceptance suite inside such a VM's desktop session; expected failures with reasons in `tests/acceptance-expected-failures.txt` |
+| `tests/vm-update.sh` | Local: run `omarchy update` on a VM installed from the previous sync and check it moved, with no failed units or SELinux denials |
 | `tests/vm-extras.sh` | Local: install each of Omarchy's optional extras in such a VM through Omarchy's own package command, and check each starts |
 | `tests/vm-console.py` | Local: boot that virtual machine and run commands on its serial console |
 | `docs/` | Research, decisions, sync runbook, hardware notes, installing a laptop (`INSTALL.md`), Intune requirements |
