@@ -271,7 +271,7 @@ t3code-bin		todo	not offered for now (decided 2026-10-13); recipe kept in fedora
 tailscale	tailscale	fedora	
 tensaku		drop	removed upstream on quattro (omasnap replaced it; migration 1788129995 drops it)
 tesseract	tesseract	fedora	Same 5.5.3 as Arch; the omarchy package adds tesseract-osd, which Arch's tesseract depends on
-tesseract-data-eng	tesseract-langpack-eng	fedora	
+tesseract-data-eng	tesseract-langpack-eng	fedora	Fedora builds it from tessdata_fast (4 MB), Arch from tessdata (23 MB). On rendered screen text with capture-text's flags fast was as good or better (2026-10-13: 1.3% vs 2.2% character errors), so no repack. Fast models lack the legacy engine (--oem 0); capture-text uses --oem 1
 thermald	thermald	fedora	
 tiny-dfr	tiny-dfr	fedora	Apple Touch Bar; not on the ZBook
 tldr	tldr	fedora	
