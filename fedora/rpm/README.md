@@ -17,6 +17,8 @@ Recipes for the packages our COPR, [jersyj/omadora](https://copr.fedorainfraclou
 
 ## Building
 
+CI builds what a push to `main` changed once every check passes (the `copr` job in `.github/workflows/fedora-ci.yml`, `fedora/bin/copr-build-changed`); it needs the `COPR_CONFIG` secret. A new recipe must first be registered once: `copr-cli add-package-scm jersyj/omadora --name <name> --clone-url https://github.com/JersyJ/omadora.git --commit main --subdir fedora/rpm --spec <name>/<name>.spec --method make_srpm`, then built by hand once, before CI's package checks can resolve it.
+
 COPR builds each package as an SCM package: clone `https://github.com/JersyJ/omadora.git`, spec `fedora/rpm/<name>/<name>.spec`, method `make_srpm`. The repository root's `.copr/Makefile` (COPR only looks there) calls `build-srpm`, which downloads and verifies the sources, vendors crates and packs the SRPM. On a Fedora machine:
 
 ```bash

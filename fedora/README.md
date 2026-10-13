@@ -25,6 +25,8 @@ Do not edit files outside `fedora/`, `.copr/`, `.github/workflows/` and `.github
 | `bin/pin-override <path>` | Record that an override was reviewed against the current upstream file |
 | `bin/migrations-status` | Summarize, check (`--check`) or add (`--update`) migration review rows |
 | `bin/port-status [--list]` | Porting backlog: shipped files still referencing pacman, AUR, Limine, mkinitcpio or ufw |
+| `bin/copr-build-changed <before> <after>` | Build in our COPR what those commits changed (CI runs it after a push to `main`) |
+| `bin/recipe-status [--check]` | Our recipes against the omarchy-pkgs PKGBUILDs and Arch packages they mirror |
 | `bin/copr-build-core` | Build `omarchy`, `omarchy-settings` and `omadora-repos` in our COPR from the pushed commit, together |
 | `bin/probe-hardware` | Read-only hardware report for a target laptop |
 | `bin/kickstart` | Print the Anaconda kickstart that installs Omadora from the Fedora netinst ISO |
@@ -38,6 +40,7 @@ Do not edit files outside `fedora/`, `.copr/`, `.github/workflows/` and `.github
 | `tests/static.sh` | The fast checks CI runs on every push |
 | `tests/resolve.sh` | CI: resolve the base and optional package sets in a Fedora container |
 | `tests/rpm.sh` | CI: build and install omarchy, omarchy-settings and omadora-repos, then exercise the package helpers |
+| `tests/repos-check.sh` | Weekly (`.github/workflows/fedora-repos-check.yml`): repository signing keys against the published ones, COPR activity and next-release readiness |
 | `tests/vm-install.sh` | Local: install Omadora into a KVM virtual machine from the netinst ISO and report its first boot; `OMADORA_VM_PASSWORD_LOGIN=1` installs and logs in as on a laptop and checks the login keyring across a `passwd` change |
 | `tests/vm-password-login.sh` | Local: on such a VM, unlock the disk, log in at SDDM, change the password with `passwd`, reboot and log in again, checking the login keyring each time |
 | `tests/vm-acceptance.sh` | Local: run upstream's graphical acceptance suite inside such a VM's desktop session; expected failures with reasons in `tests/acceptance-expected-failures.txt` |
