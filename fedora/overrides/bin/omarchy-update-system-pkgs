@@ -16,4 +16,7 @@ if [[ -d /run/systemd/system && ! -L /run/systemd/system ]]; then
 fi
 
 echo -e "\e[32m\nUpdate system packages\e[0m"
-sudo "${scope[@]}" dnf upgrade --refresh -y
+# The repository definitions first: a repository that omadora-repos adds can
+# only be used by a later transaction, and the rest of the upgrade may need it.
+sudo "${scope[@]}" dnf upgrade --refresh -y omadora-repos
+sudo "${scope[@]}" dnf upgrade -y
