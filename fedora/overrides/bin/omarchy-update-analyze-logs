@@ -8,12 +8,17 @@ update_log="/tmp/omarchy-update.log"
 # the initramfs and writes a boot loader entry. Check the result directly
 # instead of reading pacman's mkinitcpio messages: every installed kernel needs
 # a non-empty initramfs and a boot entry, or booting it fails.
+# The boot entries are readable by root only; omarchy update still holds sudo
+# here, and a standalone run without it skips that check.
 problems=()
+entries=$(sudo -n ls /boot/loader/entries 2>/dev/null) || entries=""
 while read -r version; do
   [[ -n $version ]] || continue
   [[ -s /boot/vmlinuz-$version ]] || problems+=("/boot/vmlinuz-$version is missing")
   [[ -s /boot/initramfs-$version.img ]] || problems+=("/boot/initramfs-$version.img is missing")
-  compgen -G "/boot/loader/entries/*-$version.conf" >/dev/null || problems+=("no boot entry for $version")
+  if [[ -n $entries ]] && ! grep -q -- "-$version\.conf$" <<<"$entries"; then
+    problems+=("no boot entry for $version")
+  fi
 done < <(rpm -q --queryformat '%{VERSION}-%{RELEASE}.%{ARCH}\n' kernel-core 2>/dev/null)
 
 if (( ${#problems[@]} )) || grep -qE 'dracut(\[[0-9]+\])?: .*(ERROR|FAILED)|kernel-install: .*fail' "$update_log" 2>/dev/null; then
