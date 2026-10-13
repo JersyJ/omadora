@@ -164,3 +164,4 @@ migration	sha256	hint	decision	reason	summary
 1791722809.sh	d6e9eb3fb03a4428	neutral	baseline	Before the first Omadora install (upstream defbf90e)	Let herdr's tab bar show the terminal's background, so it turns glassy too
 1791723398.sh	d645e06e1154b46a	neutral	baseline	Before the first Omadora install (upstream defbf90e)	Let Neovim's current line and status line show the terminal background
 1791769486.sh	eb9b5688d7bb30d7	arch-pacman	baseline	Before the first Omadora install (upstream defbf90e)	Remove approval for new USB and Thunderbolt devices
+1791875754.sh	e5afe40f67a7be5c	neutral	run	distro-neutral: adds StartupWMClass to web app launchers in ~/.local/share/applications	Name web app windows in launchers that run their own command
