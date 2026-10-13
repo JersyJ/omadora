@@ -12,6 +12,7 @@ Usage: fedora/tests/vm-console.py [--root] [--screenshot] 'command' ['command' .
 
   OMADORA_VM_SB_VARS=<file>  boot with Secure Boot on, using these OVMF variables
                              (Microsoft's keys enrolled; a copy is used)
+  OMADORA_VM_COMMAND_TIMEOUT=<seconds>  time each command may take (default 300)
 """
 import os
 import re
@@ -124,7 +125,7 @@ def main():
                 line = f"echo {PASSWORD} | sudo -S -p '' bash -c {shlex_quote(command)}"
             # Quoted apart so the echoed command line never contains the marker.
             conn.sendall(line.encode() + b"; echo __DO''NE__\r")
-            out = read_until(conn, [r"__DONE__\s*OMADORA\$ *$"], 300)
+            out = read_until(conn, [r"__DONE__\s*OMADORA\$ *$"], int(os.environ.get("OMADORA_VM_COMMAND_TIMEOUT", "300")))
             out = out.rsplit("__DONE__", 1)[0]
             print(f"{'#' if root else '$'} {command}")
             print(out.strip())
