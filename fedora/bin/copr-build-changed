@@ -8,15 +8,24 @@
 # files or their own recipes. Docs, tests, tools and workflows build nothing.
 # CI's copr job runs it after a push to main passes every test.
 #
+# A recipe whose Version-Release already built successfully in COPR is
+# skipped: change Release (or Version) to rebuild it. The core packages always
+# build, because every commit gives them a new release.
 # A recipe new to COPR must be registered once by hand first
 # (copr-cli add-package-scm, fedora/rpm/README.md).
 #
-# Usage: fedora/bin/copr-build-changed <before> <after>
+# Usage: fedora/bin/copr-build-changed [--force] <before> <after>
+#   --force   build changed recipes even when their version already built
 
 set -euo pipefail
 source "$(dirname "$(realpath "$0")")/../lib/common.sh"
 
-(( $# == 2 )) || die "usage: fedora/bin/copr-build-changed <before> <after>"
+force=0
+if [[ ${1:-} == "--force" ]]; then
+  force=1
+  shift
+fi
+(( $# == 2 )) || die "usage: fedora/bin/copr-build-changed [--force] <before> <after>"
 before=$1
 after=$2
 
@@ -28,6 +37,12 @@ copr() {
   else
     uvx --from copr-cli copr-cli "$@"
   fi
+}
+
+# True when COPR has a succeeded build of this package at this Version-Release.
+already_built() {
+  curl -sf --max-time 60 "https://copr.fedorainfracloud.org/api_3/build/list?ownername=jersyj&projectname=omadora&packagename=$1&status=succeeded&limit=50" |
+    python3 -c 'import json, sys; sys.exit(0 if any((b.get("source_package") or {}).get("version") == sys.argv[1] for b in json.load(sys.stdin)["items"]) else 1)' "$2"
 }
 
 core=0
@@ -56,6 +71,11 @@ for name in "${!recipes[@]}"; do
   [[ -f fedora/rpm/$name/$name.spec ]] || continue
   if ! copr get-package jersyj/omadora --name "$name" >/dev/null 2>&1; then
     warn "$name is not registered in COPR yet; register it once by hand (fedora/rpm/README.md)"
+    continue
+  fi
+  version=$(awk '/^Version:/ { v = $2 } /^Release:/ { r = $2; sub(/%\{\?dist\}/, "", r) } END { print v "-" r }' "fedora/rpm/$name/$name.spec")
+  if (( !force )) && [[ $version != *%* ]] && already_built "$name" "$version"; then
+    info "$name: $version already built; skipped (change Release to rebuild)"
     continue
   fi
   id=$(copr build-package jersyj/omadora --name "$name" --nowait | awk '/^Created builds:/ { print $3 }')
