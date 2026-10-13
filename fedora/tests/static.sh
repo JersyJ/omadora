@@ -6,7 +6,8 @@
 # missing a review row or changed since review, a failing assemble (unknown
 # top-level path, drifted override, rejected patch), RPM recipes with unpinned
 # sources or a stale omarchy-pkgs commit, Perl modules the omarchy package does
-# not require, and shellcheck errors.
+# not require, calls to upstream commands that no longer exist, and shellcheck
+# errors.
 # Reports, without failing: unreviewed migrations, optional package names
 # used in scripts but not mapped yet, packages for our COPR without a recipe,
 # and the remaining porting backlog.
@@ -157,6 +158,26 @@ perl_modules_are_required() {
   (( missing == 0 ))
 }
 
+# Upstream renames and removes commands (omarchy-system-reboot became
+# omarchy-system reboot). The Fedora layer must not call one that is gone: a
+# name that was once a file in bin/ and is not anymore. Package and unit names
+# that merely look like commands never were, so they do not count, nor do path
+# components (assets/omarchy-plugin/...).
+removed_commands_unused() {
+  local name gone=0
+
+  while read -r name; do
+    [[ -e bin/$name || -e fedora/overrides/bin/$name ]] && continue
+    if [[ -n $(git log -1 --format=%h -- "bin/$name" 2>/dev/null) ]]; then
+      echo "  $name was removed upstream but is still used in:"
+      grep -rln -- "$name\b" fedora/overrides fedora/patches fedora/lib/runtime fedora/bin/kickstart fedora/rpm | sed 's/^/    /'
+      gone=1
+    fi
+  done < <(grep -rhoE '(^|[^/[:alnum:]_.-])omarchy-[a-z0-9]+(-[a-z0-9]+)*' fedora/overrides fedora/patches fedora/lib/runtime fedora/bin/kickstart fedora/rpm |
+    sed -E 's/^[^o]//' | sort -u)
+  (( gone == 0 ))
+}
+
 shellcheck_fedora_scripts() {
   if ! command -v shellcheck >/dev/null 2>&1; then
     echo "  shellcheck not installed; skipped"
@@ -174,6 +195,7 @@ check "Fedora tree assembles (layout, exclusions, overrides, patches)" fedora/bu
 check "Repository files allow every mapped package" repos_cover_map
 check "RPM recipes pin their sources" rpm_recipes_are_pinned
 check "The omarchy package requires every Perl module its scripts load" perl_modules_are_required
+check "The Fedora layer calls no removed upstream command" removed_commands_unused
 check "Shellcheck" shellcheck_fedora_scripts
 
 echo
