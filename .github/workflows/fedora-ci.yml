@@ -115,4 +115,9 @@ jobs:
           mkdir -p ~/.config
           printf '%s\n' "$COPR_CONFIG" >~/.config/copr
           chmod 600 ~/.config/copr
-          fedora/bin/copr-build-changed "$BEFORE" "$GITHUB_SHA"
+          # COPR builds main's tip. When a newer push landed while the checks
+          # ran (or this is a re-run), build everything since $BEFORE from
+          # there; the newer push's own job then finds its recipes built.
+          git fetch -q origin main
+          git checkout -q --detach origin/main
+          fedora/bin/copr-build-changed "$BEFORE" HEAD
