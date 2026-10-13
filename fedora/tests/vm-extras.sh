@@ -35,7 +35,7 @@ extras=(
   "grok-bot|window:grok-bot:(?i)grok"
   "t3code-bin|window:t3code:(?i)t3"
   "lmstudio-bin|window:lm-studio:(?i)lm.?studio|elementlabs"
-  "hermes-desktop|window:hermes-desktop:(?i)hermes"
+  # hermes-desktop: todo in the map until its build works (DECISIONS.md).
 )
 if (( $# > 0 )); then
   selected=()
