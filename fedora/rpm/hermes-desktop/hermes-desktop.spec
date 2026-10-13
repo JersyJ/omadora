@@ -86,10 +86,14 @@ A prebuilt release under /opt/hermes-desktop, with Omarchy's launcher.
 %build
 mkdir -p ../node-bin
 ln -sf %{_bindir}/node-24 ../node-bin/node
-ln -sf %{_bindir}/npm-24 ../node-bin/npm
-ln -sf %{_bindir}/npx-24 ../node-bin/npx
 export PATH="$PWD/../node-bin:$PATH"
+# Hermes refuses npm 11.10 to 11.16, which is what Fedora's Node.js 24 has;
+# use a current npm, fetched with that one.
+%{_bindir}/npm-24 install --prefix ../npm --no-audit --no-fund 'npm@>=11.17.0 <12'
+ln -sf "$PWD/../npm/node_modules/npm/bin/npm-cli.js" ../node-bin/npm
+ln -sf "$PWD/../npm/node_modules/npm/bin/npx-cli.js" ../node-bin/npx
 node --version
+npm --version
 export GITHUB_SHA=%{hermes_commit}
 export GITHUB_REF_NAME=main
 # The desktop workspace resolves against the repository root.
