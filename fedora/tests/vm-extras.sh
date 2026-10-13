@@ -25,7 +25,7 @@ export OMADORA_VM_DIR=$work OMADORA_VM_LUKS=omadora-disk OMADORA_VM_PASSWORD=$pa
 extras=(
   "omarchy-emacs|cmd:command -v omarchy-install-emacs emacs"
   "omazed|cmd:command -v omazed"
-  "once-bin|cmd:once --version"
+  "once-bin|cmd:once version"
   "voxtype-bin|cmd:voxtype --version"
   "umu-launcher|cmd:umu-run --help"
   "ghostty|window:ghostty:ghostty"
