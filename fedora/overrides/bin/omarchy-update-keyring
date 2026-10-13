@@ -3,7 +3,9 @@
 # omarchy:summary=Ensure the package signing keys are in place
 # omarchy:requires-sudo=true
 
-# Fedora fork: Fedora's keys ship in fedora-gpg-keys and update with the
-# system; every other repository names its key in its .repo file (gpgkey=),
-# and dnf imports it on first use. There is no keyring to refresh.
-exit 0
+# Fedora fork: there is no keyring package to refresh. Trust the signing keys
+# omadora-repos ships (and Fedora's and RPM Fusion's), so a key that changed
+# since the last update is in place before dnf needs it; dnf5-automatic runs
+# the same script before every unattended update.
+echo -e "\e[32m\nUpdate package signing keys\e[0m"
+sudo /usr/libexec/omadora-repos/import-keys

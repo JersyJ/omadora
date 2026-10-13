@@ -24,7 +24,7 @@ bin/omarchy-snapshot	34ac5cd19ad70dad6344a37adc0428e62ae36b4b
 bin/omarchy-update-analyze-logs	1febd99d823b60068ec8d25eaf9a7c49ff0b60ad
 bin/omarchy-update-aur-pkgs	a860a97d3083b0a0ad16566af68adccd257a8e55
 bin/omarchy-update-available	f1a70b256eaf45b87d735a79495d8add4f870c1a
-bin/omarchy-update-keyring	55d49e9b5d557fb449e5da53cae32f8eb675f1d5
+bin/omarchy-update-keyring	6a4cef41774518ab9dcb2bf816e92affc06628a9
 bin/omarchy-update-orphan-pkgs	d740551831262540c60af8f8a7a02b1fa7fadfa5
 bin/omarchy-update-pkg-prune	7e8debd3233b32611dc74109a4ef1c7f66989964
 bin/omarchy-update-system-pkgs	c2e863882683ee2201c8c6b32c1652aba02ed3d2
