@@ -1,0 +1,7 @@
+[grok-bot]
+name=Grok Bot
+baseurl=https://downloads.cursor.com/yumrepo/grok-bot
+enabled=1
+gpgcheck=1
+gpgkey=https://downloads.cursor.com/keys/anysphere.asc
+includepkgs=grok-bot

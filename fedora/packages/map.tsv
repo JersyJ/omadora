@@ -85,7 +85,7 @@ fprintd	fprintd fprintd-pam	fedora	Fedora ships pam_fprintd.so in fprintd-pam
 freerdp	freerdp	fedora	
 fwupd	fwupd	fedora	
 fzf	fzf	fedora	
-ghostty	ghostty	ours	built from source with Zig 0.15.2 (fedora/rpm/ghostty); scottames/ghostty has no Fedora 45 build
+ghostty	ghostty	copr:mineiro/ghostty	dedicated COPR with a Fedora 45 build of the current release (scottames/ghostty has none yet)
 git	git	fedora	
 gliff	gliff	ours	Spec: whelanh/omarchy-fedora (MIT)
 gnome-calculator	gnome-calculator	fedora	
@@ -95,7 +95,7 @@ gnome-themes-extra		drop	retired in Fedora; GTK3 ships Adwaita-dark built in (ve
 google-chrome	google-chrome-stable	repo:google-chrome	
 gpu-screen-recorder	gpu-screen-recorder	copr:arabianq/gpu-screen-recorder	
 grim	grim	fedora	
-grok-bot	grok-bot	ours	xAI's .deb repacked (fedora/rpm/grok-bot)
+grok-bot	grok-bot	repo:grok-bot	xAI's own signed repository (served by Cursor)
 gst-plugin-pipewire	pipewire-gstreamer	fedora	
 gtk4-layer-shell	gtk4-layer-shell	fedora	
 gum	gum	fedora	
