@@ -1,6 +1,7 @@
 # Upstream acceptance test files (test/acceptance.d) expected to fail in an
 # Omadora VM, one per line: the path, then why. fedora/tests/vm-acceptance.sh
-# fails on any other failure, and on a listed file that passes again.
+# fails on any other failure, and on a listed file that passes again unless its
+# reason starts with "flaky:".
 
 # Arch-only assertions. What they mean to check holds on Omadora (checked
 # 2026-10-13): CUPS runs without cups-browsed or cups-pdf, the core services
@@ -15,7 +16,8 @@ test/acceptance.d/input-methods-test.sh  its Qt probe runs qml6, Arch's name for
 # 2026-10-11) and the test still walks Style; it fails on Arch too.
 test/acceptance.d/menu-test.sh         walks Style > Menu Bar, which upstream moved
 
-# Unstable in the VM: fails at a different step on each run (headless monitors
-# added and removed under virtio-gpu). Check menus across an external display on
-# real hardware (docs/INSTALL.md, hardware checks).
-test/acceptance.d/overlay-monitor-test.sh  headless monitor hot-plug is unstable in the VM
+# Unstable in the VM: adds and removes headless monitors and fails at a
+# different step on most runs, including from the same snapshot (passed once in
+# five runs on 2026-10-13). Check menus across an external display on real
+# hardware (docs/INSTALL.md, hardware checks).
+test/acceptance.d/overlay-monitor-test.sh  flaky: headless monitor hot-plug timing in the VM

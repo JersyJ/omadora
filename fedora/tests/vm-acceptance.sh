@@ -70,7 +70,9 @@ expected_file=$FEDORA_DIR/tests/acceptance-expected-failures.txt
 mapfile -t expected < <(grep -vE '^\s*(#|$)' "$expected_file" | awk '{ print $1 }' | sort -u)
 
 unexpected=$(comm -23 <(printf '%s\n' "${failed[@]}" | sed '/^$/d') <(printf '%s\n' "${expected[@]}" | sed '/^$/d'))
-fixed=$(comm -13 <(printf '%s\n' "${failed[@]}" | sed '/^$/d') <(printf '%s\n' "${expected[@]}" | sed '/^$/d'))
+# A listed file that passes again fails the run, unless its reason starts with "flaky:".
+fixed=$(comm -13 <(printf '%s\n' "${failed[@]}" | sed '/^$/d') <(printf '%s\n' "${expected[@]}" | sed '/^$/d') |
+  grep -vxF -f <(grep -E '^[^#][^[:space:]]*[[:space:]]+flaky:' "$expected_file" | awk '{ print $1 }') || true)
 
 status=0
 if [[ -n $unexpected ]]; then
