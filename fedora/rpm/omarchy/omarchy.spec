@@ -60,6 +60,9 @@ Requires:       perl-interpreter
 Requires:       perl(Encode)
 Requires:       perl(JSON::PP)
 Requires:       perl(open)
+# Arch's tesseract depends on its orientation and script detection data
+# (tesseract-data-osd); Fedora's does not, so tesseract --psm 0/1 would fail.
+Requires:       (tesseract-osd if tesseract)
 # Package management (pacman and pacman-contrib on Arch)
 Requires:       dnf5
 # omarchy-provision-user sets up the user directories with it

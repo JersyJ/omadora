@@ -270,7 +270,7 @@ t2fanrd		drop	hardware not supported by this fork (HP ZBook 8 G2i only)
 t3code-bin		todo	not offered for now (decided 2026-10-13); recipe kept in fedora/rpm/t3code-bin, not registered in COPR
 tailscale	tailscale	fedora	
 tensaku		drop	removed upstream on quattro (omasnap replaced it; migration 1788129995 drops it)
-tesseract	tesseract	fedora	
+tesseract	tesseract	fedora	Same 5.5.3 as Arch; the omarchy package adds tesseract-osd, which Arch's tesseract depends on
 tesseract-data-eng	tesseract-langpack-eng	fedora	
 thermald	thermald	fedora	
 tiny-dfr	tiny-dfr	fedora	Apple Touch Bar; not on the ZBook
