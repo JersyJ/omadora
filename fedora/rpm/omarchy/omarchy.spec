@@ -106,6 +106,10 @@ install -m 0644 fedora/packages/map.tsv "$share/fedora/packages/map.tsv"
 install -m 0644 fedora/build-info "$share/fedora/build-info"
 install -m 0644 fedora/pkg.sh "$share/fedora/pkg.sh"
 
+# uwsm's app launcher, which nett00n's uwsm leaves out (fedora/compat/uwsm-app).
+install -m 0755 fedora/compat/uwsm-app %{buildroot}%{_bindir}/uwsm-app
+echo %{_bindir}/uwsm-app >>%{_builddir}/omarchy.files
+
 # New users are already on this layout, so their migration markers are seeded.
 install -d %{buildroot}%{_sysconfdir}/skel/.local/state/omarchy/migrations
 for migration in migrations/*.sh; do
