@@ -29,11 +29,11 @@ session='export XDG_RUNTIME_DIR=/run/user/$(id -u) DBUS_SESSION_BUS_ADDRESS=unix
 # omarchy update revokes sudo's cached password and asks for it once on its own
 # terminal: give it one (script) and type the password into it.
 update="$session; (sleep 5; printf '%s\\n' '$password') | timeout 3000 script -qefc 'OMARCHY_UPDATE_UNATTENDED=1 omarchy update -y' ~/update.log >/dev/null; echo \"UPDATE exit=\$?\"; sed 's/\\x1b\\[[0-9;?]*[a-zA-Z]//g' ~/update.log | tr -d '\\r' | grep -E 'Running migration|Reboot\\?|Something went wrong|Error|error:' | tail -20"
-after="echo \"BEFORE \$(cat ~/before-version)\"; echo \"AFTER \$(rpm -q --qf '%{VERSION}-%{RELEASE}' omarchy)\"; echo \"FAILED_UNITS \$(systemctl --failed --no-legend | wc -l)\"; echo \"AVC \$(printf '%s\\n' '$password' | sudo -S -p '' ausearch -m avc -ts boot 2>/dev/null | grep -c type=AVC)\""
+after="echo \"BEFORE \$(cat ~/before-version)\"; echo \"AFTER \$(rpm -q --qf '%{VERSION}-%{RELEASE}' omarchy)\"; echo \"FAILED_UNITS \$(systemctl --failed --no-legend | wc -l)\"; echo \"AVC \$(printf '%s\\n' '$password' | sudo -S -p '' ausearch -m avc -ts boot 2>/dev/null | grep -c type=AVC)\"; echo \"USER_AVC \$(printf '%s\\n' '$password' | sudo -S -p '' ausearch -m user_avc -ts boot 2>/dev/null | grep -c denied)\""
 
 OMADORA_VM_COMMAND_TIMEOUT=3600 "$FEDORA_DIR/tests/vm-console.py" --sddm-login \
   "rpm -q --qf '%{VERSION}-%{RELEASE}' omarchy >~/before-version; cat ~/before-version" \
-  "$update" "$after" | tee "$work/update.log" | grep -aoE '(UPDATE|BEFORE|AFTER|FAILED_UNITS|AVC) .*|Running migration.*|Linux kernel.*|Something went wrong.*' || true
+  "$update" "$after" | tee "$work/update.log" | grep -aoE '(UPDATE|BEFORE|AFTER|FAILED_UNITS|AVC|USER_AVC) .*|Running migration.*|Linux kernel.*|Something went wrong.*' || true
 
 # Terminal replies can precede a marker on its line, so markers match anywhere.
 grep -aq 'UPDATE exit=0' "$work/update.log" || die "omarchy update failed; see $work/update.log"
@@ -41,5 +41,10 @@ before=$(grep -aoE 'BEFORE [^ ]+' "$work/update.log" | tail -1 | cut -d' ' -f2)
 after=$(grep -aoE 'AFTER [^ ]+' "$work/update.log" | tail -1 | cut -d' ' -f2)
 [[ -n $after && $after != "$before" ]] || die "omarchy did not move from $before"
 grep -aqE 'FAILED_UNITS 0$' "$work/update.log" || die "units failed after the update; see $work/update.log"
-grep -aqE 'AVC 0$' "$work/update.log" || die "SELinux denials after the update; see $work/update.log"
+grep -aqE '(^|[^_])AVC 0$' "$work/update.log" || die "SELinux denials after the update; see $work/update.log"
+# systemd's own SELinux checks (USER_AVC) can deny a package scriptlet while
+# selinux-policy reloads in the same transaction (seen: moby-engine's
+# mark-restart against selinux-policy 45.21, "Failed to set unit properties on
+# docker.service: Access denied"). That is Fedora's, and transient: report it.
+grep -aqE 'USER_AVC 0$' "$work/update.log" || warn "systemd SELinux denials (USER_AVC) during the update; see ausearch -m user_avc in the VM"
 info "omarchy update: $before -> $after, no failed units, no SELinux denials"

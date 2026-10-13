@@ -74,6 +74,8 @@ env $sb OMADORA_VM_PASSWORD=Kestrel-Window-2026 fedora/tests/vm-extras.sh fedora
 
 Triage a new acceptance failure like a test failure in step 4: a fix, or a line in `fedora/tests/acceptance-expected-failures.txt`. Upstream's acceptance tests lag its own changes now and then (the first sync moved the Apps menu to a new layer the test does not know yet); a failure that also happens on Arch is upstream drift, and the line says so. Keep this sync's VM: it is the next sync's update test. Delete older ones.
 
+The update test fails on kernel SELinux denials (AVC) and only warns on systemd's own (USER_AVC). Fedora's package scriptlets can trip those while selinux-policy reloads in the same transaction: the first sync's update printed "Failed to set unit properties on docker.service: Access denied" (moby-engine's restart marker, rpm_script_t denied `start` on container_unit_file_t, during the selinux-policy 45.20 → 45.21 upgrade). It is harmless, since docker only misses its needs-restart marker, and reinstalling moby-engine without a policy change runs clean. A warning that persists without a policy update is ours to look at.
+
 ### What the first sync (2026-10-13) needed
 
 | Found by | Issue | Change |
