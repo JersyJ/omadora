@@ -73,7 +73,7 @@ jobs:
     container: registry.fedoraproject.org/fedora:45
     steps:
       - name: Install tools
-        run: dnf -y -q install git-core jq nodejs patch findutils which procps-ng file shadow-utils util-linux python3 python-unversioned-command
+        run: dnf -y -q install git-core jq nodejs patch findutils which procps-ng file shadow-utils util-linux python3 python-unversioned-command systemd
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0

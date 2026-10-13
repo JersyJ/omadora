@@ -61,7 +61,6 @@ test/shell.d/cups-hardening-test.sh                   etc/cups/cups-files.conf i
 
 # Install and provisioning: Anaconda and the kickstart replace the ISO.
 test/shell.d/locale-setup-test.sh                     locale-gen; Fedora uses langpacks
-test/shell.d/typing-setup-test.sh                     under review: still fails with install/provisioning/setup-form.sh shipped
 test/shell.d/image-deferred-hardware-test.sh          hardware steps differ (install/hardware/all.sh override)
 
 # Menu: the guards answer from Omadora's package layer ($OMARCHY_PATH/fedora/pkg.sh);
