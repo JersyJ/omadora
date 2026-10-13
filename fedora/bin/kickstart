@@ -196,6 +196,11 @@ dracut --force --regenerate-all
 
 systemctl set-default graphical.target
 
+# SDDM's Omarchy theme has no user field: it logs in the last user. Record the
+# new one, as upstream's first-boot owner setup does, or the first login fails.
+mkdir -p /var/lib/sddm
+printf '[Last]\nSession=omarchy.desktop\nUser=%s\n' $user >/var/lib/sddm/state.conf
+
 # Files written above get their SELinux labels before the first boot.
 restorecon -RF /etc /home /var/lib /var/log /usr/local
 %end
