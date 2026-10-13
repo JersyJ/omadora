@@ -4,7 +4,7 @@
 # Based on kamm3r/omadora-pkg (MIT).
 
 %global debug_package %{nil}
-%global pkgs_commit 87ed2a7e23db51c53bf6f45942e63f21b9b43920
+%global pkgs_commit e499d021c69d27e0750f77f9af7cd68534c8016f
 %global starter_commit 803bc181d7c0d6d5eeba9274d9be49b287294d99
 
 Name:           omarchy-nvim

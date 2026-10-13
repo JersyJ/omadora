@@ -10,7 +10,7 @@ Summary:        Wallpaper engine for Omarchy
 License:        MIT
 URL:            https://github.com/omacom/owe
 Source0:        %{url}/archive/refs/tags/v%{version}.tar.gz#/%{name}-%{version}.tar.gz
-%global pkgs_commit 87ed2a7e23db51c53bf6f45942e63f21b9b43920
+%global pkgs_commit e499d021c69d27e0750f77f9af7cd68534c8016f
 Source1:        https://raw.githubusercontent.com/omacom/omarchy-pkgs/%{pkgs_commit}/pkgbuilds/owe/lock-policy-timestamp.patch
 Source2:        https://raw.githubusercontent.com/omacom/omarchy-pkgs/%{pkgs_commit}/pkgbuilds/owe/package-restart
 BuildRequires:  gcc

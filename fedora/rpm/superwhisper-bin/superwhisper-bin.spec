@@ -1,13 +1,13 @@
 # Mirrors omacom/omarchy-pkgs pkgbuilds/superwhisper-bin (1.0.0-1).
 # Based on whelanh/omarchy-fedora (MIT).
 
-%global pkgs_commit 87ed2a7e23db51c53bf6f45942e63f21b9b43920
+%global pkgs_commit e499d021c69d27e0750f77f9af7cd68534c8016f
 %global debug_package %{nil}
 %global __strip /bin/true
 %global __brp_check_rpaths %{nil}
 
 Name:           superwhisper-bin
-Version:        1.0.0
+Version:        1.0.2
 Release:        1%{?dist}
 Summary:        Local and cloud voice dictation with Superwhisper
 
@@ -132,6 +132,9 @@ sed 's|@LIBRARY@|/opt/superwhisper/lib/fcitx5/libsuperwhisper-fcitx5|' \
 /opt/superwhisper
 
 %changelog
+* Tue Oct 13 2026 Dominik Lichnovsky <dlichnovsky1@gmail.com> - 1.0.2-1
+- Update to 1.0.2, following omarchy-pkgs.
+
 * Mon Oct 12 2026 Dominik Lichnovsky <dlichnovsky1@gmail.com> - 1.0.0-1
 - Package for Omadora, based on whelanh/omarchy-fedora.
 

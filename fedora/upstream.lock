@@ -9,5 +9,5 @@ UPSTREAM_COUNT=6971
 # omacom/omarchy-pkgs holds the PKGBUILDs (packaging recipes) for the same
 # commit; fedora/rpm/*.spec mirror them.
 PKGS_REPO=https://github.com/omacom/omarchy-pkgs.git
-PKGS_COMMIT=87ed2a7e23db51c53bf6f45942e63f21b9b43920
+PKGS_COMMIT=e499d021c69d27e0750f77f9af7cd68534c8016f
 FEDORA_RELEASE=45
