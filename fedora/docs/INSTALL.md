@@ -6,7 +6,7 @@ How to install Omadora on an HP ZBook 8 G2i 14" (`HARDWARE.md`). The install wip
 
 In the BIOS setup (F10 at power-on):
 
-1. Update the BIOS first if HP has a newer one (HP's site, or later `fwupdmgr refresh --force && fwupdmgr update`).
+1. Update the BIOS first if HP has a newer one: with HP's Windows tools while the preloaded Windows is still there, or from the BIOS setup's own network update. After the install, `omarchy-update-firmware` (fwupd) installs whatever firmware HP publishes to LVFS.
 2. **Secure Boot: on**, in User Mode. The company requires it (`INTUNE.md`).
 3. **"Enable MS UEFI CA key": on.** Fedora's bootloader (shim) is signed by Microsoft's third-party UEFI CA; with this setting off the USB stick and the installed system do not boot with Secure Boot on.
 4. Intel AMT: off (recommended by the company guide, not checked by Intune).
