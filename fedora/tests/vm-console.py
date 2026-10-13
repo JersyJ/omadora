@@ -13,6 +13,12 @@ Usage: fedora/tests/vm-console.py [--root] [--screenshot] [--sddm-login] 'comman
                 the VM's keyboard (a --test-password-login install, which
                 reports the greeter and the session on the serial console)
 
+A command starting with @ acts on the VM's screen and keyboard instead:
+  @type TEXT    type TEXT and Enter
+  @key COMBO    press one QEMU key combination, e.g. @key meta_l-ctrl-l
+  @sleep N      wait N seconds
+  @shot NAME    save the screen to <vm dir>/NAME.png
+
   OMADORA_VM_SB_VARS=<file>  boot with Secure Boot on, using these OVMF variables
                              (Microsoft's keys enrolled; a copy is used)
   OMADORA_VM_COMMAND_TIMEOUT=<seconds>  time each command may take (default 300)
@@ -177,6 +183,24 @@ def main():
         read_until(conn, [r"OMADORA\$ *$"], 10)
 
         for command in args:
+            if command.startswith("@"):
+                action, _, value = command[1:].partition(" ")
+                if action == "type":
+                    type_text(value)
+                elif action == "key":
+                    monitor(f"sendkey {value}")
+                elif action == "sleep":
+                    time.sleep(float(value))
+                elif action == "shot":
+                    ppm = os.path.join(WORK, value + ".ppm")
+                    monitor(f"screendump {ppm}")
+                    subprocess.run(["magick", ppm, os.path.join(WORK, value + ".png")], check=False)
+                    os.unlink(ppm)
+                else:
+                    sys.exit(f"unknown action {command}")
+                print(f"@ {command[1:]}")
+                print()
+                continue
             line = command
             if root:
                 line = f"echo {PASSWORD} | sudo -S -p '' bash -c {shlex_quote(command)}"
