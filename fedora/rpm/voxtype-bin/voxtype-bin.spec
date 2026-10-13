@@ -29,6 +29,7 @@ Conflicts:      voxtype
 
 BuildRequires:  gnupg2
 BuildRequires:  cpio
+BuildRequires:  systemd-rpm-macros
 
 Requires:       glibc
 Requires:       libgcc

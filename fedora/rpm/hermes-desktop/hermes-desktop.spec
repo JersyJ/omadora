@@ -28,8 +28,9 @@ Source5:        https://raw.githubusercontent.com/omacom/omarchy-pkgs/%{pkgs_com
 ExclusiveArch:  x86_64
 AutoReqProv:    no
 
-BuildRequires:  nodejs
-BuildRequires:  npm
+# Vite's native bundler crashes under Fedora's default Node.js 22; build with 24.
+BuildRequires:  nodejs24
+BuildRequires:  nodejs24-npm
 BuildRequires:  python3
 BuildRequires:  gcc-c++
 BuildRequires:  make
@@ -83,6 +84,12 @@ A prebuilt release under /opt/hermes-desktop, with Omarchy's launcher.
 %autosetup -n hermes-agent-%{version}
 
 %build
+mkdir -p ../node-bin
+ln -sf %{_bindir}/node-24 ../node-bin/node
+ln -sf %{_bindir}/npm-24 ../node-bin/npm
+ln -sf %{_bindir}/npx-24 ../node-bin/npx
+export PATH="$PWD/../node-bin:$PATH"
+node --version
 export GITHUB_SHA=%{hermes_commit}
 export GITHUB_REF_NAME=main
 # The desktop workspace resolves against the repository root.
@@ -91,6 +98,7 @@ cd apps/desktop
 npm run pack
 
 %check
+export PATH="$PWD/../node-bin:$PATH"
 python3 "%{SOURCE5}" "$PWD" "%{SOURCE4}" "%{SOURCE1}"
 
 %install
