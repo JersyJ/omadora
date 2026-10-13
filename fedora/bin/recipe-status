@@ -1,0 +1,85 @@
+#!/bin/bash
+
+# Compare each recipe in fedora/rpm with the package it mirrors: its
+# omarchy-pkgs PKGBUILD (at PKGS_COMMIT in upstream.lock, and at omarchy-pkgs'
+# master) or its Arch package (extra/<name>). Version and Release follow
+# pkgver and pkgrel (fedora/rpm/README.md), so a difference means a recipe to
+# port. omarchy, omarchy-settings and omadora-repos are built from this tree
+# and are left out.
+#
+# Usage: fedora/bin/recipe-status [--check]
+#   --check   fail when a recipe differs from the PKGBUILD at the pinned
+#             PKGS_COMMIT (newer upstream versions are reported, not fatal)
+
+set -euo pipefail
+source "$(dirname "$(realpath "$0")")/../lib/common.sh"
+
+check=0
+[[ ${1:-} == "--check" ]] && check=1
+
+cd "$FEDORA_ROOT"
+load_lock
+
+pkgs_raw=https://raw.githubusercontent.com/omacom/omarchy-pkgs
+arch_raw=https://gitlab.archlinux.org/archlinux/packaging/packages
+
+# pkgver-pkgrel of a PKGBUILD at a URL, or "?" when it cannot be read.
+pkgbuild_version() {
+  local text
+
+  text=$(curl -sfL --max-time 30 "$1") || { echo "?"; return; }
+  awk -F= '
+    /^pkgver=/ { gsub(/["'\'']/, "", $2); ver = $2 }
+    /^pkgrel=/ { gsub(/["'\'']/, "", $2); rel = $2 }
+    END { if (ver == "" || rel == "") print "?"; else print ver "-" rel }
+  ' <<<"$text"
+}
+
+# Version-Release of a spec, without the dist tag and a Fedora-only rebuild
+# suffix (Release 2.1 mirrors pkgrel 2).
+spec_version() {
+  awk '
+    /^Version:/ { ver = $2 }
+    /^Release:/ { rel = $2; sub(/%\{\?dist\}/, "", rel); sub(/\..*/, "", rel) }
+    END { print ver "-" rel }
+  ' "$1"
+}
+
+behind=0
+printf '%-30s %-18s %-18s %-18s %s\n' "recipe" "ours" "pinned" "latest" "status"
+for spec in fedora/rpm/*/*.spec; do
+  name=$(basename "$(dirname "$spec")")
+  case $name in
+    omarchy | omarchy-settings | omadora-repos) continue ;;
+  esac
+
+  ours=$(spec_version "$spec")
+  if source=$(grep -m1 -oE 'Mirrors omacom/omarchy-pkgs pkgbuilds/[A-Za-z0-9._-]+' "$spec"); then
+    pkgbuild=${source##*/}
+    pkgbuild=${pkgbuild%.}
+    pinned=$(pkgbuild_version "$pkgs_raw/$PKGS_COMMIT/pkgbuilds/$pkgbuild/PKGBUILD")
+    latest=$(pkgbuild_version "$pkgs_raw/master/pkgbuilds/$pkgbuild/PKGBUILD")
+  elif source=$(grep -m1 -oE "Mirrors Arch's extra/[A-Za-z0-9._-]+" "$spec"); then
+    pinned="-"
+    package=${source##*/}
+    latest=$(pkgbuild_version "$arch_raw/${package%.}/-/raw/main/PKGBUILD")
+  else
+    printf '%-30s %-18s %-18s %-18s %s\n' "$name" "$ours" "-" "-" "no 'Mirrors' line in the spec"
+    continue
+  fi
+
+  status=ok
+  if [[ $pinned != "-" && $pinned != "?" && $pinned != "$ours" ]]; then
+    status="differs from the pinned PKGBUILD: port it"
+    behind=1
+  elif [[ $latest == "?" || $pinned == "?" ]]; then
+    status="upstream PKGBUILD not readable"
+  elif [[ $latest != "$ours" ]]; then
+    status="upstream has $latest"
+  fi
+  printf '%-30s %-18s %-18s %-18s %s\n' "$name" "$ours" "$pinned" "$latest" "$status"
+done
+
+if (( check && behind )); then
+  die "recipes differ from omarchy-pkgs at PKGS_COMMIT; port them (fedora/docs/SYNC.md)"
+fi

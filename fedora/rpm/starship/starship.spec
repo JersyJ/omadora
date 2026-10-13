@@ -1,4 +1,4 @@
-# Starship comes from Arch's own repositories, not omarchy-pkgs, and Fedora 45
+# Mirrors Arch's extra/starship (Arch ships it, not omarchy-pkgs); Fedora 45
 # has no maintained build (atim/starship stopped at Fedora 43). Built from the
 # release tag with crates vendored into the SRPM by fedora/rpm/build-srpm.
 

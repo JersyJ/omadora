@@ -1,0 +1,65 @@
+name: fedora-repos-check
+
+# Every Monday, even without pushes: do the third-party repositories Omadora
+# installs from still serve a working package set, are their signing keys the
+# ones fedora/repos/keys carries, and which recipes in fedora/rpm have newer
+# upstream versions? The COPR overview (last builds, next Fedora release) goes
+# into the run summary.
+on:
+  schedule:
+    - cron: "0 5 * * 1"
+  workflow_dispatch:
+
+jobs:
+  repositories:
+    runs-on: ubuntu-latest
+    container: registry.fedoraproject.org/fedora:45
+    steps:
+      - name: Install tools
+        run: dnf -y -q install git-core gnupg2 python3
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 1
+      - name: Signing keys and COPR overview
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          fedora/tests/repos-check.sh
+
+  resolve:
+    runs-on: ubuntu-latest
+    container: registry.fedoraproject.org/fedora:45
+    strategy:
+      fail-fast: false
+      matrix:
+        set: [base, optional]
+    steps:
+      - name: Install tools
+        run: dnf -y -q install git-core
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 1
+      - name: Resolve the ${{ matrix.set }} package set
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          if [ "${{ matrix.set }}" = optional ]; then
+            fedora/tests/resolve.sh --optional
+          else
+            fedora/tests/resolve.sh
+          fi
+
+  recipes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 1
+      - name: Recipes against their upstream packages
+        shell: bash
+        run: |
+          {
+            echo '## Recipes'
+            echo
+            echo '```'
+            fedora/bin/recipe-status --check
+            echo '```'
+          } | tee -a "$GITHUB_STEP_SUMMARY"
