@@ -31,11 +31,8 @@ extras=(
   "ghostty|window:ghostty:ghostty"
   "claude-desktop|window:claude-desktop:(?i)claude"
   "openai-codex-desktop|window:chatgpt:(?i)chatgpt"
-  "perplexity|window:perplexity:(?i)perplexity"
   "grok-bot|window:grok-bot:(?i)grok"
-  "t3code-bin|window:t3code:(?i)t3"
-  "lmstudio-bin|window:lm-studio:(?i)lm.?studio|elementlabs"
-  # hermes-desktop: todo in the map until its build works (DECISIONS.md).
+  # Not offered (todo in the map): hermes-desktop, perplexity, t3code-bin, lmstudio-bin.
 )
 if (( $# > 0 )); then
   selected=()

@@ -1,5 +1,6 @@
 # Mirrors omacom/omarchy-pkgs pkgbuilds/t3code-bin (0.0.45-2): the release
 # AppImage, unpacked under /usr/lib/t3code with Omarchy's launchers.
+# Not registered in COPR and "todo" in the package map: dropped from the extras for now (decided 2026-10-13).
 
 %global pkgs_commit e499d021c69d27e0750f77f9af7cd68534c8016f
 %global debug_package %{nil}

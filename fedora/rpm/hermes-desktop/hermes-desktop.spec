@@ -3,6 +3,7 @@
 # Electron and rebuilds node-pty, so the COPR build needs network access).
 # Omarchy's Hermes installer seeds this prebuilt release into the user's
 # Hermes checkout so its updater can rebuild it in place.
+# Not registered in COPR and "todo" in the package map: its Vite build segfaults in the Fedora 45 build environment.
 
 %global pkgs_commit e499d021c69d27e0750f77f9af7cd68534c8016f
 # The tag's commit: the app pins its first-launch bootstrap to it.

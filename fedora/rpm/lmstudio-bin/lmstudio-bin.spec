@@ -1,5 +1,6 @@
 # Mirrors omacom/omarchy-pkgs pkgbuilds/lmstudio-bin (0.4.26-1): LM Studio's
 # release AppImage under /opt/lm-studio, run as an AppImage (FUSE 2).
+# Not registered in COPR and "todo" in the package map: dropped from the extras for now (decided 2026-10-13).
 
 %global pkgs_commit e499d021c69d27e0750f77f9af7cd68534c8016f
 %global lmstudio_build 4

@@ -156,7 +156,7 @@ linux-ptl-headers		drop	Panther Lake kernel for Arch (listed up to v4.0.3)
 linux-t2		drop	hardware not supported by this fork (HP ZBook 8 G2i only)
 linux-t2-headers		drop	hardware not supported by this fork (HP ZBook 8 G2i only)
 llvm	llvm	fedora	
-lmstudio-bin	lmstudio-bin	ours	release AppImage (fedora/rpm/lmstudio-bin)
+lmstudio-bin		todo	not offered for now (decided 2026-10-13); recipe kept in fedora/rpm/lmstudio-bin, not registered in COPR
 localsend	org.localsend.localsend_app	flatpak	needs a command-name wrapper where Omarchy launches localsend
 lsp-plugins-lv2	lsp-plugins-lv2	fedora	
 lua51	compat-lua	fedora	Lua 5.1 for luarocks/Neovim
@@ -215,7 +215,7 @@ pacman		drop	Arch's package manager
 pacman-contrib		drop	Arch-only tooling, no Fedora equivalent needed
 pam-u2f	pam-u2f	fedora	
 pamixer	pamixer	fedora	
-perplexity	perplexity	ours	Perplexity's .deb repacked (fedora/rpm/perplexity)
+perplexity		todo	not offered for now (decided 2026-10-13); recipe kept in fedora/rpm/perplexity, not registered in COPR
 php	php	fedora	
 php-sqlite	php-pdo	fedora	php-pdo provides pdo_sqlite and sqlite3
 pinta	com.github.PintaProject.Pinta	flatpak	Fedora's pinta is old and retired in Rawhide
@@ -267,7 +267,7 @@ sushi	sushi	fedora
 symfony-cli	symfony-cli	repo:symfony-stable	
 system-config-printer	system-config-printer	fedora	
 t2fanrd		drop	hardware not supported by this fork (HP ZBook 8 G2i only)
-t3code-bin	t3code-bin	ours	release AppImage unpacked (fedora/rpm/t3code-bin)
+t3code-bin		todo	not offered for now (decided 2026-10-13); recipe kept in fedora/rpm/t3code-bin, not registered in COPR
 tailscale	tailscale	fedora	
 tensaku		drop	removed upstream on quattro (omasnap replaced it; migration 1788129995 drops it)
 tesseract	tesseract	fedora	
