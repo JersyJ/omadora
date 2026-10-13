@@ -26,7 +26,7 @@ The cost moves from merge conflicts to review: changes upstream made to files we
    | --- | --- |
    | Override drifted | `git diff <pinned blob> <new blob>` (both printed), port the relevant change into `fedora/overrides/<path>`, then `fedora/bin/pin-override <path>` |
    | Patch no longer applies | Re-create it against the new upstream file (`fedora/build/assemble` output is a convenient base) |
-   | Migration missing, changed or unreviewed | `fedora/bin/migrations-status --update`, then review each `unreviewed` row and set `run`, `skip` or `replace:<file>` with a reason. Until then the build leaves the migration out, so it cannot run unreviewed. A replacement lives in `fedora/migrations/` and ships under the upstream name |
+   | Migration missing, changed or unreviewed | `fedora/bin/migrations-status --update`, then review each `unreviewed` row and set `run`, `skip` or `replace:<file>` with a reason. Until then the build leaves the migration out, so it cannot run unreviewed. A replacement lives in `fedora/migrations/` and ships under the upstream name. Also check what a fresh install does: it marks every shipped migration done without running it, so a migration that removes or disables something only Arch's install leaves out (a package Fedora pulls in as a weak dependency, say) needs the same change in the kickstart. `cups-browsed` was one (2026-10-13) |
    | Unmapped package | Add it to `fedora/packages/map.tsv`, following the source order in `DECISIONS.md` |
    | Unclassified top-level path | Mark it `ship` or `repo-only` in `fedora/build/layout.tsv` |
 
@@ -36,7 +36,11 @@ The cost moves from merge conflicts to review: changes upstream made to files we
    - Hyprland and Quickshell: if upstream Omarchy moved to a new version (`omarchy-hyprland-titlebars` in omarchy-pkgs pins Hyprland exactly), confirm nett00n/hyprland has it, move the lock in `fedora/repos/versionlock.toml`, and rebuild `omarchy-hyprland-titlebars`.
    - Our COPR: for every recipe whose upstream PKGBUILD changed (`git log <PKGS_COMMIT>..origin/master -- pkgbuilds/<name>`), port the change into `fedora/rpm/<name>/`, update `sources.sha256`, push, then `copr-cli build-package jersyj/omadora --name <name>`. Recipes with `%global pkgs_commit` must move with `PKGS_COMMIT`; the static checks enforce it.
 
-4. Build and test (from Phase 2 on): RPMs, VM install, update from the previous pinned commit. Roll out to the pilot group before everyone else.
+4. Build and test, all in VMs, never on a workstation:
+   - Rebuild the COPR packages, then a fresh laptop-style install: `OMADORA_VM_PACKAGED=1 OMADORA_VM_SECURE_BOOT=1 OMADORA_VM_SB_VARS=<vars> OMADORA_VM_PASSWORD_LOGIN=1 fedora/tests/vm-install.sh <netinst.iso> <dir>`. It also checks the keyring, `passwd` and the lock screen (`tests/vm-password-login.sh`).
+   - Upstream's graphical suite on that VM: `OMADORA_VM_PASSWORD=Kestrel-Window-2026 fedora/tests/vm-acceptance.sh <dir>` (the login test changed the password). Triage any new failure into a fix or a reasoned line in `tests/acceptance-expected-failures.txt`.
+   - `omarchy update` on a VM installed from the previous sync, then `omarchy-snapshot restore` once.
+   - Roll out to the pilot group before everyone else.
 
 5. Merge the pull request with a merge commit. Never squash or rebase it: the sync merge commit is what keeps upstream history in the fork.
 
