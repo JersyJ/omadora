@@ -117,7 +117,10 @@ if [[ $password_login == "1" ]]; then
   if [[ ${OMADORA_VM_SECURE_BOOT:-0} == "1" ]]; then
     export OMADORA_VM_SB_VARS
   fi
-  exec "$FEDORA_DIR/tests/vm-password-login.sh" "$work"
+  # Not exec: the EXIT trap must still stop the HTTP server.
+  status=0
+  "$FEDORA_DIR/tests/vm-password-login.sh" "$work" || status=$?
+  exit "$status"
 fi
 
 info "Booting the installed system (log: $work/boot.log)"

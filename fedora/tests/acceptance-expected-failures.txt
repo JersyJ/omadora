@@ -12,9 +12,10 @@ test/acceptance.d/system-test.sh       pacman -Q for the core packages, Arch's l
 # Test-only tools.
 test/acceptance.d/input-methods-test.sh  its Qt probe runs qml6, Arch's name for the QML runtime; Fedora ships none in the base install (GTK and terminal input pass)
 
-# Upstream drift: upstream moved Menu Bar to Trigger > Appearance (c09ddcff,
-# 2026-10-11) and the test still walks Style; it fails on Arch too.
+# Upstream drift: the tests still expect what upstream changed since; they fail
+# on Arch too.
 test/acceptance.d/menu-test.sh         walks Style > Menu Bar, which upstream moved
+test/acceptance.d/shell-surfaces-test.sh  waits for the Apps menu on the omarchy-menu layer; upstream moved it to omarchy-dock-apps (124328fd8, 2026-10-13). Its screen reading is also less reliable with Fedora's fast OCR models
 
 # Unstable in the VM: adds and removes headless monitors and fails at a
 # different step on most runs, including from the same snapshot (passed once in
