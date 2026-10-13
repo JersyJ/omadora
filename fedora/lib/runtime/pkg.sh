@@ -4,7 +4,8 @@
 # Omarchy names Arch packages. fedora/packages/map.tsv, installed at
 # /usr/share/omarchy/fedora/packages/map.tsv, says where each comes from on
 # Fedora: Fedora itself, a COPR, RPM Fusion, our COPR, a vendor repository,
-# Flathub or mise; or that it is not needed (drop) or not packaged yet (todo).
+# a vendor's RPM by URL (which sets up the vendor's own repository), Flathub or
+# mise; or that it is not needed (drop) or not packaged yet (todo).
 # A name the map does not know is taken as a Fedora package name.
 #
 # Installed at /usr/share/omarchy/fedora/pkg.sh.
@@ -115,6 +116,8 @@ omadora_pkg_add() {
     case $source in
       flatpak) flatpak_ids+=("$name") ;;
       mise:*) mise_tools+=("${source#mise:}") ;;
+      # dnf installs the vendor's RPM straight from its URL.
+      url:*) dnf_names+=("${source#url:}") ;;
       *)
         dnf_names+=("$name")
         repos[$source]=1

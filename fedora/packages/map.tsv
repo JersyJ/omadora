@@ -1,7 +1,8 @@
 # Arch package name -> Fedora 45 source. Read by the Fedora omarchy-pkg-* helpers.
 # Columns (tab-separated): arch_name, fedora_names (space-separated; empty for drop), source, note
 # source: fedora | copr:<owner>/<project> | rpmfusion-free | rpmfusion-nonfree | repo:<section> (a vendor repository's section id) | ours (COPR jersyj/omadora)
-#         | flatpak (fedora_names = Flathub app id) | mise:<tool> | drop (succeed, install nothing) | todo (fail loudly)
+#         | flatpak (fedora_names = Flathub app id) | mise:<tool> | url:<https://...rpm> (a vendor RPM that sets up its own repository)
+#         | drop (succeed, install nothing) | todo (fail loudly)
 # Seeded 2026-10-12 from a full F45 pass (Koji, COPR API, mdapi) and whelanh/omarchy-fedora's packages.yaml (MIT).
 arch_name	fedora_names	source	note
 1password	1password	repo:1password	
@@ -35,7 +36,7 @@ btop	btop	fedora
 btrfs-progs	btrfs-progs	fedora	
 chromium	chromium	fedora	
 clang	clang	fedora	
-claude-desktop		todo	on demand: build in our COPR when someone needs it (no official Linux build)
+claude-desktop	claude-desktop	ours	Anthropic's .deb repacked (fedora/rpm/claude-desktop); no Fedora build from Anthropic
 cliamp	cliamp	ours	Spec: whelanh/omarchy-fedora (MIT)
 composer	composer	fedora	
 cups	cups	fedora	
@@ -59,7 +60,7 @@ dropbox-cli	nautilus-dropbox	repo:dropbox	the dropbox command ships in nautilus-
 dua-cli	dua-cli	fedora	
 dust	du-dust	fedora	
 egl-wayland	egl-wayland	fedora	
-elsewhen		todo	on demand: build in our COPR when someone needs it
+elsewhen		drop	now a built-in shell plugin (omarchy.elsewhen); migrations only remove the old package
 evince	evince	fedora	
 exfatprogs	exfatprogs	fedora	
 expac		drop	Arch-only tooling, no Fedora equivalent needed
@@ -84,7 +85,7 @@ fprintd	fprintd fprintd-pam	fedora	Fedora ships pam_fprintd.so in fprintd-pam
 freerdp	freerdp	fedora	
 fwupd	fwupd	fedora	
 fzf	fzf	fedora	
-ghostty		todo	on demand: build in our COPR when someone needs it; scottames/ghostty has no Fedora 45 build yet and Flathub has none
+ghostty	ghostty	ours	built from source with Zig 0.15.2 (fedora/rpm/ghostty); scottames/ghostty has no Fedora 45 build
 git	git	fedora	
 gliff	gliff	ours	Spec: whelanh/omarchy-fedora (MIT)
 gnome-calculator	gnome-calculator	fedora	
@@ -94,7 +95,7 @@ gnome-themes-extra		drop	retired in Fedora; GTK3 ships Adwaita-dark built in (ve
 google-chrome	google-chrome-stable	repo:google-chrome	
 gpu-screen-recorder	gpu-screen-recorder	copr:arabianq/gpu-screen-recorder	
 grim	grim	fedora	
-grok-bot		todo	on demand: build in our COPR when someone needs it
+grok-bot	grok-bot	ours	xAI's .deb repacked (fedora/rpm/grok-bot)
 gst-plugin-pipewire	pipewire-gstreamer	fedora	
 gtk4-layer-shell	gtk4-layer-shell	fedora	
 gum	gum	fedora	
@@ -103,7 +104,7 @@ gvfs-nfs	gvfs-nfs	fedora
 gvfs-smb	gvfs-smb	fedora	
 helix	helix	fedora	
 herdr	herdr	ours	Spec: whelanh/omarchy-fedora (MIT)
-hermes-desktop		todo	on demand: build in our COPR when someone needs it
+hermes-desktop		todo	build fails: Vite's native bundler (rolldown) segfaults in the Fedora 45 COPR build (fedora/rpm/hermes-desktop); under investigation
 heroic-games-launcher-bin	com.heroicgameslauncher.hgl	flatpak	verified on Flathub
 hype	hype	ours	Spec: whelanh/omarchy-fedora (MIT)
 hyprland	hyprland	copr:nett00n/hyprland	versionlock to the Hyprland version upstream Omarchy pins
@@ -155,7 +156,7 @@ linux-ptl-headers		drop	Panther Lake kernel for Arch (listed up to v4.0.3)
 linux-t2		drop	hardware not supported by this fork (HP ZBook 8 G2i only)
 linux-t2-headers		drop	hardware not supported by this fork (HP ZBook 8 G2i only)
 llvm	llvm	fedora	
-lmstudio-bin		todo	on demand: build in our COPR when someone needs it (AppImage only; not on Flathub)
+lmstudio-bin	lmstudio-bin	ours	release AppImage (fedora/rpm/lmstudio-bin)
 localsend	org.localsend.localsend_app	flatpak	needs a command-name wrapper where Omarchy launches localsend
 lsp-plugins-lv2	lsp-plugins-lv2	fedora	
 lua51	compat-lua	fedora	Lua 5.1 for luarocks/Neovim
@@ -195,16 +196,16 @@ ollama-rocm	ollama-rocm	fedora
 ollama-vulkan	ollama-vulkan	fedora	
 omacalc	omacalc	ours	Spec: whelanh/omarchy-fedora (MIT)
 omacut	omacut	ours	Spec: whelanh/omarchy-fedora (MIT)
-omarchy-emacs		todo	on demand: build in our COPR when someone needs it
-omarchy-herdr		todo	on demand: build in our COPR when someone needs it
+omarchy-emacs	omarchy-emacs	ours	fedora/rpm/omarchy-emacs; Emacs itself is Fedora's emacs-pgtk
+omarchy-herdr		drop	retired upstream; migrations only remove it
 omarchy-hyprland-titlebars	omarchy-hyprland-titlebars	ours	Hyprland plugin: must match nett00n's Hyprland build exactly; Spec: whelanh/omarchy-fedora (MIT)
 omarchy-keyring		drop	Omarchy's pacman signing keyring; Fedora verifies RPM signatures itself
 omarchy-nvim	omarchy-nvim	ours	kammer/omadora is F44-only and too old for migration 1791723398. Spec: kamm3r/omadora-pkg (MIT)
 omasnap	omasnap	ours	Spec: whelanh/omarchy-fedora (MIT)
 omawrite	omawrite	ours	Spec: whelanh/omarchy-fedora (MIT)
-omazed		todo	on demand: build in our COPR when someone needs it
-once-bin		todo	on demand: build in our COPR when someone needs it
-openai-codex-desktop		todo	on demand: build in our COPR when someone needs it
+omazed	omazed	ours	fedora/rpm/omazed; Zed itself from COPR che/zed
+once-bin	once-bin	ours	release binary with its service (fedora/rpm/once-bin)
+openai-codex-desktop	chatgpt	url:https://persistent.oaistatic.com/codex-app-prod/linux/rpm/latest/chatgpt.x86_64.rpm	OpenAI's own RPM, which adds OpenAI's signed repository for updates
 openbsd-netcat	netcat	fedora	Fedora's netcat is the OpenBSD one
 openclaw	openclaw	fedora	
 openssh	openssh	fedora	
@@ -214,7 +215,7 @@ pacman		drop	Arch's package manager
 pacman-contrib		drop	Arch-only tooling, no Fedora equivalent needed
 pam-u2f	pam-u2f	fedora	
 pamixer	pamixer	fedora	
-perplexity		todo	on demand: build in our COPR when someone needs it
+perplexity	perplexity	ours	Perplexity's .deb repacked (fedora/rpm/perplexity)
 php	php	fedora	
 php-sqlite	php-pdo	fedora	php-pdo provides pdo_sqlite and sqlite3
 pinta	com.github.PintaProject.Pinta	flatpak	Fedora's pinta is old and retired in Rawhide
@@ -266,7 +267,7 @@ sushi	sushi	fedora
 symfony-cli	symfony-cli	repo:symfony-stable	
 system-config-printer	system-config-printer	fedora	
 t2fanrd		drop	hardware not supported by this fork (HP ZBook 8 G2i only)
-t3code-bin		todo	on demand: build in our COPR when someone needs it
+t3code-bin	t3code-bin	ours	release AppImage unpacked (fedora/rpm/t3code-bin)
 tailscale	tailscale	fedora	
 tensaku		drop	removed upstream on quattro (omasnap replaced it; migration 1788129995 drops it)
 tesseract	tesseract	fedora	
@@ -285,7 +286,7 @@ tzupdate	tzupdate	ours	kammer/omadora is F44-only. Spec: kamm3r/omadora-pkg (MIT
 udiskie	udiskie	fedora	
 ufw	firewalld	fedora	decision: firewalld instead of ufw (see fedora/docs/DECISIONS.md)
 ufw-docker		drop	decision: firewalld instead of ufw
-umu-launcher		todo	on demand: build in our COPR when someone needs it; the COPRs are stale
+umu-launcher	umu-launcher	ours	built like Arch's (fedora/rpm/umu-launcher); umu's own RPMs stop at Fedora 44
 unzip	unzip	fedora	
 usage	usage	mise:usage	installed per user with mise use -g usage
 usbguard	usbguard	fedora	
@@ -297,7 +298,7 @@ v4l2loopback-utils	v4l2loopback	rpmfusion-free
 vi	vim-minimal	fedora	provides vi
 vim	vim-enhanced	fedora	
 visual-studio-code-bin	code	repo:code	
-voxtype-bin		todo	on demand: build in our COPR when someone needs it
+voxtype-bin	voxtype-bin	ours	Voxtype's signed release RPM repacked (fedora/rpm/voxtype-bin)
 vpl-gpu-rt	intel-vpl-gpu-rt	fedora	
 vulkan-asahi		drop	hardware not supported by this fork (HP ZBook 8 G2i only)
 vulkan-intel	mesa-vulkan-drivers	fedora	

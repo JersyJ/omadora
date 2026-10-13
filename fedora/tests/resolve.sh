@@ -83,13 +83,22 @@ while read -r source name; do
   fi
 done < <(awk -F'\t' -v optional="$optional" '
   NR == FNR { listed[$1] = 1; next }
-  /^#/ || $1 == "arch_name" || (optional ? ($1 in listed) : !($1 in listed)) || $3 ~ /^(drop|todo|flatpak|mise:)/ { next }
+  /^#/ || $1 == "arch_name" || (optional ? ($1 in listed) : !($1 in listed)) || $3 ~ /^(drop|todo|flatpak|mise:|url:)/ { next }
   { n = split($2, names, " "); for (i = 1; i <= n; i++) print $3, names[i] }' <(upstream_package_names) fedora/packages/map.tsv)
 
 # Base mode also resolves what Omadora adds beyond upstream's lists.
 if (( ! optional )); then
   mapfile -t -O "${#packages[@]}" packages < <(sed -e 's/[[:space:]]*#.*$//' -e '/^[[:space:]]*$/d' fedora/packages/extra.txt)
 fi
+
+# A vendor RPM installed from its URL must still be there.
+while read -r url; do
+  curl -sfI --max-time 60 "$url" >/dev/null || die "the vendor RPM at $url is gone"
+  printf '  %-60s reachable\n' "$url"
+done < <(awk -F'\t' -v optional="$optional" '
+  NR == FNR { listed[$1] = 1; next }
+  /^#/ || (optional ? ($1 in listed) : !($1 in listed)) { next }
+  $3 ~ /^url:/ { print substr($3, 5) }' <(upstream_package_names) fedora/packages/map.tsv)
 
 (( ${#packages[@]} > 0 )) || die "no packages selected"
 mapfile -t packages < <(printf '%s\n' "${packages[@]}" | sort -u)
