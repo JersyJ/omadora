@@ -23,7 +23,7 @@ The only supported laptop. A real unit was probed on 2026-10-12 (report: [`probe
 
 ## Booting from USB
 
-- **Secure Boot:** Ventoy's own Secure Boot key could not be enrolled on this unit, so the probe ran with Secure Boot off. Fedora's media are signed by Microsoft and should boot with it on; Phase 2 confirms that and whether the BIOS option "Enable MS UEFI CA key" must be on. If it must, that becomes a requirement for IT.
+- **Secure Boot:** Ventoy's own Secure Boot key could not be enrolled on this unit, so the probe ran with Secure Boot off. Fedora's media and installed system boot with it on through shim, which is signed by Microsoft's third-party UEFI CA, so the BIOS option "Enable MS UEFI CA key" must be on. Installing: `INSTALL.md`.
 - **Ventoy:** Fedora 45 live ISOs do not boot from Ventoy 1.1.17; 1.1.18 (2026-10-09) lists the fix.
 
 ## Re-probing

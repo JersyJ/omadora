@@ -37,6 +37,8 @@ No Java 11 is needed. The current identity broker (3.x) is native code; only `mi
 
 Verified 2026-10-12 in the test VM (Fedora 45): `intune-portal`, `mdatp` and `microsoft-edge-stable` resolve together from these repositories, and Intune Portal starts and shows its window in the Hyprland session. Enrollment itself is untested until the pilot.
 
+`intune-portal` adds `pam_intune` to the PAM stacks. Before enrollment it logs "Failed to process authtok: Failed to remove old password policy file" on console logins (seen 2026-10-13); SDDM logins and `passwd` work. Check on the pilot laptop that this stops after enrollment.
+
 Risk: the COPR's WebKitGTK 4.0 (2.50.0) lags upstream WebKitGTK (2.54.1), so it misses security fixes, and its maintainer may stop. Intune Portal only renders Microsoft's sign-in pages in it. If the COPR goes stale, rebuild it in Omadora's COPR.
 
 All of these repositories get `includepkgs` limits like every other third-party source (`repos/README.md`). The guide's own commands also add whole repositories without limits; Omadora will not.
@@ -57,7 +59,7 @@ Office, Outlook and Teams are used as Edge web apps (PWAs). Native OneDrive sync
 
 | Topic | Finding | Status |
 | --- | --- | --- |
-| Secret storage | Intune keeps its tokens in the desktop's default secret service. Omadora uses GNOME Keyring with an encrypted login keyring unlocked at login. The keyring password must match the account password, so password changes must update it too. Switching to another secret service later breaks enrollment | Decided (GNOME Keyring); the `passwd` sync check stays open in Phase 2 |
+| Secret storage | Intune keeps its tokens in the desktop's default secret service. Omadora uses GNOME Keyring with an encrypted login keyring unlocked at login. The keyring password must match the account password, so password changes must update it too. Switching to another secret service later breaks enrollment | Decided (GNOME Keyring). Verified 2026-10-13: the SDDM password unlocks the login keyring, and `passwd` keeps its password in step |
 | Polkit prompt | Intune asks for the password through polkit once. The guide notes the prompt never appears on i3/Sway | Verified 2026-10-12: Omarchy's Quickshell polkit agent shows the dialog in the Hyprland session |
 | Login shell | Root policies are not deployed when the user's shell is zsh | Omarchy uses bash |
 | Passwordless sudo | The guide discourages passwordless sudo for daily use | Omarchy's narrow NOPASSWD rules and temporary grants stay (decided 2026-10-12) |
