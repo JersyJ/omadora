@@ -25,6 +25,7 @@ Do not edit files outside `fedora/`, `.copr/`, `.github/workflows/` and `.github
 | `bin/pin-override <path>` | Record that an override was reviewed against the current upstream file |
 | `bin/migrations-status` | Summarize, check (`--check`) or add (`--update`) migration review rows |
 | `bin/port-status [--list]` | Porting backlog: shipped files still referencing pacman, AUR, Limine, mkinitcpio or ufw |
+| `bin/copr-build-core` | Build `omarchy`, `omarchy-settings` and `omadora-repos` in our COPR from the pushed commit, together |
 | `bin/probe-hardware` | Read-only hardware report for a target laptop |
 | `bin/kickstart` | Print the Anaconda kickstart that installs Omadora from the Fedora netinst ISO |
 | `build/assemble` | Build the installable tree in `.build/` from upstream + this layer |

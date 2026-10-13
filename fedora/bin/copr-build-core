@@ -1,0 +1,39 @@
+#!/bin/bash
+
+# Build omarchy, omarchy-settings and omadora-repos in our COPR from the commit
+# on GitHub's main, and wait for them.
+#
+# The three must come from one commit: their release is derived from it, and
+# omarchy requires omarchy-settings of exactly its own version-release. A lone
+# rebuild leaves the new omarchy uninstallable, and dnf and the installer then
+# quietly keep the previous pair. So this refuses to run until HEAD is pushed.
+#
+# Usage: fedora/bin/copr-build-core
+# Needs: copr-cli (or uvx) with a token in ~/.config/copr.
+
+set -euo pipefail
+source "$(dirname "$(realpath "$0")")/../lib/common.sh"
+
+cd "$FEDORA_ROOT"
+
+copr() {
+  if command -v copr-cli >/dev/null; then
+    copr-cli "$@"
+  else
+    uvx --from copr-cli copr-cli "$@"
+  fi
+}
+
+git fetch -q origin main
+[[ $(git rev-parse HEAD) == "$(git rev-parse origin/main)" ]] ||
+  die "HEAD is not origin/main: push first, so COPR builds the commit you have"
+
+builds=()
+for package in omadora-repos omarchy-settings omarchy; do
+  id=$(copr build-package jersyj/omadora --name "$package" --nowait | awk '/^Created builds:/ { print $3 }')
+  [[ -n $id ]] || die "COPR did not accept the $package build"
+  info "$package: https://copr.fedorainfracloud.org/coprs/build/$id"
+  builds+=("$id")
+done
+
+copr watch-build "${builds[@]}"

@@ -37,7 +37,7 @@ The cost moves from merge conflicts to review: changes upstream made to files we
    - Our COPR: for every recipe whose upstream PKGBUILD changed (`git log <PKGS_COMMIT>..origin/master -- pkgbuilds/<name>`), port the change into `fedora/rpm/<name>/`, update `sources.sha256`, push, then `copr-cli build-package jersyj/omadora --name <name>`. Recipes with `%global pkgs_commit` must move with `PKGS_COMMIT`; the static checks enforce it.
 
 4. Build and test, all in VMs, never on a workstation:
-   - Rebuild the COPR packages, then a fresh laptop-style install: `OMADORA_VM_PACKAGED=1 OMADORA_VM_SECURE_BOOT=1 OMADORA_VM_SB_VARS=<vars> OMADORA_VM_PASSWORD_LOGIN=1 fedora/tests/vm-install.sh <netinst.iso> <dir>`. It also checks the keyring, `passwd` and the lock screen (`tests/vm-password-login.sh`).
+   - Rebuild the three core packages with `fedora/bin/copr-build-core` (never one alone: `omarchy` requires `omarchy-settings` of its exact release, and dnf and the installer quietly keep the old pair otherwise), then a fresh laptop-style install: `OMADORA_VM_PACKAGED=1 OMADORA_VM_SECURE_BOOT=1 OMADORA_VM_SB_VARS=<vars> OMADORA_VM_PASSWORD_LOGIN=1 fedora/tests/vm-install.sh <netinst.iso> <dir>`. It also checks the keyring, `passwd` and the lock screen (`tests/vm-password-login.sh`).
    - Upstream's graphical suite on that VM: `OMADORA_VM_PASSWORD=Kestrel-Window-2026 fedora/tests/vm-acceptance.sh <dir>` (the login test changed the password). Triage any new failure into a fix or a reasoned line in `tests/acceptance-expected-failures.txt`.
    - `omarchy update` on a VM installed from the previous sync, then `omarchy-snapshot restore` once.
    - Roll out to the pilot group before everyone else.
