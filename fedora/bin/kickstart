@@ -217,6 +217,10 @@ systemctl set-default graphical.target
 mkdir -p /var/lib/sddm
 printf '[Last]\nSession=omarchy.desktop\nUser=%s\n' $user >/var/lib/sddm/state.conf
 
+# Trust the repositories' signing keys now: the first unattended security
+# update may run before anyone runs dnf by hand (omadora-repos' import-keys).
+/usr/libexec/omadora-repos/import-keys
+
 # Files written above get their SELinux labels before the first boot.
 restorecon -RF /etc /home /var/lib /var/log /usr/local
 %end
