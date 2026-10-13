@@ -58,7 +58,25 @@ mokutil --sb-state                 # SecureBoot enabled
 omarchy version                    # the Omadora version
 ```
 
-4. Run `omarchy update` once, then enroll in Intune (`INTUNE.md`, "How enrollment works").
+4. Run `omarchy update` once, then go through the hardware checks below, then enroll in Intune (`INTUNE.md`, "How enrollment works").
+
+## 6. Hardware checks (first ZBook)
+
+The virtual machine tests cover everything but the hardware. On the first ZBook, check each item and record the result in `HARDWARE.md` (what failed, with `journalctl -b -p warning` lines).
+
+- [ ] Wi-Fi 7 (BE211): joins the office and home networks; `iw dev` shows the link, and a large download keeps a normal speed. Upstream disables Wi-Fi 7 on the BE200/BE211 PCI cards for a broken data path; this card's CNVi ID (`8086:e340`) is not in that list. If the rate collapses, add `options iwlwifi disable_11be=Y` to `/etc/modprobe.d/iwlwifi-disable-eht.conf`
+- [ ] Bluetooth: pair a headset; audio plays through it
+- [ ] Speakers, headphone jack and both microphones (`wpctl status`; record a few seconds and play back)
+- [ ] Camera: the HP 5MP camera shows a picture (e.g. a video call in Edge)
+- [ ] Fingerprint: Omarchy menu, Setup, Security, Fingerprint; enroll a finger, then check it unlocks the lock screen and answers `sudo`
+- [ ] Keys: brightness, volume, mute and microphone mute show their on-screen indicators
+- [ ] Suspend: close the lid, wait a minute, open it; the lock screen is back and takes the password. Same from the menu (System, Suspend)
+- [ ] Lock: Super+Ctrl+L locks; leaving the laptop idle locks it after 5 minutes
+- [ ] External display over USB-C or Thunderbolt, and a dock if the company uses one
+- [ ] Power: `omarchy-powerprofiles-list` shows the profiles, `omarchy-powerprofiles-set battery power-saver` switches, and `cat /sys/firmware/acpi/platform_profile` follows; the battery shows in the bar
+- [ ] FRED: `grep -o fred=on /proc/cmdline` prints `fred=on` (Panther Lake)
+- [ ] Firmware: `omarchy-update-firmware` lists the ZBook's devices and updates what LVFS has
+- [ ] Touchpad: tap to click, two-finger scroll
 
 ## Changing passwords later
 
