@@ -80,6 +80,11 @@ rpm_recipes_are_pinned() {
       echo "  $name: pkgs_commit ${commit:0:10} differs from PKGS_COMMIT ${PKGS_COMMIT:0:10} in upstream.lock"
       status=1
     fi
+    # An omarchy-pkgs tarball is named after the pin it was hashed at.
+    if grep -oE 'omarchy-pkgs-[0-9a-f]{40}' "$dir/sources.sha256" 2>/dev/null | grep -qvx "omarchy-pkgs-$PKGS_COMMIT"; then
+      echo "  $name: sources.sha256 still lists an omarchy-pkgs tarball from another commit (fedora/bin/bump-pkgs-commit moves it)"
+      status=1
+    fi
   done
   return $status
 }

@@ -1,0 +1,79 @@
+#!/bin/bash
+
+# Move the omarchy-pkgs pin to <commit>: PKGS_COMMIT in fedora/upstream.lock,
+# %global pkgs_commit in every recipe that has one, and the sources.sha256
+# entries of every source those recipes fetch from omarchy-pkgs at the pin
+# (downloaded and hashed again, so a file upstream changed gets its new
+# checksum and a renamed tarball its new name). Prints what changed; review it
+# with git diff, then run fedora/bin/recipe-status --check.
+#
+# Usage: fedora/bin/bump-pkgs-commit <commit>   (a full omarchy-pkgs commit id)
+
+set -euo pipefail
+source "$(dirname "$(realpath "$0")")/../lib/common.sh"
+
+new=${1:-}
+[[ $new =~ ^[0-9a-f]{40}$ ]] || die "usage: fedora/bin/bump-pkgs-commit <full 40-character omarchy-pkgs commit>"
+
+cd "$FEDORA_ROOT"
+load_lock
+old=$PKGS_COMMIT
+[[ $old != "$new" ]] || die "PKGS_COMMIT is already $new"
+
+set_lock_value PKGS_COMMIT "$new"
+info "PKGS_COMMIT ${old:0:10} -> ${new:0:10}"
+
+tmp=$(mktemp -d)
+trap 'rm -rf "$tmp"' EXIT
+
+for spec in fedora/rpm/*/*.spec; do
+  grep -q '^%global pkgs_commit ' "$spec" || continue
+  sed -i "s/^%global pkgs_commit .*/%global pkgs_commit $new/" "$spec"
+  recipe=$(dirname "$spec")
+
+  # Each omarchy-pkgs source as "<published file name>\t<URL>", with the
+  # spec's own simple macros filled in.
+  python3 - "$spec" "$new" >"$tmp/sources" <<'PY'
+import re, sys
+spec, commit = sys.argv[1], sys.argv[2]
+text = open(spec).read()
+macros = {"pkgs_commit": commit}
+for name, value in re.findall(r"^%global\s+(\w+)\s+(\S+)", text, re.M):
+    macros.setdefault(name, value)
+for tag in ("Name", "Version", "Release"):
+    match = re.search(rf"^{tag}:\s*(\S+)", text, re.M)
+    if match:
+        macros[tag.lower()] = match.group(1)
+def expand(value):
+    for _ in range(5):
+        value = re.sub(r"%\{\??(\w+)\}", lambda m: macros.get(m.group(1), m.group(0)), value)
+    return value
+macros["url"] = expand(macros.get("url", re.search(r"^URL:\s*(\S+)", text, re.M).group(1) if re.search(r"^URL:", text, re.M) else ""))
+for line in re.findall(r"^Source\d*:\s*(\S+)", text, re.M):
+    if "%{pkgs_commit}" not in line and "pkgs_commit" not in line:
+        continue
+    url = expand(line)
+    name = url.split("#/", 1)[1] if "#/" in url else url.rsplit("/", 1)[1]
+    print(f"{name}\t{url.split('#/', 1)[0]}")
+PY
+
+  while IFS=$'\t' read -r name url; do
+    curl -sfL --max-time 120 -o "$tmp/file" "$url" || die "$recipe: cannot download $url"
+    sum=$(sha256sum "$tmp/file" | awk '{ print $1 }')
+    # A file named after the old pin (a tarball) is the same entry renamed.
+    old_name=${name//$new/$old}
+    if grep -q "  $old_name\$" "$recipe/sources.sha256"; then
+      before=$(awk -v n="$old_name" '$2 == n { print $1 }' "$recipe/sources.sha256")
+      awk -v o="$old_name" -v n="$name" -v s="$sum" '$2 == o { $0 = s "  " n } { print }' "$recipe/sources.sha256" >"$tmp/sums"
+      cp "$tmp/sums" "$recipe/sources.sha256"
+      if [[ $before != "$sum" || $old_name != "$name" ]]; then
+        echo "  $recipe: $name changed"
+      fi
+    else
+      echo "$sum  $name" >>"$recipe/sources.sha256"
+      echo "  $recipe: $name added"
+    fi
+  done <"$tmp/sources"
+done
+
+info "Done; review with git diff, then run fedora/bin/recipe-status --check"
