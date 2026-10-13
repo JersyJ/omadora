@@ -11,18 +11,6 @@ enabled=1
 enabled_metadata=1
 includepkgs=lazygit
 
-[copr:copr.fedorainfracloud.org:atim:lazydocker]
-name=Copr repo for lazydocker owned by atim
-baseurl=https://download.copr.fedorainfracloud.org/results/atim/lazydocker/fedora-$releasever-$basearch/
-type=rpm-md
-skip_if_unavailable=False
-gpgcheck=1
-gpgkey=file:///etc/pki/rpm-gpg/omadora/copr-atim-lazydocker.asc
-repo_gpgcheck=0
-enabled=1
-enabled_metadata=1
-includepkgs=lazydocker
-
 [copr:copr.fedorainfracloud.org:arabianq:gpu-screen-recorder]
 name=Copr repo for gpu-screen-recorder owned by arabianq
 baseurl=https://download.copr.fedorainfracloud.org/results/arabianq/gpu-screen-recorder/fedora-$releasever-$basearch/

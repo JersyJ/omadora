@@ -124,7 +124,7 @@ jq	jq	fedora
 kdenlive	kdenlive	fedora	
 kernel-modules-hook		drop	Arch-only tooling, no Fedora equivalent needed
 kitty	kitty	fedora	
-lazydocker	lazydocker	copr:atim/lazydocker	removed upstream on quattro; atim/lazydocker F45 build present (0.23.3-1)
+lazydocker	lazydocker	ours	Upstream's release binary repacked (fedora/rpm/lazydocker), mirroring Arch's version; the COPRs lag (atim 0.23.3, rivenirvana 0.24.4)
 lazygit	lazygit	copr:boobaa/lazygit	
 less	less	fedora	
 lib32-nvidia-580xx-utils		drop	the company ZBooks have no NVIDIA GPU (decided 2026-10-12)

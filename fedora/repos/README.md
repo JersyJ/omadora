@@ -6,7 +6,7 @@ Every package Omadora installs comes from Fedora, from a repository in this dire
 | --- | --- | --- |
 | `omadora.repo` | `/etc/yum.repos.d/` | Our COPR, [jersyj/omadora](https://copr.fedorainfracloud.org/coprs/jersyj/omadora/) (`ours` in the map) |
 | `nett00n-hyprland.repo` | `/etc/yum.repos.d/` | The Hyprland stack and Quickshell |
-| `coprs.repo` | `/etc/yum.repos.d/` | Single-app COPRs: lazygit, lazydocker, gpu-screen-recorder, moonlight-qt |
+| `coprs.repo` | `/etc/yum.repos.d/` | Single-app COPRs: lazygit, gpu-screen-recorder, moonlight-qt |
 | `mise.repo` | `/etc/yum.repos.d/` | mise's vendor repository |
 | `microsoft.repo`, `microsoft-edge.repo` | `/etc/yum.repos.d/` | Intune Portal, its identity broker, Defender for Endpoint (Microsoft's RHEL 10 repository) and Edge, which company compliance requires (`docs/INTUNE.md`) |
 | `repos.override.d/50-omadora-rpmfusion.repo` | `/etc/dnf/repos.override.d/` | Limits for RPM Fusion, whose own release packages own its repo files |
