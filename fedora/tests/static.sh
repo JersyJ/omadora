@@ -37,7 +37,7 @@ package_map_is_valid() {
 
   bad=$(grep -v '^#' fedora/packages/map.tsv | tail -n +2 | awk -F'\t' '
     NF != 4 { print "line " NR ": expected 4 tab-separated columns, got " NF; next }
-    $3 !~ /^(fedora|copr:[^\/]+\/[^\/]+|rpmfusion-free|rpmfusion-nonfree|repo:[a-z0-9-]+|ours|flatpak|mise:[a-z0-9-]+|drop|todo)$/ { print $1 ": unknown source " $3 }
+    $3 !~ /^(fedora|copr:[^\/]+\/[^\/]+|rpmfusion-free|rpmfusion-nonfree|repo:[a-z0-9-]+|ours|flatpak|mise:[a-z0-9-]+|url:https:\/\/[^[:space:]]+\.rpm|drop|todo)$/ { print $1 ": unknown source " $3 }
     $3 != "drop" && $3 != "todo" && $2 == "" { print $1 ": source " $3 " needs a Fedora name" }
     seen[$1]++ { print $1 ": mapped twice" }')
   if [[ -n $bad ]]; then
