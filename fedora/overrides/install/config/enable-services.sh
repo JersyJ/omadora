@@ -17,3 +17,7 @@ systemctl enable sddm.service
 # whole session down. [Install] pulls in systemd-oomd.socket via Also=, which
 # is what the user manager reports app.slice candidacy over.
 systemctl enable systemd-oomd.service
+# Fedora fork: daily security updates (company compliance, /etc/dnf/automatic.conf)
+# and GRUB entries that follow the snapper snapshots.
+systemctl enable dnf5-automatic.timer
+systemctl enable grub-btrfsd.service

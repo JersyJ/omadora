@@ -47,6 +47,13 @@ Requires:       authselect
 Requires:       libpwquality
 # Without the dictionary pwquality rejects every password (only a weak dependency)
 Requires:       cracklib-dicts
+# Updates: snapper pre/post snapshots around every dnf transaction (actions
+# plugin), daily security updates, and snapshot boot entries in GRUB
+# (/etc/dnf, /etc/dracut.conf.d from fedora/lib/runtime/etc)
+Requires:       snapper
+Requires:       libdnf5-plugin-actions
+Requires:       dnf5-plugin-automatic
+Requires:       grub-btrfs
 Requires(pre):  coreutils
 Requires(post): systemd
 Requires(post): coreutils

@@ -1,0 +1,145 @@
+#!/bin/bash
+
+# omarchy:summary=Create or restore system snapshots with snapper
+# omarchy:args=<create|restore>
+# omarchy:requires-sudo=true
+
+set -e
+
+COMMAND="$1"
+
+if [[ -z $COMMAND ]]; then
+  echo "Usage: omarchy-snapshot <create|restore>" >&2
+  exit 1
+fi
+
+if omarchy-cmd-missing snapper; then
+  exit 127 # omarchy-update can use this to just ignore if snapper is not available
+fi
+
+# Fedora fork: restore swaps btrfs subvolumes instead of running
+# limine-snapper-restore. Fedora mounts the root subvolume by name
+# (subvol=root in fstab and rootflags= on the kernel command line), so the
+# snapshot becomes a new subvolume under that name and the replaced root is
+# kept beside it as <name>.old-<time>. Snapper's own rollback needs the
+# default-subvolume layout Fedora does not use.
+restore() {
+  local root_name number snapshot device top stamp child kernel boot_kernel=""
+
+  root_name=$(awk '$2 == "/" && $3 == "btrfs" { n = split($4, o, ","); for (i = 1; i <= n; i++) if (o[i] ~ /^subvol=/) { sub(/^subvol=\/?/, "", o[i]); print o[i] } }' /etc/fstab)
+  if [[ -z $root_name ]]; then
+    echo "Error: / is not a named btrfs subvolume in /etc/fstab, so there is nothing to swap." >&2
+    exit 1
+  fi
+
+  # Booted into a snapshot from the GRUB menu (grub-btrfs): restore that one.
+  # Otherwise pick one.
+  number=$(grep -oP "rootflags=\S*subvol=/?\Q$root_name\E/\.snapshots/\K[0-9]+(?=/snapshot)" /proc/cmdline || true)
+  if [[ -n $number ]]; then
+    echo "Running from snapshot $number."
+    gum confirm "Make snapshot $number the system from now on?" || exit 0
+  else
+    mapfile -t choices < <(sudo snapper --csvout -c root list --columns number,date,description |
+      awk -F, 'NR > 1 && $1 != 0 { print $1 "  " $2 "  " $3 }' | tac)
+    if (( ${#choices[@]} == 0 )); then
+      echo "No snapshots to restore." >&2
+      exit 1
+    fi
+    number=$(printf '%s\n' "${choices[@]}" | gum choose --header "Restore the system to which snapshot? (newest first)" | awk '{ print $1 }')
+    [[ -n $number ]] || exit 0
+    gum confirm "Restore the system to snapshot $number? Changes made since then are set aside (not deleted)." || exit 0
+  fi
+
+  # The filesystem holding / (the overlay root of a snapshot boot has no
+  # device, but /home is a subvolume of the same filesystem).
+  device=$(findmnt -nvo SOURCE -t btrfs --target / || findmnt -nvo SOURCE -t btrfs --target /home)
+  top=$(mktemp -d)
+  sudo mount -o subvolid=5 "$device" "$top"
+  # Expanded now: $top is local, so it is gone when the EXIT trap runs.
+  trap "sudo umount '$top'; rmdir '$top'" EXIT
+
+  snapshot="$top/$root_name/.snapshots/$number/snapshot"
+  if ! sudo btrfs subvolume show "$snapshot" >/dev/null 2>&1; then
+    echo "Error: snapshot $number does not exist." >&2
+    exit 1
+  fi
+
+  # /boot is outside btrfs, so the snapshot boots with a kernel still in
+  # /boot: the newest one whose modules the snapshot has.
+  for kernel in $(ls -1 /boot/vmlinuz-* 2>/dev/null | grep -v rescue | sed 's|^/boot/vmlinuz-||' | sort -rV); do
+    if sudo test -d "$snapshot/usr/lib/modules/$kernel"; then
+      boot_kernel=$kernel
+      break
+    fi
+  done
+  if [[ -z $boot_kernel ]]; then
+    echo "Error: none of the kernels in /boot has its modules in snapshot $number; it is older than every installed kernel and cannot boot." >&2
+    exit 1
+  fi
+
+  stamp=$(date +%Y%m%d-%H%M%S)
+  sudo btrfs subvolume snapshot "$snapshot" "$top/$root_name.restore-$stamp" >/dev/null
+
+  # Nested subvolumes (.snapshots, var/lib/portables, ...) are not part of a
+  # snapshot: move them from the current root into the restored one.
+  while read -r child; do
+    child=${child#"$root_name"/}
+    [[ -n $child && $child != "$root_name" ]] || continue
+    sudo rmdir "$top/$root_name.restore-$stamp/$child" 2>/dev/null || true
+    sudo mkdir -p "$(dirname "$top/$root_name.restore-$stamp/$child")"
+    sudo mv -T "$top/$root_name/$child" "$top/$root_name.restore-$stamp/$child"
+  done < <(sudo btrfs subvolume list -o "$top/$root_name" | awk '{ print $NF }' | sed 's|^<FS_TREE>/||')
+
+  sudo mv -T "$top/$root_name" "$top/$root_name.old-$stamp"
+  sudo mv -T "$top/$root_name.restore-$stamp" "$top/$root_name"
+
+  # Keep only the root this restore replaced; older ones go.
+  for child in "$top/$root_name".old-*; do
+    if [[ $child != "$top/$root_name.old-$stamp" ]] && ! findmnt -rno SOURCE | grep -qF "[/${child#"$top"/}]"; then
+      sudo btrfs subvolume delete -R "$child" >/dev/null 2>&1 || sudo btrfs subvolume delete "$child" >/dev/null || true
+    fi
+  done
+
+  if ! sudo grubby --set-default "/boot/vmlinuz-$boot_kernel" >/dev/null 2>&1; then
+    echo -e "\e[33mCould not make kernel $boot_kernel the default; pick it in the boot menu.\e[0m" >&2
+  fi
+
+  echo -e "\e[32mRestored snapshot $number.\e[0m The replaced system is kept as the subvolume $root_name.old-$stamp."
+  if [[ $boot_kernel != "$(ls -1 /boot/vmlinuz-* | grep -v rescue | sed 's|^/boot/vmlinuz-||' | sort -rV | head -1)" ]]; then
+    echo "It boots with the older kernel $boot_kernel, which it has the modules for; the next update brings the newest kernel back."
+  fi
+  if gum confirm "Reboot now?"; then
+    omarchy-system-reboot
+  fi
+}
+
+case "$COMMAND" in
+create)
+  # The description is just a label, so never let it abort the snapshot.
+  DESC="$(omarchy-version 2>/dev/null || echo unknown)"
+
+  # Get existing snapper config names from CSV output
+  mapfile -t CONFIGS < <(sudo snapper --csvout list-configs | awk -F, 'NR>1 {print $1}')
+
+  # Snapper installed but unconfigured snapshots nothing. Staying quiet here
+  # reads as a successful snapshot, so the next update looks recoverable when
+  # nothing has ever been captured.
+  if (( ${#CONFIGS[@]} == 0 )); then
+    echo -e "\e[33mNo Snapper configs found, so no snapshot was created.\e[0m" >&2
+    echo "Configure Snapper with: sudo bash -euo pipefail \"$OMARCHY_PATH/install/config/snapper.sh\"" >&2
+    exit 1
+  fi
+
+  echo -e "\e[32mCreate system snapshot\e[0m"
+
+  for config in "${CONFIGS[@]}"; do
+    sudo snapper -c "$config" create -c number -d "$DESC"
+    sudo snapper -c "$config" cleanup number
+  done
+
+  echo "Snapshots can be selected during boot."
+  ;;
+restore)
+  restore
+  ;;
+esac

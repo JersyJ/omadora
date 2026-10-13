@@ -1,0 +1,8 @@
+# Omadora: snapper pre/post snapshots around every dnf transaction on the host,
+# including the daily automatic security updates, as the DNF4 snapper plugin
+# did. From libdnf5-actions(8), plus "-c number" so snapper's number cleanup
+# (NUMBER_LIMIT in /etc/snapper/configs/root) removes old pairs. Nothing
+# happens while snapper has no root config (during installation).
+pre_transaction:::enabled=host-only:/usr/bin/sh -c echo\ "tmp.snapper_descr=$(ps\ -o\ command\ --no-headers\ -p\ '${pid}')"
+pre_transaction:::enabled=host-only:/usr/bin/sh -c [\ -f\ /etc/snapper/configs/root\ ]\ &&\ echo\ "tmp.snapper_pre_number=$(snapper\ create\ -t\ pre\ -c\ number\ -p\ -d\ '${tmp.snapper_descr}')"
+post_transaction:::enabled=host-only:/usr/bin/sh -c [\ -n\ "${tmp.snapper_pre_number}"\ ]\ &&\ snapper\ create\ -t\ post\ -c\ number\ --pre-number\ "${tmp.snapper_pre_number}"\ -d\ "${tmp.snapper_descr}"\ ;\ echo\ tmp.snapper_pre_number\ ;\ echo\ tmp.snapper_descr

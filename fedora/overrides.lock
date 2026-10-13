@@ -20,6 +20,7 @@ bin/omarchy-reinstall-pkgs	156ab9d48e4a86f80c33599aab649135ff6e8c3e
 bin/omarchy-remove-security-sshd	4bfcc8b0939643444a3c6cf4d3080d7a899d5a59
 bin/omarchy-remove-service-sunshine	e997622256f2d9e76d1d4e0d89ec3b8ff5e9d1ac
 bin/omarchy-setup-security-sshd	7b93936ff6374eecae8559cff3dd9643a7ef71b7
+bin/omarchy-snapshot	34ac5cd19ad70dad6344a37adc0428e62ae36b4b
 bin/omarchy-update-analyze-logs	1febd99d823b60068ec8d25eaf9a7c49ff0b60ad
 bin/omarchy-update-aur-pkgs	a860a97d3083b0a0ad16566af68adccd257a8e55
 bin/omarchy-update-available	f1a70b256eaf45b87d735a79495d8add4f870c1a

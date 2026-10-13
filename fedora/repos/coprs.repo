@@ -46,3 +46,15 @@ repo_gpgcheck=0
 enabled=1
 enabled_metadata=1
 includepkgs=moonlight-qt
+
+[copr:copr.fedorainfracloud.org:jmarcoshp:grub-btrfs]
+name=Copr repo for grub-btrfs owned by jmarcoshp
+baseurl=https://download.copr.fedorainfracloud.org/results/jmarcoshp/grub-btrfs/fedora-$releasever-$basearch/
+type=rpm-md
+skip_if_unavailable=False
+gpgcheck=1
+gpgkey=https://download.copr.fedorainfracloud.org/results/jmarcoshp/grub-btrfs/pubkey.gpg
+repo_gpgcheck=0
+enabled=1
+enabled_metadata=1
+includepkgs=grub-btrfs
