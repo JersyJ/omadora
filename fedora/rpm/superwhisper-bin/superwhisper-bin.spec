@@ -1,4 +1,4 @@
-# Mirrors omacom/omarchy-pkgs pkgbuilds/superwhisper-bin (1.0.0-1).
+# Mirrors omacom/omarchy-pkgs pkgbuilds/superwhisper-bin (1.0.2-1).
 # Based on whelanh/omarchy-fedora (MIT).
 
 %global pkgs_commit e499d021c69d27e0750f77f9af7cd68534c8016f

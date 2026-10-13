@@ -1,4 +1,4 @@
-# Mirrors omacom/omarchy-pkgs pkgbuilds/omarchy-hyprland-titlebars (0.2.1-1).
+# Mirrors omacom/omarchy-pkgs pkgbuilds/omarchy-hyprland-titlebars (0.2.2-1).
 # Based on whelanh/omarchy-fedora (MIT).
 
 %global debug_package %{nil}
