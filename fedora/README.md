@@ -37,8 +37,10 @@ Do not edit files outside `fedora/`, `.copr/`, `.github/workflows/` and `.github
 | `tests/static.sh` | The fast checks CI runs on every push |
 | `tests/resolve.sh` | CI: resolve the base and optional package sets in a Fedora container |
 | `tests/rpm.sh` | CI: build and install omarchy, omarchy-settings and omadora-repos, then exercise the package helpers |
-| `tests/vm-install.sh` | Local: install Omadora into a KVM virtual machine from the netinst ISO and report its first boot |
-| `docs/` | Research, decisions, sync runbook, hardware notes |
+| `tests/vm-install.sh` | Local: install Omadora into a KVM virtual machine from the netinst ISO and report its first boot; `OMADORA_VM_PASSWORD_LOGIN=1` installs and logs in as on a laptop and checks the login keyring across a `passwd` change |
+| `tests/vm-password-login.sh` | Local: on such a VM, unlock the disk, log in at SDDM, change the password with `passwd`, reboot and log in again, checking the login keyring each time |
+| `tests/vm-console.py` | Local: boot that virtual machine and run commands on its serial console |
+| `docs/` | Research, decisions, sync runbook, hardware notes, installing a laptop (`INSTALL.md`), Intune requirements |
 
 ## Common commands
 

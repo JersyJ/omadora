@@ -6,13 +6,20 @@ socket, logs in on that console as the test user, runs each command given and
 prints its output, then powers the VM off. For debugging an install without
 reinstalling.
 
-Usage: fedora/tests/vm-console.py [--root] [--screenshot] 'command' ['command' ...]
+Usage: fedora/tests/vm-console.py [--root] [--screenshot] [--sddm-login] 'command' ['command' ...]
   --root        run the commands through sudo
-  --screenshot  save the screen to fedora/.build/vm/console-screen.png afterwards
+  --screenshot  save the screen to <vm dir>/console-screen.png afterwards
+  --sddm-login  first log in at SDDM as a person would, typing the password on
+                the VM's keyboard (a --test-password-login install, which
+                reports the greeter and the session on the serial console)
 
   OMADORA_VM_SB_VARS=<file>  boot with Secure Boot on, using these OVMF variables
                              (Microsoft's keys enrolled; a copy is used)
   OMADORA_VM_COMMAND_TIMEOUT=<seconds>  time each command may take (default 300)
+  OMADORA_VM_DIR=<dir>       the VM to boot (default fedora/.build/vm)
+  OMADORA_VM_PASSWORD=<text> the test user's password (default omadora-test)
+  OMADORA_VM_LUKS=<text>     answer the disk's LUKS prompt on the serial console
+                             with this passphrase
 """
 import os
 import re
@@ -21,8 +28,10 @@ import subprocess
 import sys
 import time
 
-WORK = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", ".build", "vm")
-USER, PASSWORD = "omatest", "omadora-test"
+WORK = os.environ.get("OMADORA_VM_DIR") or os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", ".build", "vm")
+USER = "omatest"
+PASSWORD = os.environ.get("OMADORA_VM_PASSWORD", "omadora-test")
+LUKS = os.environ.get("OMADORA_VM_LUKS")
 SOCK = os.path.join(WORK, "console.sock")
 MONITOR = os.path.join(WORK, "console-monitor.sock")
 
@@ -33,6 +42,29 @@ def monitor(command):
     time.sleep(0.3)
     conn.sendall((command + "\n").encode())
     time.sleep(1.5)
+    conn.close()
+
+
+# QEMU sendkey names for the characters a test password may hold (US layout).
+KEYS = {"-": "minus", "_": "shift-minus", ".": "dot", "!": "shift-1", "@": "shift-2", " ": "spc"}
+
+
+def type_text(text):
+    """Type text and Enter on the VM's keyboard, as a person at the laptop would."""
+    keys = []
+    for char in text:
+        if char.isascii() and (char.islower() or char.isdigit()):
+            keys.append(char)
+        elif char.isascii() and char.isupper():
+            keys.append("shift-" + char.lower())
+        else:
+            keys.append(KEYS[char])
+    conn = socket.socket(socket.AF_UNIX)
+    conn.connect(MONITOR)
+    for key in keys + ["ret"]:
+        conn.sendall(f"sendkey {key}\n".encode())
+        time.sleep(0.15)
+    time.sleep(0.5)
     conn.close()
 
 
@@ -69,12 +101,14 @@ def read_until(conn, patterns, timeout):
 
 def main():
     args = sys.argv[1:]
-    root = screenshot = False
-    while args and args[0] in ("--root", "--screenshot"):
+    root = screenshot = sddm_login = False
+    while args and args[0] in ("--root", "--screenshot", "--sddm-login"):
         if args[0] == "--root":
             root = True
-        else:
+        elif args[0] == "--screenshot":
             screenshot = True
+        else:
+            sddm_login = True
         args = args[1:]
     if not args:
         sys.exit(__doc__)
@@ -105,6 +139,29 @@ def main():
             time.sleep(0.2)
         conn = socket.socket(socket.AF_UNIX)
         conn.connect(SOCK)
+
+        if LUKS:
+            # The disk's passphrase prompt (plymouth also shows it here when
+            # the kernel's console list includes the serial port).
+            text = read_until(conn, [r"[Pp]assphrase.*: *$"], 180)
+            if not re.search(r"[Pp]assphrase", text):
+                sys.exit("no LUKS passphrase prompt on the serial console within 3 minutes")
+            conn.sendall(LUKS.encode() + b"\r")
+
+        if sddm_login:
+            if "=== OMADORA GREETER" not in read_until(conn, [r"=== OMADORA GREETER"], 300):
+                sys.exit("SDDM's greeter did not start within 5 minutes")
+            # The greeter process starts before its QML has the password field.
+            for attempt in range(3):
+                time.sleep(15)
+                type_text(PASSWORD)
+                if "=== OMADORA SESSION" in read_until(conn, [r"=== OMADORA SESSION"], 60):
+                    break
+            else:
+                sys.exit("no session after typing the password at SDDM three times")
+            print("Logged in at SDDM.")
+            # Let the desktop start before the serial login below.
+            time.sleep(60)
 
         # Wait for the serial getty, then log in.
         for _ in range(30):

@@ -27,11 +27,16 @@
 #   --test                   for fedora/tests/vm-install.sh only: no disk
 #                            encryption, SDDM logs the user straight in, and a
 #                            self-test reports to the serial console
+#   --test-password-login    with --test: log in as on a laptop instead, with
+#                            the disk encrypted (needs --luks-passphrase) and
+#                            the password typed at SDDM; the LUKS prompt also
+#                            goes to the serial console, which reports when the
+#                            greeter and the user's session are up
 
 set -euo pipefail
 source "$(dirname "$(realpath "$0")")/../lib/common.sh"
 
-user="" password_hash="" luks_passphrase="" timezone=Europe/Prague keyboard=us lang=en_US.UTF-8 disk="" reboot=0 test=0 overlay=""
+user="" password_hash="" luks_passphrase="" timezone=Europe/Prague keyboard=us lang=en_US.UTF-8 disk="" reboot=0 test=0 password_login=0 overlay=""
 while (( $# > 0 )); do
   case $1 in
     --user) user=$2; shift 2 ;;
@@ -43,11 +48,17 @@ while (( $# > 0 )); do
     --disk) disk=$2; shift 2 ;;
     --reboot) reboot=1; shift ;;
     --test) test=1; shift ;;
+    --test-password-login) password_login=1; shift ;;
     --overlay) overlay=$2; shift 2 ;;
     *) die "unknown option $1 (see the header of fedora/bin/kickstart)" ;;
   esac
 done
 [[ $user =~ ^[a-z_][a-z0-9_-]*$ ]] || die "--user must be a valid user name"
+if (( password_login )); then
+  (( test )) || die "--test-password-login is a --test mode"
+  [[ -n $luks_passphrase ]] || die "--test-password-login needs --luks-passphrase"
+fi
+encrypted=$(( !test || password_login ))
 
 cd "$FEDORA_ROOT"
 load_lock
@@ -136,8 +147,8 @@ $(repo_lines)
 zerombr
 $( [[ -n $disk ]] && echo "ignoredisk --only-use=$disk" )
 clearpart --all --initlabel --disklabel=gpt
-$(if (( test )); then echo "autopart --type=btrfs"; else echo "autopart --type=btrfs --encrypted --luks-version=luks2${luks_passphrase:+ --passphrase=$luks_passphrase}"; fi)
-bootloader --append="rhgb quiet"
+$(if (( encrypted )); then echo "autopart --type=btrfs --encrypted --luks-version=luks2${luks_passphrase:+ --passphrase=$luks_passphrase}"; else echo "autopart --type=btrfs"; fi)
+bootloader --append="rhgb quiet$( (( password_login )) && echo " console=ttyS0,115200 console=tty0")"
 
 rootpw --lock
 user --name=$user --groups=wheel$( [[ -n $password_hash ]] && echo " --iscrypted --password=$password_hash" )
@@ -209,18 +220,13 @@ EOF
 if (( test )); then
   sed "s/@USER@/$user/g" <<'TEST'
 
-# Test only (fedora/tests/vm-install.sh): log straight into the Omarchy
-# session and report to the serial console once the desktop had time to start.
+# Test only (fedora/tests/vm-install.sh): a self-test that reports to the
+# serial console.
 %post --interpreter=/bin/bash --log=/var/log/omadora-kickstart-test.log --erroronfail
-cat >/etc/sddm.conf.d/90-omadora-test-autologin.conf <<'CONF'
-[Autologin]
-User=@USER@
-Session=omarchy.desktop
-CONF
-
 cat >/usr/local/sbin/omadora-selftest <<'SCRIPT'
 #!/bin/bash
-exec >/dev/ttyS0 2>&1
+# --serial: report to the serial console (the boot-time service).
+[[ ${1:-} == "--serial" ]] && exec >/dev/ttyS0 2>&1
 echo "=== OMADORA SELFTEST BEGIN"
 echo "--- system: $(systemctl is-system-running)"
 echo "--- failed units:"
@@ -237,6 +243,10 @@ echo "--- AVC denials since boot: $(ausearch -m avc -ts boot 2>/dev/null | grep 
 ausearch -m avc -ts boot 2>/dev/null | grep 'type=AVC' | head -n 20 | cut -c1-300
 echo "--- omarchy install log (failures):"
 grep -E 'Failed|Error' /var/log/omarchy-install.log | head -n 20
+echo "--- keyrings (@USER@): $(ls /home/@USER@/.local/share/keyrings 2>/dev/null | tr '\n' ' ')"
+echo "--- login keyring locked: $(busctl --machine=@USER@@.host --user get-property org.freedesktop.secrets /org/freedesktop/secrets/collection/login org.freedesktop.Secret.Collection Locked 2>&1)"
+echo "--- gnome-keyring PAM messages:"
+journalctl -b --no-pager -o short-monotonic | grep 'gkr-pam' | cut -c1-240
 echo "--- packages:"
 rpm -q omarchy omarchy-settings omadora-repos hyprland quickshell sddm kernel
 echo "--- wayland sessions: $(ls /usr/share/wayland-sessions /usr/local/share/wayland-sessions 2>/dev/null | tr '\n' ' ')"
@@ -249,6 +259,49 @@ journalctl -b -p err --no-pager -o short-monotonic | tail -n 40 | cut -c1-240
 echo "=== OMADORA SELFTEST END"
 SCRIPT
 chmod 0755 /usr/local/sbin/omadora-selftest
+TEST
+  if (( password_login )); then
+    sed "s/@USER@/$user/g" <<'TEST'
+
+# Password login: tell the test on the serial console when SDDM's greeter is
+# up (so it can type the password) and when the user's session started.
+cat >/usr/local/sbin/omadora-test-watch <<'SCRIPT'
+#!/bin/bash
+# Opened per message: the serial getty hangs the line up when it starts, which
+# cuts off a descriptor opened before it.
+until pgrep -f sddm-greeter >/dev/null; do sleep 2; done
+echo "=== OMADORA GREETER" >/dev/ttyS0
+until loginctl list-sessions --no-legend | awk '$3 == "@USER@" && $4 == "seat0"' | grep -q .; do sleep 2; done
+echo "=== OMADORA SESSION" >/dev/ttyS0
+SCRIPT
+chmod 0755 /usr/local/sbin/omadora-test-watch
+
+cat >/etc/systemd/system/omadora-test-watch.service <<'UNIT'
+[Unit]
+Description=Omadora VM test: report the greeter and the login
+After=sddm.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/sbin/omadora-test-watch
+
+[Install]
+WantedBy=graphical.target
+UNIT
+systemctl enable omadora-test-watch.service
+restorecon -RF /etc/systemd/system /usr/local/sbin
+%end
+TEST
+  else
+    sed "s/@USER@/$user/g" <<'TEST'
+
+# Autologin: log straight into the Omarchy session and report once the
+# desktop had time to start.
+cat >/etc/sddm.conf.d/90-omadora-test-autologin.conf <<'CONF'
+[Autologin]
+User=@USER@
+Session=omarchy.desktop
+CONF
 
 cat >/etc/systemd/system/omadora-selftest.service <<'UNIT'
 [Unit]
@@ -258,7 +311,7 @@ After=graphical.target
 [Service]
 Type=oneshot
 ExecStartPre=/usr/bin/sleep 120
-ExecStart=/usr/local/sbin/omadora-selftest
+ExecStart=/usr/local/sbin/omadora-selftest --serial
 
 [Install]
 WantedBy=graphical.target
@@ -267,4 +320,5 @@ systemctl enable omadora-selftest.service
 restorecon -RF /etc/sddm.conf.d /etc/systemd/system /usr/local/sbin
 %end
 TEST
+  fi
 fi

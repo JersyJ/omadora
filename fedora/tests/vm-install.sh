@@ -21,6 +21,11 @@
 #   OMADORA_VM_SECURE_BOOT=1  boot the installed system with Secure Boot on
 #                             (needs OVMF_VARS with Microsoft's keys enrolled at
 #                             $OMADORA_VM_SB_VARS)
+#   OMADORA_VM_PASSWORD_LOGIN=1  install and log in as on a laptop: encrypted
+#                             disk, no autologin, the password typed at SDDM.
+#                             Then checks the login keyring is unlocked, changes
+#                             the password with passwd, reboots, logs in with
+#                             the new one and checks the keyring again
 
 set -euo pipefail
 source "$(dirname "$(realpath "$0")")/../lib/common.sh"
@@ -31,6 +36,8 @@ ovmf_code=${OMADORA_VM_OVMF_CODE:-/usr/share/edk2/x64/OVMF_CODE.4m.fd}
 ovmf_vars=${OMADORA_VM_OVMF_VARS:-/usr/share/edk2/x64/OVMF_VARS.4m.fd}
 user=omatest
 password=omadora-test
+luks_passphrase=omadora-disk  # as in vm-password-login.sh
+password_login=${OMADORA_VM_PASSWORD_LOGIN:-0}
 
 for tool in qemu-system-x86_64 qemu-img bsdtar python3 openssl; do
   command -v "$tool" >/dev/null || die "$tool is missing"
@@ -52,9 +59,14 @@ if [[ ${OMADORA_VM_PACKAGED:-0} != "1" ]]; then
   overlay_args=(--overlay "http://10.0.2.2:$port/overlay.tar.gz")
 fi
 
+login_args=()
+if [[ $password_login == "1" ]]; then
+  login_args=(--test-password-login --luks-passphrase "$luks_passphrase")
+fi
+
 info "Generating the test kickstart"
 "$FEDORA_DIR/bin/kickstart" --user "$user" --password-hash "$(openssl passwd -6 "$password")" \
-  --disk vda --reboot --test "${overlay_args[@]}" >omadora.ks
+  --disk vda --reboot --test "${login_args[@]}" "${overlay_args[@]}" >omadora.ks
 
 info "Extracting the installer kernel"
 bsdtar -xf "$iso" images/pxeboot/vmlinuz images/pxeboot/initrd.img
@@ -99,6 +111,13 @@ if [[ ${OMADORA_VM_SECURE_BOOT:-0} == "1" ]]; then
   qemu_common=("${qemu_common[@]/$ovmf_code//usr/share/edk2/x64/OVMF_CODE.secboot.4m.fd}")
   # shellcheck disable=SC2054
   qemu_common+=(-global driver=cfi.pflash01,property=secure,value=on)
+fi
+
+if [[ $password_login == "1" ]]; then
+  if [[ ${OMADORA_VM_SECURE_BOOT:-0} == "1" ]]; then
+    export OMADORA_VM_SB_VARS
+  fi
+  exec "$FEDORA_DIR/tests/vm-password-login.sh" "$work"
 fi
 
 info "Booting the installed system (log: $work/boot.log)"
