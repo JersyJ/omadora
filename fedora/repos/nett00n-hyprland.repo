@@ -9,4 +9,4 @@ gpgkey=https://download.copr.fedorainfracloud.org/results/nett00n/hyprland/pubke
 repo_gpgcheck=0
 enabled=1
 enabled_metadata=1
-includepkgs=hyprland hyprland-guiutils hyprpicker hyprsunset quickshell uwsm xdg-desktop-portal-hyprland aquamarine cpptrace hyprcursor hyprgraphics hyprlang hyprtoolkit hyprutils hyprwire satty
+includepkgs=hyprland hyprland-guiutils hyprpicker hyprsunset quickshell xdg-desktop-portal-hyprland aquamarine cpptrace hyprcursor hyprgraphics hyprlang hyprtoolkit hyprutils hyprwire satty

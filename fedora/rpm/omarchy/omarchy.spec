@@ -32,9 +32,10 @@ Requires:       omadora-repos
 # Wayland / Hyprland core
 Requires:       hyprland
 Requires:       quickshell
-Requires:       uwsm
-# uwsm imports the xdg module, but nett00n's uwsm package does not require it
-Requires:       python3-pyxdg
+# Our own uwsm build (fedora/rpm/uwsm): it ships uwsm-app, which Omarchy
+# launches every app through.
+Requires:       uwsm >= 0.27.0
+Requires:       /usr/bin/uwsm-app
 # omarchy-shell lists keyboard layouts with xkbcli (in Arch's libxkbcommon)
 Requires:       libxkbcommon-utils
 # Arch's Hyprland requires Xwayland; nett00n's does not, and X11 apps need it
@@ -106,9 +107,6 @@ install -m 0644 fedora/packages/map.tsv "$share/fedora/packages/map.tsv"
 install -m 0644 fedora/build-info "$share/fedora/build-info"
 install -m 0644 fedora/pkg.sh "$share/fedora/pkg.sh"
 
-# uwsm's app launcher, which nett00n's uwsm leaves out (fedora/compat/uwsm-app).
-install -m 0755 fedora/compat/uwsm-app %{buildroot}%{_bindir}/uwsm-app
-echo %{_bindir}/uwsm-app >>%{_builddir}/omarchy.files
 
 # New users are already on this layout, so their migration markers are seeded.
 install -d %{buildroot}%{_sysconfdir}/skel/.local/state/omarchy/migrations

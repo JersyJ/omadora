@@ -10,4 +10,4 @@ gpgkey=https://download.copr.fedorainfracloud.org/results/jersyj/omadora/pubkey.
 repo_gpgcheck=0
 enabled=1
 enabled_metadata=1
-includepkgs=omadora-repos aether cliamp disktree-bin gliff herdr hype hyprland-preview-share-picker monologue omacalc omacut omarchy omarchy-settings omarchy-hyprland-titlebars omarchy-nvim omasnap omawrite owe owe-lockfeed signed starship superwhisper-bin try ttf-ia-writer ttf-jetbrains-mono-nerd-basic ttfx tzupdate
+includepkgs=omadora-repos aether cliamp disktree-bin gliff herdr hype hyprland-preview-share-picker monologue omacalc omacut omarchy omarchy-settings omarchy-hyprland-titlebars omarchy-nvim omasnap omawrite owe owe-lockfeed signed starship superwhisper-bin try ttf-ia-writer ttf-jetbrains-mono-nerd-basic ttfx tzupdate uwsm

@@ -290,7 +290,7 @@ unzip	unzip	fedora
 usage	usage	mise:usage	installed per user with mise use -g usage
 usbguard	usbguard	fedora	
 usbutils	usbutils	fedora	
-uwsm	uwsm	copr:nett00n/hyprland	built without uwsm-app; the omarchy package ships it (fedora/lib/runtime/compat/uwsm-app)
+uwsm	uwsm	ours	Spec: Arch extra/uwsm; nett00n's build lacks uwsm-app and the Python modules uwsm imports
 v4l2-relayd		drop	part of the IPU7 camera stack; the ZBook's camera is USB UVC
 v4l2loopback-dkms	akmod-v4l2loopback	rpmfusion-free	
 v4l2loopback-utils	v4l2loopback	rpmfusion-free	

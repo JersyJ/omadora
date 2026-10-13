@@ -64,13 +64,9 @@ for weak in Xq7vRm2pLk9 xq7vrm2plk9wt XQ7VRM2PLK9WT Xqavrmbplkcwt; do
 done
 pwscore <<<Xq7vRm2pLk9w >/dev/null || die "the password policy rejects a compliant password"
 
-# Omarchy launches apps through uwsm-app, which nett00n's uwsm does not ship,
-# so the omarchy package carries uwsm's own script. Once uwsm ships it, drop
-# fedora/lib/runtime/compat/uwsm-app or the two packages conflict.
-[[ $(rpm -qf --qf '%{NAME}\n' /usr/bin/uwsm-app) == "omarchy" ]] || die "/usr/bin/uwsm-app is not omarchy's"
-if dnf -q repoquery --whatprovides /usr/bin/uwsm-app 2>/dev/null | grep -qv '^omarchy-'; then
-  die "another package now provides /usr/bin/uwsm-app; remove fedora/lib/runtime/compat/uwsm-app and its line in omarchy.spec"
-fi
+# Omarchy launches apps through uwsm-app, which only our uwsm build ships.
+[[ $(rpm -qf --qf '%{NAME}\n' /usr/bin/uwsm-app) == "uwsm" ]] || die "/usr/bin/uwsm-app does not come from our uwsm"
+python3 -c 'import xdg, dbus' || die "a Python module uwsm imports is missing"
 perl -MEncode -MJSON::PP -Mopen=locale -e 1 || die "a Perl module Omarchy's scripts load is missing"
 
 info "Checking the package helpers"
