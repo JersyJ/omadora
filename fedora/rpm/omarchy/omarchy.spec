@@ -39,6 +39,9 @@ Requires:       python3-pyxdg
 Requires:       libxkbcommon-utils
 # Arch's Hyprland requires Xwayland; nett00n's does not, and X11 apps need it
 Requires:       xorg-x11-server-Xwayland
+# omarchy-update records the update with script(1), which Arch ships in
+# util-linux and Fedora in a subpackage
+Requires:       util-linux-script
 Requires:       sddm
 Requires:       xdg-desktop-portal-hyprland
 # Audio / auth / portal essentials
