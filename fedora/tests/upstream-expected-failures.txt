@@ -25,6 +25,7 @@ test/shell.d/mkinitcpio-hooks-test.sh                 etc/mkinitcpio.conf.d is e
 test/shell.d/hyprland-keyboard-layout-test.sh         reads etc/mkinitcpio.conf.d, which is excluded
 test/shell.d/settings-runtime-profile-test.sh         the profile lists default/limine, which is excluded
 test/shell.d/plymouth-set-test.sh                     expects mkinitcpio; Fedora rebuilds with dracut
+test/shell.d/snapper-test.sh                          Limine's snapshot entries; Omadora boots snapshots through grub-btrfs
 test/shell.d/console-no-ansi-query-migration-test.sh  migration rebuilds the initramfs with mkinitcpio
 test/shell.d/kernel-headers-migration-test.sh         Arch's linux-omarchy kernel headers
 test/shell.d/omarchy-kernel-migration-test.sh         Arch's linux-omarchy kernel
@@ -45,6 +46,7 @@ test/shell.d/update-hook-security-test.sh             ALPM hooks are excluded
 test/shell.d/update-lock-test.sh                      pacman database lock
 test/shell.d/update-orphan-test.sh                    pacman orphans
 test/shell.d/update-pacman-guard-test.sh              omarchy-update-pacman-guard is excluded
+test/shell.d/update-restart-kernel-test.sh            pacman -Qo kernel ownership (patch 0007 compares the newest installed kernel-core)
 test/shell.d/update-restart-phases-test.sh            pacman -Qo
 test/shell.d/update-sequence-test.sh                  pacman update sequence
 test/shell.d/update-user-path-test.sh                 pacman update sequence
@@ -59,6 +61,7 @@ test/shell.d/security-entrypoint-symlink-test.sh      copies default/pacman, whi
 test/shell.d/security-source-root-test.sh             copies default/pacman, which is excluded
 test/shell.d/passwordless-sudo-indicator-test.sh      copies the ALPM revoke hook (an RPM scriptlet here)
 test/shell.d/nopasswd-sudo-expiry-test.sh             copies the ALPM revoke hook (an RPM scriptlet here)
+test/shell.d/passwordless-grant-lifecycle-test.sh     copies the ALPM revoke hook (an RPM scriptlet here)
 test/shell.d/cups-hardening-test.sh                   etc/cups/cups-files.conf is excluded (Arch's cups user 209)
 
 # Install and provisioning: Anaconda and the kickstart replace the ISO.
@@ -68,6 +71,7 @@ test/shell.d/image-deferred-hardware-test.sh          hardware steps differ (ins
 # Menu: the guards answer from Omadora's package layer ($OMARCHY_PATH/fedora/pkg.sh);
 # the test runs them without OMARCHY_PATH and with pacman stubs.
 test/shell.d/menu-guards-test.sh                      package guards read the package map and rpm, not pacman
+test/shell.d/menu-guards-parallel-test.sh             the same guards, batched; they source Omadora's package layer from OMARCHY_PATH
 
 # Flaky upstream tests: they fail at random on Arch too. Fixes come with syncs.
 test/shell.d/system-sleep-ownership-migration-test.sh  flaky: picks the first of several keyboard-backlight quarantine backups (random mktemp names), so it fails about one run in three
