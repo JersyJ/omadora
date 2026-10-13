@@ -104,7 +104,7 @@ gvfs-nfs	gvfs-nfs	fedora
 gvfs-smb	gvfs-smb	fedora	
 helix	helix	fedora	
 herdr	herdr	ours	Spec: whelanh/omarchy-fedora (MIT)
-hermes-desktop	hermes-desktop	ours	built from the release tag (fedora/rpm/hermes-desktop)
+hermes-desktop		todo	build fails: Vite's native bundler (rolldown) segfaults in the Fedora 45 COPR build (fedora/rpm/hermes-desktop); under investigation
 heroic-games-launcher-bin	com.heroicgameslauncher.hgl	flatpak	verified on Flathub
 hype	hype	ours	Spec: whelanh/omarchy-fedora (MIT)
 hyprland	hyprland	copr:nett00n/hyprland	versionlock to the Hyprland version upstream Omarchy pins
