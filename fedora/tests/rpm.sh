@@ -77,10 +77,14 @@ omarchy-pkg-present fd && die "fd (fd-find) should not be installed yet"
 omarchy-pkg-add fd ttf-jetbrains-mono-nerd-basic || die "omarchy-pkg-add failed"
 rpm -q --quiet fd-find || die "omarchy-pkg-add fd did not install fd-find"
 omarchy-pkg-present fd ttf-jetbrains-mono-nerd-basic || die "omarchy-pkg-present misses what was just added"
-if omarchy-pkg-add claude-desktop 2>/tmp/todo.err; then
-  die "a todo package must fail"
+# Any package the map still marks todo must fail, and say why.
+todo_pkg=$(awk -F'\t' '!/^#/ && $3 == "todo" { print $1; exit }' fedora/packages/map.tsv)
+if [[ -n $todo_pkg ]]; then
+  if omarchy-pkg-add "$todo_pkg" 2>/tmp/todo.err; then
+    die "a todo package ($todo_pkg) must fail"
+  fi
+  grep -q "Not packaged for Omadora yet" /tmp/todo.err || die "a todo package must say why it failed"
 fi
-grep -q "Not packaged for Omadora yet" /tmp/todo.err || die "a todo package must say why it failed"
 omarchy-pkg-drop fd || die "omarchy-pkg-drop failed"
 rpm -q --quiet fd-find && die "omarchy-pkg-drop fd left fd-find installed"
 
