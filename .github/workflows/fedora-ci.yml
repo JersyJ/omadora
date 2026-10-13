@@ -83,3 +83,35 @@ jobs:
           useradd -m tester
           chown -R tester "$GITHUB_WORKSPACE"
           runuser -u tester -- fedora/tests/upstream-tests.sh
+
+  copr:
+    # After every check passes on a push to main, build in our COPR what the
+    # push changed (fedora/bin/copr-build-changed). Needs the COPR_CONFIG
+    # secret: the contents of ~/.config/copr from
+    # https://copr.fedorainfracloud.org/api/. COPR tokens expire; when this job
+    # fails to authenticate, renew the token and update the secret.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [static, resolve, resolve-optional, rpm, upstream-tests]
+    runs-on: ubuntu-latest
+    concurrency:
+      group: copr
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Install copr-cli
+        run: pipx install copr-cli
+      - name: Build what the push changed
+        env:
+          COPR_CONFIG: ${{ secrets.COPR_CONFIG }}
+          BEFORE: ${{ github.event.before }}
+        run: |
+          if [ -z "$COPR_CONFIG" ]; then
+            echo "::notice::The COPR_CONFIG secret is not set; skipping the COPR builds"
+            exit 0
+          fi
+          mkdir -p ~/.config
+          printf '%s\n' "$COPR_CONFIG" >~/.config/copr
+          chmod 600 ~/.config/copr
+          fedora/bin/copr-build-changed "$BEFORE" "$GITHUB_SHA"

@@ -1,0 +1,77 @@
+#!/bin/bash
+
+# Build in our COPR what the commits between <before> and <after> changed:
+# each recipe in fedora/rpm/<name>/ whose files changed, and the three core
+# packages (omarchy, omarchy-settings, omadora-repos, through
+# fedora/bin/copr-build-core) when anything they are built from changed: the
+# upstream tree, overrides, patches, the package map, repositories, runtime
+# files or their own recipes. Docs, tests, tools and workflows build nothing.
+# CI's copr job runs it after a push to main passes every test.
+#
+# A recipe new to COPR must be registered once by hand first
+# (copr-cli add-package-scm, fedora/rpm/README.md).
+#
+# Usage: fedora/bin/copr-build-changed <before> <after>
+
+set -euo pipefail
+source "$(dirname "$(realpath "$0")")/../lib/common.sh"
+
+(( $# == 2 )) || die "usage: fedora/bin/copr-build-changed <before> <after>"
+before=$1
+after=$2
+
+cd "$FEDORA_ROOT"
+
+copr() {
+  if command -v copr-cli >/dev/null; then
+    copr-cli "$@"
+  else
+    uvx --from copr-cli copr-cli "$@"
+  fi
+}
+
+core=0
+declare -A recipes=()
+if ! git rev-parse --verify --quiet "$before^{commit}" >/dev/null; then
+  # A new branch or a force push: nothing to compare with.
+  core=1
+else
+  while IFS= read -r path; do
+    case $path in
+      fedora/rpm/omarchy/* | fedora/rpm/omarchy-settings/* | fedora/rpm/omadora-repos/*) core=1 ;;
+      fedora/rpm/README.md) ;;
+      fedora/rpm/build-srpm | .copr/*) core=1 ;;
+      fedora/rpm/*/*)
+        name=${path#fedora/rpm/}
+        recipes[${name%%/*}]=1
+        ;;
+      fedora/docs/* | fedora/tests/* | fedora/bin/* | fedora/README.md | .github/*) ;;
+      *) core=1 ;;
+    esac
+  done < <(git diff --name-only "$before" "$after")
+fi
+
+builds=()
+for name in "${!recipes[@]}"; do
+  [[ -f fedora/rpm/$name/$name.spec ]] || continue
+  if ! copr get-package jersyj/omadora --name "$name" >/dev/null 2>&1; then
+    warn "$name is not registered in COPR yet; register it once by hand (fedora/rpm/README.md)"
+    continue
+  fi
+  id=$(copr build-package jersyj/omadora --name "$name" --nowait | awk '/^Created builds:/ { print $3 }')
+  [[ -n $id ]] || die "COPR did not accept the $name build"
+  info "$name: https://copr.fedorainfracloud.org/coprs/build/$id"
+  builds+=("$id")
+done
+
+status=0
+if (( core )); then
+  "$FEDORA_DIR/bin/copr-build-core" || status=1
+fi
+if (( ${#builds[@]} > 0 )); then
+  copr watch-build "${builds[@]}" || status=1
+fi
+if (( !core && ${#builds[@]} == 0 )); then
+  info "Nothing to build: the changes are docs, tests, tools or workflows"
+fi
+exit "$status"
