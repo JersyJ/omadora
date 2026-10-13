@@ -162,6 +162,11 @@ omarchy
 rpmfusion-free-release
 rpmfusion-nonfree-release
 $(package_lines)
+# Fedora pulls in cups-browsed as a weak dependency of CUPS. Upstream removed
+# automatic printer discovery (migration 1788009111), which a fresh install
+# marks done without running, so keep it out here; dnf then never adds it back
+# as a weak dependency (exclude_from_weak_autodetect).
+-cups-browsed
 %end
 
 $( [[ -n $overlay ]] && cat <<OVERLAY
