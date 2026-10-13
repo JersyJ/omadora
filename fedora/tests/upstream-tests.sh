@@ -99,7 +99,13 @@ if [[ -n $unexpected ]]; then
   echo "Failing only on the Fedora tree, and not listed:"
   for file in $unexpected; do
     echo "  $file"
-    awk -v f="$file" '$0 ~ "^==> " f { show = 1; next } /^==> / { show = 0 } show && /^not ok/' "$build/upstream-tests-fedora.log" | head -n 5 | sed 's/^/      /'
+    section=$(awk -v f="$file" '$0 == "==> " f { show = 1; next } /^==> / { show = 0 } show' "$build/upstream-tests-fedora.log")
+    # TAP failures when the file prints them, else the end of its output.
+    if grep -q '^not ok' <<<"$section"; then
+      grep '^not ok' <<<"$section" | head -n 5 | sed 's/^/      /'
+    else
+      tail -n 15 <<<"$section" | sed 's/^/      /'
+    fi
   done
   status=1
 fi
