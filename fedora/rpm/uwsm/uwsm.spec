@@ -17,6 +17,9 @@ BuildRequires:  meson
 BuildRequires:  scdoc
 BuildRequires:  python3-devel
 BuildRequires:  systemd-rpm-macros
+# meson checks that uwsm's Python modules import.
+BuildRequires:  python3-dbus
+BuildRequires:  python3-pyxdg
 
 Requires:       bash
 Requires:       python3
