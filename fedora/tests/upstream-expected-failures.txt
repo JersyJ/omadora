@@ -33,6 +33,7 @@ test/shell.d/update-available-test.sh                 stubs pacman and checkupda
 test/shell.d/update-file-conflict-test.sh             pacman file-conflict takeover; dnf has none (excluded)
 test/shell.d/update-keyring-test.sh                   pacman-key and archlinux-keyring; no keyring step on Fedora
 test/shell.d/update-pacman-test.sh                    omarchy-update-pacman is excluded
+test/cli                                              stops at the sudo metadata of omarchy-refresh-pacman, which is excluded
 test/shell.d/update-pkg-prune-test.sh                 paccache; Omadora runs dnf clean packages
 test/shell.d/version-test.sh                          stubs pacman -Q; Omadora reads the RPM database
 test/shell.d/launcher-remove-test.sh                  pacman -Qqo and -Rns; Omadora uses rpm -qf and dnf remove
