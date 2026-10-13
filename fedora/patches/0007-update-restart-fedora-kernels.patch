@@ -2,16 +2,17 @@ Fedora fork: Fedora keeps previous kernels installed (installonly), so ask
 whether the newest installed kernel is the running one instead of whether the
 running kernel is still on disk.
 
---- a/bin/omarchy-update-restart
-+++ b/bin/omarchy-update-restart
-@@ -21,18 +21,15 @@
+--- a/bin/omarchy-update-restart	2026-10-13 18:33:04.683308683 +0200
++++ b/bin/omarchy-update-restart	2026-10-13 18:33:04.691562978 +0200
+@@ -23,19 +23,15 @@
  
  if [[ $mode != "--services-only" ]]; then
    running_kernel=$(uname -r)
 -  kernel_updated=true
 +  kernel_updated=false
  
--  for kernel in /usr/lib/modules/*/vmlinuz; do
+-  # Every kernel package owns modules.builtin; Arch Linux ARM's ships no vmlinuz here (#12440).
+-  for kernel in "$kernel_modules_path"/*/modules.builtin; do
 -    if [[ -f $kernel ]] && pacman -Qo "$kernel" &>/dev/null; then
 -      installed_kernel=$(basename "$(dirname "$kernel")")
 -

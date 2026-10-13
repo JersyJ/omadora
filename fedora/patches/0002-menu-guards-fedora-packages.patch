@@ -1,17 +1,14 @@
 Fedora fork: the menu's batched package guards read Omadora's package layer
 (map + installed RPMs and Flatpaks) instead of pacman's database.
 
---- a/shell/plugins/menu/MenuModel.js	2026-10-12 18:08:45.239451191 +0200
-+++ b/shell/plugins/menu/MenuModel.js	2026-10-12 18:08:45.249608652 +0200
-@@ -428,16 +428,13 @@
- // parser follows the indented lines rather than reading the first one and
- // dropping half of what is installed.
+--- a/shell/plugins/menu/MenuModel.js	2026-10-13 18:32:46.853703467 +0200
++++ b/shell/plugins/menu/MenuModel.js	2026-10-13 18:32:46.862693578 +0200
+@@ -477,13 +477,14 @@
+ }
+ 
  function guardHelpers() {
 -  return 'declare -A __omarchy_pkgs=()\n'
--    + 'mapfile -t __omarchy_pkg_names < <({ pacman -Qq; LC_ALL=C pacman -Qi'
--    + " | awk '/^[A-Za-z]/ { provides = ($0 ~ /^Provides/); sub(/^[^:]*: /, \"\") }"
--    + ' provides && $0 != "None" { n = split($0, p, " ");'
--    + ' for (i = 1; i <= n; i++) { sub(/[<>=].*/, "", p[i]); print p[i] } }\'; } 2>/dev/null)\n'
+-    + guardPackageSnapshot()
 -    + 'for __omarchy_pkg in "${__omarchy_pkg_names[@]}"; do __omarchy_pkgs[$__omarchy_pkg]=1; done\n'
 -    + '__omarchy_pkg_has() { [[ -n ${__omarchy_pkgs[$1]-} ]] && return 0; '
 -    + '[[ $1 == *[\\<\\>=]* ]] && { pacman -Q "$1" &>/dev/null; return; }; return 1; }\n'
@@ -19,7 +16,8 @@ Fedora fork: the menu's batched package guards read Omadora's package layer
 -    + 'omarchy-pkg-missing() { local p; for p in "$@"; do __omarchy_pkg_has "$p" || return 0; done; return 1; }\n'
 +  // Fedora fork: the batch answers come from Omadora's package layer, which
 +  // loads the Arch-to-Fedora package map, the installed RPMs and Flatpaks once
-+  // ($OMARCHY_PATH/fedora/pkg.sh) instead of reading pacman's database.
++  // ($OMARCHY_PATH/fedora/pkg.sh) instead of reading pacman's database, so
++  // guardPackageSnapshot() above goes unused.
 +  return 'source "${OMARCHY_PATH:-/usr/share/omarchy}/fedora/pkg.sh"\n'
 +    + 'omadora_pkg_cache_load 2>/dev/null\n'
 +    + 'omarchy-pkg-present() { omadora_pkg_cached_present "$@"; }\n'
