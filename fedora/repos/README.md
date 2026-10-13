@@ -8,9 +8,9 @@ Every package Omadora installs comes from Fedora, from a repository in this dire
 | `nett00n-hyprland.repo` | `/etc/yum.repos.d/` | The Hyprland stack and Quickshell |
 | `coprs.repo` | `/etc/yum.repos.d/` | Single-app COPRs: lazygit, lazydocker, gpu-screen-recorder, moonlight-qt |
 | `mise.repo` | `/etc/yum.repos.d/` | mise's vendor repository |
-| `microsoft.repo`, `microsoft-edge.repo` | `/etc/yum.repos.d/` | Intune Portal, its identity broker, Defender for Endpoint and Edge, which company compliance requires (`docs/INTUNE.md`) |
-| `copr-dwrobel-webkit2gtk4.0.repo` | `/etc/yum.repos.d/` | WebKitGTK 4.0, which Intune Portal needs and Fedora dropped after 42 |
+| `microsoft.repo`, `microsoft-edge.repo` | `/etc/yum.repos.d/` | Intune Portal, its identity broker, Defender for Endpoint (Microsoft's RHEL 10 repository) and Edge, which company compliance requires (`docs/INTUNE.md`) |
 | `repos.override.d/50-omadora-rpmfusion.repo` | `/etc/dnf/repos.override.d/` | Limits for RPM Fusion, whose own release packages own its repo files |
+| `keys/*.asc` | `/etc/pki/rpm-gpg/omadora/` | The signing keys of the repositories above, imported by `omadora-repos` after every install or upgrade, together with Fedora's and RPM Fusion's: dnf5-automatic cannot answer a key prompt, so without them the daily security updates fail on a fresh install. `keys/sources.tsv` says where each is published; the weekly repository check compares them |
 | `versionlock.toml` | `/etc/dnf/versionlock.toml` | Hyprland held at 0.56.2, Quickshell at 0.3 |
 | `on-demand/*.repo` | `/etc/yum.repos.d/`, when an app needs it | Vendor repositories and app COPRs for Omarchy's optional installers; see `on-demand/README.md` |
 

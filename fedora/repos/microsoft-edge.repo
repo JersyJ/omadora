@@ -5,5 +5,5 @@ name=Microsoft Edge
 baseurl=https://packages.microsoft.com/yumrepos/edge
 enabled=1
 gpgcheck=1
-gpgkey=https://packages.microsoft.com/keys/microsoft.asc
+gpgkey=file:///etc/pki/rpm-gpg/omadora/microsoft.asc
 includepkgs=microsoft-edge-stable

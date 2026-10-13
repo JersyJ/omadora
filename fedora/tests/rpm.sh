@@ -39,6 +39,7 @@ rpmlint "${rpms[@]}" | tail -n 25 || :
 
 info "Installing with Omadora's repositories"
 install -m 0644 fedora/repos/*.repo /etc/yum.repos.d/
+install -m 0644 -D -t /etc/pki/rpm-gpg/omadora fedora/repos/keys/*.asc
 install -m 0644 -D -t /etc/dnf/repos.override.d fedora/repos/repos.override.d/*.repo
 dnf -y -q install \
   "https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$FEDORA_RELEASE.noarch.rpm" \

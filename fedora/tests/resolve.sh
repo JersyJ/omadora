@@ -33,6 +33,7 @@ fi
 
 info "Installing repositories and version locks"
 install -m 0644 fedora/repos/*.repo /etc/yum.repos.d/
+install -m 0644 -D -t /etc/pki/rpm-gpg/omadora fedora/repos/keys/*.asc
 install -m 0644 fedora/repos/versionlock.toml /etc/dnf/versionlock.toml
 dnf -y -q install \
   "https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$FEDORA_RELEASE.noarch.rpm" \

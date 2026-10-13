@@ -38,16 +38,33 @@ install -d %{buildroot}%{_sysconfdir}/yum.repos.d %{buildroot}%{_sysconfdir}/dnf
 install -m 0644 $repos/*.repo %{buildroot}%{_sysconfdir}/yum.repos.d/
 install -m 0644 $repos/repos.override.d/*.repo %{buildroot}%{_sysconfdir}/dnf/repos.override.d/
 install -m 0644 $repos/versionlock.toml %{buildroot}%{_sysconfdir}/dnf/versionlock.toml
+install -d %{buildroot}%{_sysconfdir}/pki/rpm-gpg/omadora
+install -m 0644 $repos/keys/*.asc %{buildroot}%{_sysconfdir}/pki/rpm-gpg/omadora/
 install -d %{buildroot}%{_datadir}/omadora/repos/on-demand
 install -m 0644 $repos/on-demand/*.repo %{buildroot}%{_datadir}/omadora/repos/on-demand/
 install -m 0644 $repos/README.md %{buildroot}%{_datadir}/omadora/repos/README.md
 install -m 0644 $repos/on-demand/README.md %{buildroot}%{_datadir}/omadora/repos/on-demand/README.md
+
+%posttrans
+# dnf asks before it trusts a repository's key, and dnf5-automatic (the daily
+# security updates) cannot answer, so it would cancel every run on a fresh
+# install. Import the local key files the enabled repositories name: ours,
+# Fedora's and RPM Fusion's.
+releasever=$(rpm -E %%fedora)
+basearch=$(uname -m)
+for key in $(sed -n 's/^gpgkey[[:space:]]*=[[:space:]]*//p' /etc/yum.repos.d/*.repo | tr ' ,' '\n\n' |
+             sed -n 's|^file://||p' | sed "s/\$releasever/$releasever/g; s/\$basearch/$basearch/g" | sort -u); do
+  if [ -f "$key" ]; then
+    rpm --import "$key" || :
+  fi
+done
 
 %files
 %license LICENSE
 %config(noreplace) %{_sysconfdir}/yum.repos.d/*.repo
 %config(noreplace) %{_sysconfdir}/dnf/repos.override.d/*.repo
 %config(noreplace) %{_sysconfdir}/dnf/versionlock.toml
+%{_sysconfdir}/pki/rpm-gpg/omadora
 %{_datadir}/omadora
 
 %changelog
