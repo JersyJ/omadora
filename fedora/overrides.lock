@@ -3,6 +3,7 @@
 # for files upstream does not have. fedora/build/assemble fails when upstream's
 # file changes, so its change gets ported before the override ships again.
 # Update a pin with: fedora/bin/pin-override <path>
+bin/omarchy-channel-current	cc35e13c2ef533ec143cf7f8912f4f8d1e64e371
 bin/omarchy-debug	59fbc4fce48b667bc166e08251ef0fdff64a2827
 bin/omarchy-install-service-sunshine	c215584b1045c4c64f135686d498ba6ae65b82f7
 bin/omarchy-pkg-add	1f5e40913d3320f418fa33064b63867e3d1f4725
@@ -14,10 +15,21 @@ bin/omarchy-pkg-install	e5e0fb429f8f3215b737ac7bbbc76ac459d4d7aa
 bin/omarchy-pkg-missing	b282d2f33683fd2cf18aea08ec389871bc4f06a7
 bin/omarchy-pkg-present	0a0645bda16700d914a4d064043fd4edef58f1f2
 bin/omarchy-pkg-remove	37ca448e9b592c32902d073c4380990449884f93
+bin/omarchy-refresh-limine	1837d9e4f9623e8eaaa3dddc330820e781bd3f79
+bin/omarchy-reinstall-pkgs	156ab9d48e4a86f80c33599aab649135ff6e8c3e
 bin/omarchy-remove-security-sshd	4bfcc8b0939643444a3c6cf4d3080d7a899d5a59
 bin/omarchy-remove-service-sunshine	e997622256f2d9e76d1d4e0d89ec3b8ff5e9d1ac
 bin/omarchy-setup-security-sshd	7b93936ff6374eecae8559cff3dd9643a7ef71b7
+bin/omarchy-update-analyze-logs	1febd99d823b60068ec8d25eaf9a7c49ff0b60ad
+bin/omarchy-update-aur-pkgs	a860a97d3083b0a0ad16566af68adccd257a8e55
+bin/omarchy-update-available	f1a70b256eaf45b87d735a79495d8add4f870c1a
+bin/omarchy-update-keyring	55d49e9b5d557fb449e5da53cae32f8eb675f1d5
+bin/omarchy-update-orphan-pkgs	d740551831262540c60af8f8a7a02b1fa7fadfa5
+bin/omarchy-update-pkg-prune	7e8debd3233b32611dc74109a4ef1c7f66989964
+bin/omarchy-update-system-pkgs	c2e863882683ee2201c8c6b32c1652aba02ed3d2
 bin/omarchy-upload-log	134d9174180bf9a241ccc2a35e162404ceccbe8c
+bin/omarchy-version	40b10a344acedc32359cb51c4c570bfcfa06dd68
+bin/omarchy-version-pkgs	9a37fb9a01c324bba39d5a8eefc754b61d04682e
 etc/security/faillock.conf	431f5e75402574daf3d43ad95f616ac0889605a4
 install/config/enable-services.sh	964f08675f91c64f15e578b20149c1f8fdbf14c6
 install/config/firewall.sh	de38943167dd1ce1b3ecd3525b577f157211a8f3

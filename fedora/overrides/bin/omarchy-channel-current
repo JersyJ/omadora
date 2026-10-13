@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# omarchy:summary=Print the active Omarchy package channel
+
+set -euo pipefail
+
+# Dev is a linked source checkout: OMARCHY_PATH points somewhere other than
+# the package-backed install at /usr/share/omarchy. This takes precedence over
+# the package channels, since the checkout overrides whatever is installed.
+if [[ $OMARCHY_PATH != "/usr/share/omarchy" ]]; then
+  echo dev
+  exit 0
+fi
+
+# Fedora fork: Omadora has one channel, our COPR built from the fork's main
+# branch (a pinned upstream commit); upstream's stable, rc and edge mirrors do
+# not apply.
+if rpm -q omarchy omarchy-settings >/dev/null 2>&1; then
+  echo omadora
+else
+  echo unknown
+fi

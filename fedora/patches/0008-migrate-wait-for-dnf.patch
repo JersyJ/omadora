@@ -1,0 +1,33 @@
+Fedora fork: wait for a running dnf or rpm process instead of pacman's lock
+file before running migrations.
+
+--- a/bin/omarchy-migrate
++++ b/bin/omarchy-migrate
+@@ -65,18 +65,21 @@
+   fi
+ fi
+ 
++# Fedora: dnf (or rpm itself) running is the transaction to wait for.
++package_transaction_running() {
++  pgrep -x 'dnf5|dnf|rpm' >/dev/null
++}
++
+ wait_for_pacman_transaction() {
+-  local lock_file=/var/lib/pacman/db.lck
+-
+-  [[ -e $lock_file ]] || return 0
+-  echo "Waiting for pacman transaction to finish before running Omarchy migrations..."
++  package_transaction_running || return 0
++  echo "Waiting for dnf transaction to finish before running Omarchy migrations..."
+ 
+   for _ in {1..900}; do
+-    [[ -e $lock_file ]] || return 0
++    package_transaction_running || return 0
+     sleep 1
+   done
+ 
+-  echo "Pacman transaction is still running; Omarchy migrations will retry on next login."
++  echo "dnf transaction is still running; Omarchy migrations will retry on next login."
+   exit 0
+ }
+ 

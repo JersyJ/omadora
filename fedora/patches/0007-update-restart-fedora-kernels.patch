@@ -1,0 +1,33 @@
+Fedora fork: Fedora keeps previous kernels installed (installonly), so ask
+whether the newest installed kernel is the running one instead of whether the
+running kernel is still on disk.
+
+--- a/bin/omarchy-update-restart
++++ b/bin/omarchy-update-restart
+@@ -21,18 +21,15 @@
+ 
+ if [[ $mode != "--services-only" ]]; then
+   running_kernel=$(uname -r)
+-  kernel_updated=true
++  kernel_updated=false
+ 
+-  for kernel in /usr/lib/modules/*/vmlinuz; do
+-    if [[ -f $kernel ]] && pacman -Qo "$kernel" &>/dev/null; then
+-      installed_kernel=$(basename "$(dirname "$kernel")")
+-
+-      if [[ $installed_kernel == $running_kernel ]]; then
+-        kernel_updated=false
+-        break
+-      fi
+-    fi
+-  done
++  # Fedora keeps the previous kernels installed, so the running kernel stays
++  # on disk after an update: compare it with the newest installed one.
++  newest_kernel=$(rpm -q --last kernel-core 2>/dev/null | head -1 | awk '{ print $1 }')
++  newest_kernel=${newest_kernel#kernel-core-}
++  if [[ -n $newest_kernel && $newest_kernel != "$running_kernel" ]]; then
++    kernel_updated=true
++  fi
+ 
+   if [[ $kernel_updated == "true" ]]; then
+     confirm_reboot "Linux kernel has been updated. Reboot?"

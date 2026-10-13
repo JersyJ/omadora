@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# omarchy:summary=Update Flatpak apps if any are installed
+
+# Fedora fork: there is no AUR. Apps from outside the RPM repositories come
+# from Flathub instead (fedora/packages/map.tsv), so this step updates those.
+# omarchy update runs it after revoking sudo, as upstream does for yay;
+# system-wide Flatpak updates go through polkit like any other Flatpak call.
+if omarchy-cmd-present flatpak && [[ -n $(flatpak list --system --app --columns=application 2>/dev/null) ]]; then
+  echo -e "\e[32m\nUpdate Flatpak apps\e[0m"
+  flatpak update --system -y --noninteractive || exit 1
+  echo
+fi

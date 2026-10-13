@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# omarchy:summary=Overwrite the user config for the Limine bootloader and rebuild it.
+# omarchy:requires-sudo=true
+
+# Fedora fork: Omadora boots with GRUB2, whose entries kernel-install and
+# grub-btrfs maintain; there is no Omarchy boot loader config to reset.
+# omarchy-reinstall-configs still calls this, so it stays as a no-op.
+exit 0

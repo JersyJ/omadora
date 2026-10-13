@@ -10,3 +10,10 @@ etc/nsswitch.conf         # Fedora generates it with authselect; Arch's copy bre
 etc/cups/cups-files.conf  # hardcodes Arch's cups user and group 209 (DECISIONS.md)
 bin/omarchy-upgrade-to-quattro     # migrates an Arch Omarchy 3 install to 4; nothing to upgrade on Fedora
 bin/omarchy-update-pacman-guard    # only run by the excluded ALPM update-guard hook
+bin/omarchy-channel-set            # switches pacman mirrors and repositories; Omadora has one channel (our COPR)
+bin/omarchy-version-channel        # reads the pacman mirrorlist; omarchy-channel-current answers on Fedora
+bin/omarchy-refresh-pacman         # rewrites pacman.conf and the mirrorlist
+bin/omarchy-update-pacman          # pacman wrapper; omarchy-update-system-pkgs runs dnf itself
+bin/omarchy-update-system-pkgs-when-conflicted  # pacman file-conflict takeover; dnf has no such step
+bin/omarchy-dev-pkg-test           # builds and installs a dev PKGBUILD with makepkg and pacman
+config/omarchy/hooks/pre-refresh-pacman.d     # sample hook for omarchy-refresh-pacman

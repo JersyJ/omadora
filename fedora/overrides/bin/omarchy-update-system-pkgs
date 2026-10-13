@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# omarchy:summary=Update system packages with dnf
+# omarchy:requires-sudo=true
+
+set -e
+
+# Fedora fork: dnf replaces pacman. dnf has no file-takeover step to retry, so
+# upstream's conflict handler has nothing to do here. The transaction runs in
+# its own scope, as upstream's pacman wrapper does, so closing the terminal
+# cannot kill it halfway. libdnf5's actions plugin takes the snapper pre/post
+# snapshots around it (omarchy-settings).
+scope=()
+if [[ -d /run/systemd/system && ! -L /run/systemd/system ]]; then
+  scope=(systemd-run --scope --quiet --collect)
+fi
+
+echo -e "\e[32m\nUpdate system packages\e[0m"
+sudo "${scope[@]}" dnf upgrade --refresh -y

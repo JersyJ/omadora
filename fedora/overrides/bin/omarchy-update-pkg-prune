@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# omarchy:summary=Prune downloaded packages from the dnf cache
+# omarchy:requires-sudo=true
+
+set -e
+
+# Fedora fork: dnf keeps no package cache by default (keepcache=0), so this
+# only removes what an interrupted transaction left behind. Downgrades come
+# from the repositories or from a snapper snapshot instead.
+echo -e "\e[32m\nPrune package cache\e[0m"
+sudo dnf -q clean packages || echo -e "\e[33mCould not prune the package cache.\e[0m" >&2
+echo

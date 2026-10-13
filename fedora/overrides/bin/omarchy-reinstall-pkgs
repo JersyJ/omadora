@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# omarchy:summary=Reinstall all default Omarchy packages from the Omadora repositories
+# omarchy:requires-sudo=true
+
+set -e
+
+# Fedora fork: Omadora has one channel, so there is no repository to reset.
+# Reinstall Omarchy's own packages, sync every package to the version the
+# repositories carry (dnf's equivalent of pacman -Suu), and install any default
+# package that is missing.
+sudo dnf reinstall -y omarchy omarchy-settings omadora-repos
+sudo dnf distro-sync --refresh -y
+
+default_packages=$(omarchy-pkg-defaults)
+mapfile -t packages <<<"$default_packages"
+omarchy-pkg-add "${packages[@]}"

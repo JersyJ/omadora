@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# omarchy:summary=Print when system packages were last upgraded
+
+# Fedora fork: the newest install time in the RPM database (dnf has no
+# pacman.log). Every upgraded package is reinstalled, so this is when the last
+# transaction ran.
+date -d "@$(rpm -qa --queryformat '%{INSTALLTIME}\n' | sort -n | tail -1)" "+%A, %B %d %Y at %H:%M"
