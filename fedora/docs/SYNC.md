@@ -57,6 +57,6 @@ Delete the patch once the synced commit contains it (`git merge-base --is-ancest
 ## Between syncs
 
 - **nett00n rebuilds Hyprland.** `omarchy-hyprland-titlebars` requires the exact Hyprland build it was compiled against, so dnf holds Hyprland back until the plugin is rebuilt: `copr-cli build-package jersyj/omadora --name omarchy-hyprland-titlebars`. Nothing breaks in the meantime; laptops just keep the previous build.
-- **nett00n's packages miss dependencies.** Our `omarchy` spec requires `xorg-x11-server-Xwayland` and `python3-pyxdg` because nett00n's `hyprland` and `uwsm` don't (`DECISIONS.md`). Check now and then with `dnf repoquery --requires hyprland uwsm`; once they list them, remove the two lines from `fedora/rpm/omarchy/omarchy.spec`.
+- **nett00n's packages miss dependencies.** Our `omarchy` spec requires `xorg-x11-server-Xwayland` and `python3-pyxdg` because nett00n's `hyprland` and `uwsm` don't (`DECISIONS.md`). Check now and then with `dnf repoquery --requires hyprland uwsm`; once they list them, remove the two lines from `fedora/rpm/omarchy/omarchy.spec`. Our `omarchy` package also carries uwsm's `uwsm-app` (`fedora/lib/runtime/compat/uwsm-app`); `fedora/tests/rpm.sh` fails once nett00n's `uwsm` provides it, and then that file and its spec line go.
 - **An app's upstream releases a fix.** Bump its recipe in `fedora/rpm/` and rebuild that one COPR package; the omarchy-pkgs pin moves with the next sync.
 
