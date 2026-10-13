@@ -1,18 +1,24 @@
 #!/bin/sh
-# Import the local signing keys that the enabled repositories name: Omadora's
-# (/etc/pki/rpm-gpg/omadora), Fedora's and RPM Fusion's. dnf asks before it
-# trusts a repository's key, and dnf5-automatic, which installs the daily
+# Import the signing keys dnf needs for the repositories the base install uses:
+# every key Omadora ships (/etc/pki/rpm-gpg/omadora; Edge's own package
+# rewrites its repository file to point at Microsoft's URL instead), and the
+# local key files Fedora's and RPM Fusion's repositories name. dnf asks before
+# it trusts a repository's key, and dnf5-automatic, which installs the daily
 # security updates, cannot answer, so it would cancel every run until someone
 # ran dnf by hand. Runs before every dnf5-automatic run (a drop-in from
 # omadora-repos) and once at the end of the install (the kickstart); it cannot
 # run from a package scriptlet, where rpm holds its database lock.
 releasever=$(rpm -E %fedora)
 basearch=$(uname -m)
-sed -n 's/^gpgkey[[:space:]]*=[[:space:]]*//p' /etc/yum.repos.d/*.repo | tr ' ,' '\n\n' |
-  sed -n 's|^file://||p' | sed "s/\$releasever/$releasever/g; s/\$basearch/$basearch/g" | sort -u |
-  while read -r key; do
-    if [ -f "$key" ]; then
-      rpmkeys --import "$key" || echo "omadora: could not import $key" >&2
-    fi
-  done
+{
+  ls /etc/pki/rpm-gpg/omadora/*.asc 2>/dev/null
+  # Fedora keeps its own repositories in /usr/share/dnf5/repos.d since dnf5.
+  cat /usr/share/dnf5/repos.d/*.repo /etc/yum.repos.d/*.repo 2>/dev/null |
+    sed -n 's/^gpgkey[[:space:]]*=[[:space:]]*//p' | tr -s '[:space:],' '\n' |
+    sed -n 's|^file://||p' | sed "s/\$releasever/$releasever/g; s/\$basearch/$basearch/g"
+} | sort -u | while read -r key; do
+  if [ -f "$key" ]; then
+    rpmkeys --import "$key" || echo "omadora: could not import $key" >&2
+  fi
+done
 exit 0

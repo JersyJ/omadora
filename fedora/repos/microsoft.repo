@@ -7,6 +7,9 @@ name=Microsoft RHEL 10 production
 baseurl=https://packages.microsoft.com/rhel/10/prod/
 enabled=1
 gpgcheck=1
-repo_gpgcheck=1
+# Package signatures are checked, metadata signatures are not, as for Fedora's
+# own repositories: dnf keeps metadata keys in a keyring only its interactive
+# prompt fills, so the unattended daily update could never read this repository.
+repo_gpgcheck=0
 gpgkey=file:///etc/pki/rpm-gpg/omadora/microsoft-rhel10.asc
 includepkgs=intune-portal microsoft-identity-broker microsoft-identity-diagnostics mdatp
