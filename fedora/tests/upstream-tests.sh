@@ -83,7 +83,8 @@ mapfile -t expected < <(grep -vE '^\s*(#|$)' "$expected_file" 2>/dev/null | awk 
 unexpected=$(comm -23 <(printf '%s\n' "${failed[@]}" | sed '/^$/d') <(printf '%s\n' "${expected[@]}" | sed '/^$/d'))
 # Listed files that now pass on the Fedora tree (a file that also fails on
 # pristine upstream here proves nothing either way).
-fixed=$(comm -13 <(printf '%s\n' "${fedora[@]}" | sed '/^$/d') <(printf '%s\n' "${expected[@]}" | sed '/^$/d'))
+fixed=$(comm -13 <(printf '%s\n' "${fedora[@]}" | sed '/^$/d') <(printf '%s\n' "${expected[@]}" | sed '/^$/d') |
+  grep -vxF -f <(grep -E '^[^#][^[:space:]]*[[:space:]]+flaky:' "$expected_file" | awk '{ print $1 }') || true)
 
 # Skipped files upstream has since renamed or removed.
 gone=$(for file in "${skipped[@]}"; do [[ -e $pristine_tree/$file ]] || echo "$file"; done)

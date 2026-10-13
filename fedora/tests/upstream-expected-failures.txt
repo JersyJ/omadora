@@ -1,7 +1,8 @@
 # Upstream test files expected to fail on the assembled Fedora tree, one per
 # line: the path, then why. fedora/tests/upstream-tests.sh fails on any other
-# failure, and on a listed file that passes again. Tests of hardware Omadora
-# does not support are not run at all (upstream-skipped.txt).
+# failure, and on a listed file that passes again, unless its reason starts
+# with "flaky:". Tests of hardware Omadora does not support are not run at all
+# (upstream-skipped.txt).
 
 # Firewall: firewalld replaces ufw (DECISIONS.md); these assert ufw commands.
 test/shell.d/firewall-config-test.sh                  ufw rules in install/config/firewall.sh
@@ -67,3 +68,6 @@ test/shell.d/image-deferred-hardware-test.sh          hardware steps differ (ins
 # Menu: the guards answer from Omadora's package layer ($OMARCHY_PATH/fedora/pkg.sh);
 # the test runs them without OMARCHY_PATH and with pacman stubs.
 test/shell.d/menu-guards-test.sh                      package guards read the package map and rpm, not pacman
+
+# Flaky upstream tests: they fail at random on Arch too. Fixes come with syncs.
+test/shell.d/system-sleep-ownership-migration-test.sh  flaky: picks the first of several keyboard-backlight quarantine backups (random mktemp names), so it fails about one run in three
