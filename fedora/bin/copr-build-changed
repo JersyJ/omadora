@@ -70,7 +70,7 @@ builds=()
 for name in "${!recipes[@]}"; do
   [[ -f fedora/rpm/$name/$name.spec ]] || continue
   if ! copr get-package jersyj/omadora --name "$name" >/dev/null 2>&1; then
-    warn "$name is not registered in COPR yet; register it once by hand (fedora/rpm/README.md)"
+    info "$name: not registered in COPR, skipped (a new recipe is registered once by hand: fedora/rpm/README.md)"
     continue
   fi
   version=$(awk '/^Version:/ { v = $2 } /^Release:/ { r = $2; sub(/%\{\?dist\}/, "", r) } END { print v "-" r }' "fedora/rpm/$name/$name.spec")
