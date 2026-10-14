@@ -211,6 +211,16 @@ for helper in omarchy-upload-log omarchy-debug omarchy-debug-idle; do
   install -m 0755 "bin/$helper" %{buildroot}%{_bindir}/"$helper"
 done
 
+# thermald (enabled by Omarchy's Intel setup) looks for the CPU temperature and
+# RAPL power sensors once at start. Their drivers can load just after it at
+# boot; it then gives up for the whole boot, since Panther Lake supports only
+# its adaptive mode. Wait for them first, 15 seconds at most.
+install -d %{buildroot}%{_unitdir}/thermald.service.d
+cat >%{buildroot}%{_unitdir}/thermald.service.d/50-omadora-wait-for-sensors.conf <<'UNIT'
+[Service]
+ExecStartPre=/bin/sh -c 'for i in $$(seq 30); do [ -e /sys/class/powercap/intel-rapl:0 ] && grep -qsx coretemp /sys/class/hwmon/*/name && exit 0; sleep 0.5; done; exit 0'
+UNIT
+
 # SELinux: /etc/xkb holds Omarchy's XKB rules, which libxkbcommon reads before
 # /usr/share/X11/xkb. Label it like those (usr_t); as etc_t, systemd-localed
 # may not map it and `localectl set-x11-keymap` cannot check a layout.

@@ -176,7 +176,7 @@ nautilus	nautilus	fedora
 nautilus-dropbox	nautilus-dropbox	repo:dropbox	
 nautilus-python	nautilus-python	fedora	
 neovim	neovim	fedora	
-networkmanager	NetworkManager	fedora	
+networkmanager	NetworkManager NetworkManager-wifi NetworkManager-bluetooth	fedora	Arch's networkmanager includes the Wi-Fi and Bluetooth plugins and wpa_supplicant; Fedora splits them out
 nordvpn-bin	nordvpn	repo:nordvpn	
 noto-fonts	google-noto-sans-fonts google-noto-serif-fonts google-noto-sans-mono-fonts	fedora	
 noto-fonts-cjk	google-noto-sans-cjk-fonts	fedora	

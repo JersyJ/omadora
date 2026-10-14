@@ -71,6 +71,11 @@ Requires:       (gjs if sushi)
 # iwlwifi-mld-firmware and its CNVi Bluetooth iwlbluetooth-firmware.
 Requires:       iwlwifi-mld-firmware
 Requires:       iwlbluetooth-firmware
+# Arch's networkmanager carries its Wi-Fi and Bluetooth plugins and depends on
+# wpa_supplicant; Fedora splits each plugin out (NetworkManager-wifi brings
+# wpa_supplicant). Without it NetworkManager leaves the Wi-Fi card unmanaged.
+Requires:       NetworkManager-wifi
+Requires:       NetworkManager-bluetooth
 # Package management (pacman and pacman-contrib on Arch)
 Requires:       dnf5
 # omarchy-provision-user sets up the user directories with it
