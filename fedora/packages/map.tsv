@@ -263,7 +263,7 @@ sublime-text-4	sublime-text	repo:sublime-text
 sunshine	Sunshine	copr:lizardbyte/stable	upstream's own COPR
 supergfxctl		drop	ASUS ROG GPU switching; the ZBook has none
 superwhisper-bin	superwhisper-bin	ours	Spec: whelanh/omarchy-fedora (MIT)
-sushi	sushi	fedora	
+sushi	sushi gjs	fedora	Fedora's sushi runs /usr/libexec/org.gnome.NautilusPreviewer under gjs without requiring it; Arch's depends on gjs
 symfony-cli	symfony-cli	repo:symfony-stable	
 system-config-printer	system-config-printer	fedora	
 t2fanrd		drop	hardware not supported by this fork (HP ZBook 8 G2i only)

@@ -63,6 +63,9 @@ Requires:       perl(open)
 # Arch's tesseract depends on its orientation and script detection data
 # (tesseract-data-osd); Fedora's does not, so tesseract --psm 0/1 would fail.
 Requires:       (tesseract-osd if tesseract)
+# Arch's sushi (Nautilus's space-bar preview) depends on gjs, which runs it;
+# Fedora's does not, so the preview fails to start.
+Requires:       (gjs if sushi)
 # Arch's linux-firmware carries all of Intel's Wi-Fi and Bluetooth firmware;
 # Fedora splits them out of linux-firmware. The ZBook's Wi-Fi 7 BE211 needs
 # iwlwifi-mld-firmware and its CNVi Bluetooth iwlbluetooth-firmware.
