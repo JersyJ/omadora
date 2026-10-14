@@ -78,6 +78,16 @@ The virtual machine tests cover everything but the hardware. On the first ZBook,
 - [ ] Firmware: `omarchy-update-firmware` lists the ZBook's devices and updates what LVFS has
 - [ ] Touchpad: tap to click, two-finger scroll
 
+## Login screen size
+
+The login screen picks its own scale (Hyprland's automatic choice: 1.5 on the ZBook's 14" 1920x1200 panel), separate from the desktop's (Omarchy menu, Setup, Monitor scaling, saved in `~/.config/hypr/monitors.lua`). To give the login screen the desktop's scale, write it to `/etc/omadora/greeter-scale`; it applies from the next time the login screen starts:
+
+```bash
+sudo mkdir -p /etc/omadora && echo 1.25 | sudo tee /etc/omadora/greeter-scale
+```
+
+Remove the file to go back to the automatic scale.
+
 ## Changing passwords later
 
 - User password: Omarchy menu, Update, Password, User (runs `passwd`). The login keyring's password follows it, so Intune keeps its tokens.
