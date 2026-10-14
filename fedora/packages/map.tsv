@@ -224,7 +224,7 @@ pipewire-alsa	pipewire-alsa	fedora
 pipewire-jack	pipewire-jack-audio-connection-kit	fedora	
 pipewire-pulse	pipewire-pulseaudio	fedora	
 plocate	plocate	fedora	
-plymouth	plymouth	fedora	
+plymouth	plymouth	fedora	omarchy-settings adds plymouth-plugin-label: Arch's plymouth includes those text renderers, and without them Fedora's 26.134.222 crashes drawing the theme
 postgresql-libs	libpq	fedora	
 power-profiles-daemon	power-profiles-daemon	fedora	conflicts with tuned-ppd if a Fedora spin installed it
 python-gobject	python3-gobject	fedora	
