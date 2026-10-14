@@ -18,6 +18,7 @@ A command starting with @ acts on the VM's screen and keyboard instead:
   @key COMBO    press one QEMU key combination, e.g. @key meta_l-ctrl-l
   @sleep N      wait N seconds
   @shot NAME    save the screen to <vm dir>/NAME.png
+  @monitor CMD  send CMD to the QEMU monitor, e.g. @monitor system_wakeup
 
   OMADORA_VM_SB_VARS=<file>  boot with Secure Boot on, using these OVMF variables
                              (Microsoft's keys enrolled; a copy is used)
@@ -189,6 +190,8 @@ def main():
                     type_text(value)
                 elif action == "key":
                     monitor(f"sendkey {value}")
+                elif action == "monitor":
+                    monitor(value)
                 elif action == "sleep":
                     time.sleep(float(value))
                 elif action == "shot":
