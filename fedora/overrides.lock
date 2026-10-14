@@ -31,6 +31,7 @@ bin/omarchy-update-system-pkgs	c2e863882683ee2201c8c6b32c1652aba02ed3d2
 bin/omarchy-upload-log	134d9174180bf9a241ccc2a35e162404ceccbe8c
 bin/omarchy-version	40b10a344acedc32359cb51c4c570bfcfa06dd68
 bin/omarchy-version-pkgs	9a37fb9a01c324bba39d5a8eefc754b61d04682e
+default/systemd/system-sleep/unmount-fuse	7c27725fcbe18179be18725d76519163569189f1
 etc/security/faillock.conf	431f5e75402574daf3d43ad95f616ac0889605a4
 install/config/enable-services.sh	964f08675f91c64f15e578b20149c1f8fdbf14c6
 install/config/firewall.sh	de38943167dd1ce1b3ecd3525b577f157211a8f3

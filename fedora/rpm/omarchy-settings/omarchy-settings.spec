@@ -27,6 +27,7 @@ URL:            https://github.com/JersyJ/omadora
 Source0:        omarchy-%{omarchy_version}.tar.gz
 Source1:        omarchy-settings-transition
 Source2:        omadora-authselect
+Source3:        omadora-gvfs-resume
 BuildArch:      noarch
 
 BuildRequires:  ImageMagick
@@ -187,6 +188,24 @@ for helper in omarchy-sudo-passwordless omarchy-security-functions; do
 done
 install -D -m 0755 %{SOURCE1} %{buildroot}%{_libexecdir}/omadora/omarchy-settings-transition
 install -D -m 0755 %{SOURCE2} %{buildroot}%{_libexecdir}/omadora/omadora-authselect
+# After resume, bring back the gvfs FUSE mount that the unmount-fuse sleep
+# hook takes down (fedora/overrides/default/systemd/system-sleep/unmount-fuse).
+# Ordered after the sleep targets it is wanted by, so it runs once they are
+# reached: after systemd-suspend.service, with user sessions thawed again.
+install -D -m 0755 %{SOURCE3} %{buildroot}%{_libexecdir}/omadora/omadora-gvfs-resume
+cat >%{buildroot}%{_unitdir}/omadora-gvfs-resume.service <<'UNIT'
+[Unit]
+Description=Restore the gvfs FUSE mount after resume
+After=suspend.target hibernate.target hybrid-sleep.target suspend-then-hibernate.target
+
+[Service]
+Type=oneshot
+ExecStart=%{_libexecdir}/omadora/omadora-gvfs-resume
+UNIT
+for target in suspend hibernate hybrid-sleep suspend-then-hibernate; do
+  install -d %{buildroot}%{_unitdir}/$target.target.wants
+  ln -s ../omadora-gvfs-resume.service %{buildroot}%{_unitdir}/$target.target.wants/omadora-gvfs-resume.service
+done
 
 # Branding.
 install -m 0644 logo.txt logo.svg icon.txt icon.png "$share/"

@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# Brings back each logged-in user's gvfs FUSE mount after the system resumes
+# (omadora-gvfs-resume.service). The unmount-fuse sleep hook takes it down
+# before suspend so it cannot block the freeze; restarting gvfs-daemon mounts
+# it again. Users without a running gvfs-daemon, or whose mount is still
+# there, are left alone.
+
+for dir in /run/user/*; do
+  uid=${dir##*/}
+  [[ $uid =~ ^[0-9]+$ && -S $dir/bus ]] || continue
+  grep -q " $dir/gvfs fuse.gvfsd-fuse " /proc/mounts && continue
+  user=$(id -nu "$uid" 2>/dev/null) || continue
+  runuser -u "$user" -- env DBUS_SESSION_BUS_ADDRESS="unix:path=$dir/bus" XDG_RUNTIME_DIR="$dir" \
+    systemctl --user try-restart gvfs-daemon.service || true
+done

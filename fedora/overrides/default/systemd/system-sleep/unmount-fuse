@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# Lazy-unmount gvfsd-fuse filesystems before suspend/hibernate to prevent the
+# kernel's process freeze from timing out. FUSE daemons (like gvfsd-fuse from
+# Nautilus) can block in uninterruptible sleep during freeze, causing suspend
+# to silently fail.
+#
+# Fedora fork: upstream restarts gvfs after wake from a background job here,
+# but systemd-suspend.service is a oneshot unit that kills every process left
+# in its cgroup when it ends, so that job never ran and the FUSE mount stayed
+# gone until the next login. omadora-gvfs-resume.service, which systemd starts
+# once the system has resumed, restores it instead.
+
+if [[ $1 == "pre" ]]; then
+  while IFS=' ' read -r _ mountpoint fstype _; do
+    if [[ $fstype == fuse.gvfsd-fuse ]]; then
+      mountpoint=$(printf '%b' "$mountpoint")
+      fusermount3 -uz "$mountpoint" 2>/dev/null || fusermount -uz "$mountpoint" 2>/dev/null || true
+    fi
+  done < /proc/mounts
+fi
