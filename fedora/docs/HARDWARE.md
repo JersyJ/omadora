@@ -38,8 +38,8 @@ This is the only supported laptop.
 | Power profiles | Works. The firmware profile follows the selected profile |
 | FRED | `fred=on` is set |
 | Firmware (LVFS) | No updates on 2026-10-14 |
-| Camera picture | Device found. Not tested |
-| External display | Not tested |
+| Camera | Works. The HP 5MP camera shows a picture |
+| External display | Works |
 
 ### Defects found on the real laptop
 
