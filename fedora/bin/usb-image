@@ -1,0 +1,50 @@
+#!/bin/bash
+
+# Build a one-stick installer image: Fedora's netinst ISO with the kickstart
+# added, so a laptop installs from a single USB stick (fedora/docs/INSTALL.md).
+#
+# The kickstart goes into the ISO's EFI partition as a small extra initrd that
+# GRUB loads with the installer (inst.ks=file:/ks.cfg), the way Fedora's
+# mkksiso does. A kickstart on a partition of the boot stick itself cannot be
+# used: the installer holds the whole stick, so it can neither find nor mount
+# it. Shim and GRUB stay as Fedora signed them, so Secure Boot keeps working.
+# The boot menu's "Install" entry becomes the default, because the stick no
+# longer matches the checksum "Test this media" checks.
+#
+# The image holds the user's password hash: keep it, and the stick, private.
+#
+# Usage: fedora/bin/usb-image <netinst.iso> <ks.cfg> <out.img>
+# Needs sfdisk (util-linux), cpio and uv (for the pyfatfs library).
+
+set -euo pipefail
+source "$(dirname "$(realpath "$0")")/../lib/common.sh"
+
+(( $# == 3 )) || die "usage: fedora/bin/usb-image <netinst.iso> <ks.cfg> <out.img>"
+iso=$1
+ks=$2
+out=$3
+[[ -f $iso ]] || die "no ISO at $iso"
+[[ -f $ks ]] || die "no kickstart at $ks"
+for tool in sfdisk cpio uv; do
+  command -v "$tool" >/dev/null || die "$tool is missing"
+done
+
+# The EFI system partition: GPT type C12A7328-F81F-11D2-BA4B-00A0C93EC93B.
+read -r start size < <(sfdisk -d "$iso" |
+  awk -F'[=,]' '/type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B/ { gsub(/ /, ""); print $2, $4 }')
+[[ -n ${start:-} && -n ${size:-} ]] || die "$iso has no EFI partition (not a Fedora netinst ISO?)"
+
+tmp=$(mktemp -d)
+trap 'rm -rf "$tmp"' EXIT
+
+install -m 0600 "$ks" "$tmp/ks.cfg"
+(cd "$tmp" && echo ks.cfg | cpio --quiet -o -H newc -R 0:0 >ks.img)
+dd if="$iso" of="$tmp/esp.img" bs=512 skip="$start" count="$size" status=none
+uv run -q --no-project --with pyfatfs==1.1.0 --with fs==2.4.16 --with "setuptools<81" \
+  python -I -W ignore "$FEDORA_DIR/lib/usb-image-esp.py" "$tmp/esp.img" "$tmp/ks.img"
+
+(umask 077 && cp --reflink=auto "$iso" "$out.tmp")
+dd if="$tmp/esp.img" of="$out.tmp" bs=512 seek="$start" conv=notrunc status=none
+mv "$out.tmp" "$out"
+info "Built $out; write it to the stick with:"
+echo "  sudo dd if=$out of=/dev/sdX bs=4M conv=fsync status=progress"

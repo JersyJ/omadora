@@ -1,6 +1,6 @@
 # Installing Omadora on a ZBook
 
-How to install Omadora on an HP ZBook 8 G2i 14" (`HARDWARE.md`). The install wipes the disk. It needs two USB sticks, network (Ethernet or Wi-Fi the installer can join) and about 30 minutes.
+How to install Omadora on an HP ZBook 8 G2i 14" (`HARDWARE.md`). The install wipes the disk. It needs one USB stick (2 GB or more), a wired network connection (the installer joins Ethernet by DHCP; the ZBook has no Ethernet port, so a USB-C adapter or a dock) and about 30 minutes.
 
 ## 1. Firmware settings
 
@@ -9,43 +9,51 @@ In the BIOS setup (F10 at power-on):
 1. Update the BIOS first if HP has a newer one: with HP's Windows tools while the preloaded Windows is still there, or from the BIOS setup's own network update. After the install, `omarchy-update-firmware` (fwupd) installs whatever firmware HP publishes to LVFS.
 2. **Secure Boot: on**, in User Mode. The company requires it (`INTUNE.md`).
 3. **"Enable MS UEFI CA key": on.** Fedora's bootloader (shim) is signed by Microsoft's third-party UEFI CA; with this setting off the USB stick and the installed system do not boot with Secure Boot on.
-4. Intel AMT: off (recommended by the company guide, not checked by Intune).
-5. Leave TPM on.
+4. **Fast Boot: off** (Advanced, Boot Options) while installing. With it on, the F9 boot menu and "Boot From EFI File" list no USB stick at all. Turn it back on afterwards if you like.
+5. **Intel AMT: off** (Advanced, Remote Management Options), as the company guide recommends; Intune does not check it.
+6. Leave TPM and HP Sure Start on.
 
-## 2. Installer stick
+## 2. The USB stick
 
-1. Download the Fedora Everything netinst ISO for the release in `upstream.lock` (`FEDORA_RELEASE`) from https://fedoraproject.org/misc#everything, with its `CHECKSUM` file. Verify it: `gpg --verify` the CHECKSUM against Fedora's key (https://fedoraproject.org/security), then `sha256sum -c`.
-2. Write it to the first stick as-is: `sudo dd if=Fedora-Everything-netinst-x86_64-<release>.iso of=/dev/sdX bs=4M conv=fsync status=progress`, or with Fedora Media Writer.
+One stick carries both the installer and the kickstart, which answers every installer question and runs Omarchy's setup. Prepare it on any Linux machine with this repository:
 
-Do not use Ventoy: its Secure Boot key could not be enrolled on the ZBook, and older Ventoy releases do not boot Fedora 45.
+1. Download the Fedora Everything netinst ISO for the release in `upstream.lock` (`FEDORA_RELEASE`) from https://fedoraproject.org/misc#everything, with its `CHECKSUM` file. Verify it: `gpg --verify` the CHECKSUM against Fedora's key (https://fedoraproject.org/security), then `sha256sum -c`. The packages come from the network, so the install is always current: the ISO only starts the installer.
+2. Generate the kickstart. `openssl passwd -6` asks for the user's password; choose one that meets the company rule (at least 12 characters, a digit, a lowercase and an uppercase letter), because the kickstart sets it from the hash, which skips the check `passwd` enforces later:
 
-The packages come from the network, so the install is always current: the ISO only starts the installer.
+   ```bash
+   fedora/bin/kickstart --user <name> --password-hash "$(openssl passwd -6)" --disk nvme0n1 >fedora/.build/ks.cfg
+   ```
 
-## 3. Kickstart stick
+   Leave out `--luks-passphrase`: the installer then asks for the disk passphrase on the laptop, and it is never written to a file. `--timezone` (default Europe/Prague), `--keyboard` (default us) and `--lang` (default en_US.UTF-8) change the locale. `fedora/.build/` is ignored by git.
+3. Build the stick image (needs `sfdisk`, `cpio` and `uv`):
 
-The kickstart answers every installer question and runs Omarchy's setup. Generate it on any machine with this repository:
+   ```bash
+   fedora/bin/usb-image Fedora-Everything-netinst-x86_64-<release>.iso fedora/.build/ks.cfg fedora/.build/omadora-usb.img
+   ```
 
-```bash
-fedora/bin/kickstart --user <name> --password-hash "$(openssl passwd -6)" --disk nvme0n1 >ks.cfg
-```
+   It adds the kickstart to the ISO's EFI partition as a small extra initrd that the installer's boot menu loads, the way Fedora's `mkksiso` does; shim and GRUB stay as Fedora signed them.
+4. Write it to the stick (`lsblk` shows which device the stick is; usbguard may need `sudo usbguard allow-device <id>` first):
 
-- `openssl passwd -6` asks for the user's password. Choose one that meets the company rule (at least 12 characters, a digit, a lowercase and an uppercase letter): the kickstart sets it from the hash, which skips the check `passwd` enforces later.
-- Leave out `--luks-passphrase`: the installer then asks for the disk passphrase on the laptop, and it is never written to a file.
-- `--timezone` (default Europe/Prague), `--keyboard` (default us) and `--lang` (default en_US.UTF-8) change the locale.
+   ```bash
+   sudo dd if=fedora/.build/omadora-usb.img of=/dev/sdX bs=4M conv=fsync status=progress
+   ```
 
-Format the second stick as FAT with the label `OEMDRV` (e.g. `sudo mkfs.fat -n OEMDRV /dev/sdY1`) and copy `ks.cfg` to its root. The installer loads a `ks.cfg` from a volume labeled `OEMDRV` without any boot option. The file holds the password hash: wipe the stick afterwards.
+The image and the stick hold the password hash: delete the image and wipe the stick after the install.
 
-Rehearsed on 2026-10-13 in a VM with the kickstart on a USB stick labeled `OEMDRV`: the installer found it, asked for the passphrase twice, installed, and the result booted with Secure Boot to SDDM with no failed units or SELinux denials.
+Do not use Ventoy: its Secure Boot key could not be enrolled on the ZBook, and older Ventoy releases do not boot Fedora 45. A kickstart on a second stick labeled `OEMDRV` also works (the installer loads its `ks.cfg` on its own), but not on a partition of the installer stick itself: the installer holds that whole stick and cannot read it.
 
-## 4. Install
+The first ZBook was installed this way on 2026-10-14, with Secure Boot on.
 
-1. Plug in both sticks, power on, press F9 for the boot menu and pick the installer stick (the UEFI entry).
-2. Pick "Install Fedora" at the boot menu. The installer finds the kickstart, asks for the disk passphrase twice, then runs unattended: it partitions (EFI and `/boot` plain, everything else btrfs on LUKS2), installs Fedora and Omadora's packages from the network, runs Omarchy's system and user setup, and reboots.
-3. Remove both sticks when it reboots.
+## 3. Install
+
+1. Plug in the stick and the network cable, power on, press F9 for the boot menu and pick the USB stick (the UEFI entry).
+2. The installer's menu starts "Install Fedora 45" after 60 seconds, or at Enter. Do not pick "Test this media": the stick no longer matches the checksum that test checks, so it stops.
+3. The installer asks for the disk passphrase twice, then runs unattended: it partitions (EFI and `/boot` plain, everything else btrfs on LUKS2), installs Fedora and Omadora's packages from the network, and runs Omarchy's system and user setup.
+4. At "Installation complete. Press ENTER to quit", press Enter; it reboots. Remove the stick.
 
 If the installer stops with an error, the reason is on screen (switch consoles with Alt+Tab in the text installer); `/tmp/anaconda.log` and `/mnt/sysroot/var/log/omadora-kickstart.log` have the details.
 
-## 5. First boot
+## 4. First boot
 
 1. Type the disk passphrase at the Omarchy boot screen.
 2. SDDM shows the password field for the user the kickstart created: log in with the password. This also unlocks the login keyring that Intune uses.
@@ -60,7 +68,7 @@ omarchy version                    # the Omadora version
 
 4. Run `omarchy update` once, then go through the hardware checks below, then enroll in Intune (`INTUNE.md`, "How enrollment works").
 
-## 6. Hardware checks (first ZBook)
+## 5. Hardware checks (first ZBook)
 
 The virtual machine tests cover everything but the hardware. On the first ZBook, check each item and record the result in `HARDWARE.md` (what failed, with `journalctl -b -p warning` lines).
 
