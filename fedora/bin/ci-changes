@@ -1,0 +1,103 @@
+#!/bin/bash
+
+# Decide which CI checks a change needs (.github/workflows/fedora-ci.yml).
+# Prints one "<check>=true|false" line per check for $GITHUB_OUTPUT, plus
+# "any": false when only documentation changed.
+#
+# A check is skipped only when every changed file is on that check's list of
+# paths it does not read. Any other path, also one nobody foresaw, runs it:
+# a missing entry costs CI time, never a check that mattered. Without a usable
+# base (a new branch, a force push) every check runs.
+#
+# Usage: fedora/bin/ci-changes <base commit> <head commit>
+
+set -euo pipefail
+source "$(dirname "$(realpath "$0")")/../lib/common.sh"
+
+(( $# == 2 )) || die "usage: fedora/bin/ci-changes <base commit> <head commit>"
+base=$1
+head=$2
+cd "$FEDORA_ROOT"
+
+checks=(static resolve rpm upstream_tests)
+
+all_true() {
+  local check
+  for check in "${checks[@]}" any; do
+    echo "$check=true"
+  done
+}
+
+# GitHub sends 40 zeros as "before" for a new branch.
+if [[ -z $base || $base =~ ^0+$ ]] || ! git rev-parse --verify --quiet "$base^{commit}" >/dev/null; then
+  all_true
+  exit 0
+fi
+mapfile -t changed < <(git diff --name-only "$base" "$head")
+
+# Documentation, which no check reads.
+is_doc() {
+  case $1 in
+    # In case patterns, * also matches "/".
+    fedora/*.md | fedora/docs/* | .github/README.md) return 0 ;;
+  esac
+  return 1
+}
+
+# Paths that only local tools, local VM tests or other workflows use.
+is_local() {
+  case $1 in
+    fedora/tests/vm-* | fedora/tests/acceptance-expected-failures.txt | fedora/tests/repos-check.sh) return 0 ;;
+    fedora/bin/usb-image | fedora/lib/usb-image-esp.py | fedora/bin/probe-hardware) return 0 ;;
+    fedora/bin/copr-build-changed | fedora/bin/copr-build-core | fedora/bin/recipe-status | fedora/bin/bump-pkgs-commit) return 0 ;;
+    .github/workflows/fedora-sync.yml | .github/workflows/fedora-repos-check.yml) return 0 ;;
+  esac
+  return 1
+}
+
+# Paths that a check does not read, besides documentation.
+irrelevant() {
+  local check=$1 path=$2
+  is_doc "$path" && return 0
+  case $check in
+    static) return 1 ;;
+    resolve)
+      is_local "$path" && return 0
+      case $path in
+        fedora/tests/rpm.sh | fedora/tests/upstream-tests.sh | fedora/tests/upstream-expected-failures.txt) return 0 ;;
+        fedora/overrides/* | fedora/patches/* | fedora/migrations/* | fedora/build/*) return 0 ;;
+      esac
+      ;;
+    rpm)
+      is_local "$path" && return 0
+      case $path in
+        fedora/tests/resolve.sh | fedora/tests/upstream-tests.sh | fedora/tests/upstream-expected-failures.txt) return 0 ;;
+      esac
+      ;;
+    upstream_tests)
+      is_local "$path" && return 0
+      case $path in
+        fedora/rpm/* | fedora/repos/* | .copr/*) return 0 ;;
+        fedora/tests/resolve.sh | fedora/tests/rpm.sh | fedora/bin/kickstart) return 0 ;;
+      esac
+      ;;
+  esac
+  return 1
+}
+
+any=false
+for path in "${changed[@]}"; do
+  is_doc "$path" || any=true
+done
+
+for check in "${checks[@]}"; do
+  needed=false
+  for path in "${changed[@]}"; do
+    if ! irrelevant "$check" "$path"; then
+      needed=true
+      break
+    fi
+  done
+  echo "$check=$needed"
+done
+echo "any=$any"

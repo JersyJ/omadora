@@ -26,6 +26,7 @@ Do not edit files outside `fedora/`, `.copr/`, `.github/workflows/` and `.github
 | `bin/migrations-status` | Show (`--check`) or add (`--update`) migration review rows |
 | `bin/port-status [--list]` | Porting backlog: shipped files that still use pacman, AUR, Limine, mkinitcpio or ufw |
 | `bin/copr-build-changed <before> <after>` | Build in our COPR what these commits changed. CI runs it after each push to `main` |
+| `bin/ci-changes <base> <head>` | Decide which CI checks a change needs. CI skips a check only if all changed files are paths that the check does not read |
 | `bin/copr-build-core` | Build `omarchy`, `omarchy-settings` and `omadora-repos` in our COPR from the pushed commit |
 | `bin/recipe-status [--check]` | Compare our recipes with the omarchy-pkgs PKGBUILDs and Arch packages |
 | `bin/bump-pkgs-commit <commit>` | Move the omarchy-pkgs pin: `upstream.lock`, each recipe's `pkgs_commit`, and the checksums of its omarchy-pkgs sources |

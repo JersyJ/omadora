@@ -6,7 +6,30 @@ on:
   pull_request:
 
 jobs:
+  changes:
+    # Which checks this change needs (fedora/bin/ci-changes): a check is
+    # skipped only when every changed file is on its list of paths it does not
+    # read, so documentation-only changes run nothing.
+    runs-on: ubuntu-latest
+    outputs:
+      static: ${{ steps.decide.outputs.static }}
+      resolve: ${{ steps.decide.outputs.resolve }}
+      rpm: ${{ steps.decide.outputs.rpm }}
+      upstream_tests: ${{ steps.decide.outputs.upstream_tests }}
+      any: ${{ steps.decide.outputs.any }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Decide
+        id: decide
+        env:
+          BASE: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+        run: fedora/bin/ci-changes "$BASE" "$GITHUB_SHA" | tee -a "$GITHUB_OUTPUT"
+
   static:
+    needs: changes
+    if: needs.changes.outputs.static == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -20,6 +43,8 @@ jobs:
   resolve:
     # Does Omarchy's package set install on Fedora with only the allowed
     # repositories? Runs in a throwaway Fedora container; installs nothing.
+    needs: changes
+    if: needs.changes.outputs.resolve == 'true'
     runs-on: ubuntu-latest
     container: registry.fedoraproject.org/fedora:45
     steps:
@@ -36,6 +61,8 @@ jobs:
   resolve-optional:
     # The same for the packages Omarchy's optional installers map to, with the
     # on-demand vendor repositories and COPRs added.
+    needs: changes
+    if: needs.changes.outputs.resolve == 'true'
     runs-on: ubuntu-latest
     container: registry.fedoraproject.org/fedora:45
     steps:
@@ -52,6 +79,8 @@ jobs:
   rpm:
     # Build omarchy, omarchy-settings and omadora-repos the way COPR does, and
     # install them in a throwaway Fedora container.
+    needs: changes
+    if: needs.changes.outputs.rpm == 'true'
     runs-on: ubuntu-latest
     container: registry.fedoraproject.org/fedora:45
     steps:
@@ -69,6 +98,8 @@ jobs:
     # Upstream's own CLI and shell test suites, run against the assembled
     # Fedora tree; deliberate differences are listed in
     # fedora/tests/upstream-expected-failures.txt.
+    needs: changes
+    if: needs.changes.outputs.upstream_tests == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 40
     container: registry.fedoraproject.org/fedora:45
@@ -91,8 +122,13 @@ jobs:
     # secret: the contents of ~/.config/copr from
     # https://copr.fedorainfracloud.org/api/. COPR tokens expire; when this job
     # fails to authenticate, renew the token and update the secret.
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [static, resolve, resolve-optional, rpm, upstream-tests]
+    # Runs when no check failed; a check this change did not need is skipped,
+    # which counts as passed.
+    if: >-
+      !cancelled() && github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+      needs.changes.outputs.any == 'true' &&
+      !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled')
+    needs: [changes, static, resolve, resolve-optional, rpm, upstream-tests]
     runs-on: ubuntu-latest
     concurrency:
       group: copr
