@@ -63,6 +63,11 @@ Requires:       perl(open)
 # Arch's tesseract depends on its orientation and script detection data
 # (tesseract-data-osd); Fedora's does not, so tesseract --psm 0/1 would fail.
 Requires:       (tesseract-osd if tesseract)
+# Arch's linux-firmware carries all of Intel's Wi-Fi and Bluetooth firmware;
+# Fedora splits them out of linux-firmware. The ZBook's Wi-Fi 7 BE211 needs
+# iwlwifi-mld-firmware and its CNVi Bluetooth iwlbluetooth-firmware.
+Requires:       iwlwifi-mld-firmware
+Requires:       iwlbluetooth-firmware
 # Package management (pacman and pacman-contrib on Arch)
 Requires:       dnf5
 # omarchy-provision-user sets up the user directories with it

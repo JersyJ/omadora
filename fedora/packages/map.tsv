@@ -145,7 +145,7 @@ limine		drop	Fedora uses GRUB2 + snapper + grub-btrfs instead of Limine
 limine-mkinitcpio-hook		drop	Fedora uses GRUB2 + snapper + grub-btrfs instead of Limine
 limine-snapper-sync		drop	Fedora uses GRUB2 + snapper + grub-btrfs instead of Limine
 linux		drop	Fedora's stock kernel is used (listed up to v4.0.3)
-linux-firmware	linux-firmware	fedora	
+linux-firmware	linux-firmware	fedora	Fedora splits Intel's Wi-Fi and Bluetooth firmware out; the omarchy package requires the ZBook's (iwlwifi-mld-firmware, iwlbluetooth-firmware)
 linux-firmware-cirrus-dx13260		drop	hardware not supported by this fork (HP ZBook 8 G2i only)
 linux-firmware-marvell		drop	hardware not supported by this fork (HP ZBook 8 G2i only)
 linux-headers		drop	Fedora's stock kernel is used (listed up to v4.0.3)
