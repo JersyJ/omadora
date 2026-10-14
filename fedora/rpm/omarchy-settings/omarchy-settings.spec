@@ -39,6 +39,11 @@ Requires:       sudo
 Requires:       hicolor-icon-theme
 Requires:       plymouth
 Requires:       plymouth-plugin-script
+# Arch's plymouth carries its text renderers (label-freetype, label-pango);
+# Fedora splits them out. Without them plymouth 26.134.222 turns its console
+# viewer off and then crashes drawing the Omarchy theme on real displays
+# (fixed upstream in 88c8dd8, after that release).
+Requires:       plymouth-plugin-label
 Requires:       abattis-cantarell-vf-fonts
 Requires:       util-linux
 # omadora-authselect, run by the pam_intune.so file triggers
@@ -270,6 +275,16 @@ udevadm control --reload >/dev/null 2>&1 || :
 fc-cache -f %{_datadir}/fonts/omarchy >/dev/null 2>&1 || :
 %{_libexecdir}/omadora/omarchy-settings-transition installed || \
   echo "ERROR: Temporary Omarchy sudo grants remain or their boot cleanup is missing; passwordless sudo stays disabled until this package installs cleanly." >&2
+# Installs from before plymouth-plugin-label was required have an initramfs
+# without it, which crashes the boot splash: rebuild once. The installer builds
+# a fresh install's initramfs after the packages, and its running kernel has
+# no initramfs in /boot, so this skips there.
+initramfs=/boot/initramfs-$(uname -r).img
+if [ -f "$initramfs" ] && [ -f %{_libdir}/plymouth/label-freetype.so ] &&
+   ! lsinitrd "$initramfs" 2>/dev/null | grep -q 'plymouth/label-freetype\.so'; then
+  echo "Rebuilding the initramfs to add Plymouth's text renderer"
+  dracut --force --regenerate-all >/dev/null 2>&1 || echo "WARNING: dracut failed; run: sudo dracut --force --regenerate-all" >&2
+fi
 # 90-omarchy-hyprland-reload-resume.hook
 if [ -x %{_bindir}/omarchy-hyprland-reload-guard ]; then
   %{_bindir}/omarchy-hyprland-reload-guard resume >/dev/null 2>&1 || :
