@@ -1,102 +1,131 @@
 # Installing Omadora on a ZBook
 
-How to install Omadora on an HP ZBook 8 G2i 14" (`HARDWARE.md`). The install wipes the disk. It needs one USB stick (2 GB or more), a wired network connection (the installer joins Ethernet by DHCP; the ZBook has no Ethernet port, so a USB-C adapter or a dock) and about 30 minutes.
+This procedure installs Omadora on an HP ZBook 8 G2i 14" (`HARDWARE.md`).
+
+> **WARNING:** The install erases the full disk, Windows included.
+
+You need:
+
+- 1 USB stick, 2 GB or larger
+- A wired network connection. The installer uses Ethernet with DHCP only. The ZBook has no Ethernet port: use a USB-C adapter or a dock.
+- Approximately 30 minutes
 
 ## 1. Firmware settings
 
-In the BIOS setup (F10 at power-on):
+Press F10 at power-on to open the BIOS setup.
 
-1. Update the BIOS first if HP has a newer one: with HP's Windows tools while the preloaded Windows is still there, or from the BIOS setup's own network update. After the install, `omarchy-update-firmware` (fwupd) installs whatever firmware HP publishes to LVFS.
-2. **Secure Boot: on**, in User Mode. The company requires it (`INTUNE.md`).
-3. **"Enable MS UEFI CA key": on.** Fedora's bootloader (shim) is signed by Microsoft's third-party UEFI CA; with this setting off the USB stick and the installed system do not boot with Secure Boot on.
-4. **Fast Boot: off** (Advanced, Boot Options) while installing. With it on, the F9 boot menu and "Boot From EFI File" list no USB stick at all. Turn it back on afterwards if you like.
-5. **Intel AMT: off** (Advanced, Remote Management Options), as the company guide recommends; Intune does not check it.
-6. Leave TPM and HP Sure Start on.
+1. If HP has a newer BIOS, install it first. Use HP's Windows tools before the install erases Windows, or the BIOS network update.
+2. Set **Secure Boot** to on, in User Mode. The company requires it (`INTUNE.md`).
+3. Set **Enable MS UEFI CA key** to on. Microsoft's third-party CA signs Fedora's boot loader (shim). If this setting is off, the stick and the installed system do not boot with Secure Boot.
+4. Set **Fast Boot** to off (Advanced, Boot Options). If Fast Boot is on, the F9 menu shows no USB stick.
+5. Set **Intel AMT** to off (Advanced, Remote Management Options). The company guide recommends this. Intune does not check it.
+6. Keep TPM and HP Sure Start on.
 
-## 2. The USB stick
+After the install, `omarchy-update-firmware` (fwupd) installs the firmware that HP publishes to LVFS. You can set Fast Boot to on again.
 
-One stick carries both the installer and the kickstart, which answers every installer question and runs Omarchy's setup. Prepare it on any Linux machine with this repository:
+## 2. USB stick
 
-1. Download the Fedora Everything netinst ISO for the release in `upstream.lock` (`FEDORA_RELEASE`) from https://fedoraproject.org/misc#everything, with its `CHECKSUM` file. Verify it: `gpg --verify` the CHECKSUM against Fedora's key (https://fedoraproject.org/security), then `sha256sum -c`. The packages come from the network, so the install is always current: the ISO only starts the installer.
-2. Generate the kickstart. `openssl passwd -6` asks for the user's password; choose one that meets the company rule (at least 12 characters, a digit, a lowercase and an uppercase letter), because the kickstart sets it from the hash, which skips the check `passwd` enforces later:
+The stick holds the installer and the kickstart. The kickstart answers all installer questions and runs Omarchy's setup. Prepare the stick on a Linux computer with this repository.
+
+1. Download the Fedora Everything netinst ISO and its `CHECKSUM` file from https://fedoraproject.org/misc#everything. Use the release in `upstream.lock` (`FEDORA_RELEASE`).
+2. Verify the ISO. Run `gpg --verify` on the CHECKSUM file with Fedora's key (https://fedoraproject.org/security), then `sha256sum -c`.
+3. Make the kickstart:
 
    ```bash
    fedora/bin/kickstart --user <name> --password-hash "$(openssl passwd -6)" --disk nvme0n1 >fedora/.build/ks.cfg
    ```
 
-   Leave out `--luks-passphrase`: the installer then asks for the disk passphrase on the laptop, and it is never written to a file. `--timezone` (default Europe/Prague), `--keyboard` (default us) and `--lang` (default en_US.UTF-8) change the locale. `fedora/.build/` is ignored by git.
-3. Build the stick image (needs `sfdisk`, `cpio` and `uv`):
+   - `openssl passwd -6` asks for the user password. Use the company rule: 12 characters or more, with a digit, a lowercase and an uppercase letter. The kickstart does not check the password.
+   - Do not use `--luks-passphrase`. The installer then asks for the disk passphrase on the laptop, and no file contains it.
+   - To change the locale, use `--timezone` (default Europe/Prague), `--keyboard` (default us) and `--lang` (default en_US.UTF-8).
+
+4. Build the stick image. This step needs `sfdisk`, `cpio` and `uv`.
 
    ```bash
    fedora/bin/usb-image Fedora-Everything-netinst-x86_64-<release>.iso fedora/.build/ks.cfg fedora/.build/omadora-usb.img
    ```
 
-   It adds the kickstart to the ISO's EFI partition as a small extra initrd that the installer's boot menu loads, the way Fedora's `mkksiso` does; shim and GRUB stay as Fedora signed them.
-4. Write it to the stick (`lsblk` shows which device the stick is; usbguard may need `sudo usbguard allow-device <id>` first):
+5. Find the stick device with `lsblk`. If usbguard blocks the stick, run `sudo usbguard allow-device <id>`.
+6. Write the image to the stick:
 
    ```bash
    sudo dd if=fedora/.build/omadora-usb.img of=/dev/sdX bs=4M conv=fsync status=progress
    ```
 
-The image and the stick hold the password hash: delete the image and wipe the stick after the install.
+> **CAUTION:** The image and the stick contain the password hash. After the install, delete the image and erase the stick.
 
-Do not use Ventoy: its Secure Boot key could not be enrolled on the ZBook, and older Ventoy releases do not boot Fedora 45. A kickstart on a second stick labeled `OEMDRV` also works (the installer loads its `ks.cfg` on its own), but not on a partition of the installer stick itself: the installer holds that whole stick and cannot read it.
-
-The first ZBook was installed this way on 2026-10-14, with Secure Boot on.
+> **NOTE:**
+> - `usb-image` puts the kickstart in the ISO's EFI partition as an extra initrd, as Fedora's `mkksiso` does. Shim and GRUB keep Fedora's signatures.
+> - The packages come from the network. The ISO only starts the installer, so each install is current.
+> - Do not use Ventoy. Its Secure Boot key does not enroll on the ZBook, and old releases do not boot Fedora 45.
+> - A kickstart on a second stick with the label `OEMDRV` also works. A kickstart on a partition of the installer stick does not work: the installer locks that stick.
+> - The first ZBook was installed with this procedure on 2026-10-14, with Secure Boot on.
 
 ## 3. Install
 
-1. Plug in the stick and the network cable, power on, press F9 for the boot menu and pick the USB stick (the UEFI entry).
-2. The installer's menu starts "Install Fedora 45" after 60 seconds, or at Enter. Do not pick "Test this media": the stick no longer matches the checksum that test checks, so it stops.
-3. The installer asks for the disk passphrase twice, then runs unattended: it partitions (EFI and `/boot` plain, everything else btrfs on LUKS2), installs Fedora and Omadora's packages from the network, and runs Omarchy's system and user setup.
-4. At "Installation complete. Press ENTER to quit", press Enter; it reboots. Remove the stick.
+1. Connect the stick and the network cable.
+2. Power on and press F9. Select the USB stick (UEFI entry).
+3. Select **Install Fedora 45**, or wait 60 seconds. Do not select **Test this media**: that check fails because the stick contains the kickstart.
+4. Type the disk passphrase two times.
+5. Wait. The installer partitions the disk, installs the packages and runs Omarchy's setup.
+   - EFI and `/boot` are not encrypted. All other data is btrfs on LUKS2.
+6. At "Installation complete. Press ENTER to quit", press Enter. The laptop reboots.
+7. Remove the stick.
 
-If the installer stops with an error, the reason is on screen (switch consoles with Alt+Tab in the text installer); `/tmp/anaconda.log` and `/mnt/sysroot/var/log/omadora-kickstart.log` have the details.
+If the installer stops, read the error on the screen. Press Alt+Tab to change consoles. For details, see `/tmp/anaconda.log` and `/mnt/sysroot/var/log/omadora-kickstart.log`.
 
 ## 4. First boot
 
-1. Type the disk passphrase at the Omarchy boot screen.
-2. SDDM shows the password field for the user the kickstart created: log in with the password. This also unlocks the login keyring that Intune uses.
+1. At the Omarchy boot screen, type the disk passphrase.
+2. At the login screen, type the user password. This also unlocks the login keyring that Intune uses.
 3. Check the install:
 
-```bash
-systemctl --failed                 # nothing
-sudo ausearch -m avc -ts boot      # no denials
-mokutil --sb-state                 # SecureBoot enabled
-omarchy version                    # the Omadora version
-```
+   ```bash
+   systemctl --failed                 # 0 units
+   sudo ausearch -m avc -ts boot      # <no matches>
+   mokutil --sb-state                 # SecureBoot enabled
+   omarchy version                    # the Omadora version
+   ```
 
-4. Run `omarchy update` once, then go through the hardware checks below, then enroll in Intune (`INTUNE.md`, "How enrollment works").
+4. Run `omarchy update`.
+5. Do the hardware checks (section 5).
+6. Enroll in Intune (`INTUNE.md`, "How enrollment works").
 
-## 5. Hardware checks (first ZBook)
+## 5. Hardware checks
 
-The virtual machine tests cover everything but the hardware. On the first ZBook, check each item and record the result in `HARDWARE.md` (what failed, with `journalctl -b -p warning` lines).
+The VM tests do not test hardware. On each new laptop model, do these checks. Record the results in `HARDWARE.md`. For each failure, record the `journalctl -b -p warning` lines.
 
-- [ ] Wi-Fi 7 (BE211): joins the office and home networks; `iw dev` shows the link, and a large download keeps a normal speed. Upstream disables Wi-Fi 7 on the BE200/BE211 PCI cards for a broken data path; this card's CNVi ID (`8086:e340`) is not in that list. If the rate collapses, add `options iwlwifi disable_11be=Y` to `/etc/modprobe.d/iwlwifi-disable-eht.conf`
-- [ ] Bluetooth: pair a headset; audio plays through it
-- [ ] Speakers, headphone jack and both microphones (`wpctl status`; record a few seconds and play back)
-- [ ] Camera: the HP 5MP camera shows a picture (e.g. a video call in Edge)
-- [ ] Fingerprint: Omarchy menu, Setup, Security, Fingerprint; enroll a finger, then check it unlocks the lock screen and answers `sudo`
-- [ ] Keys: brightness, volume, mute and microphone mute show their on-screen indicators
-- [ ] Suspend: close the lid, wait a minute, open it; the lock screen is back and takes the password. Same from the menu (System, Suspend)
-- [ ] Lock: Super+Ctrl+L locks; leaving the laptop idle locks it after 5 minutes
-- [ ] External display over USB-C or Thunderbolt, and a dock if the company uses one
-- [ ] Power: `omarchy-powerprofiles-list` shows the profiles, `omarchy-powerprofiles-set battery power-saver` switches, and `cat /sys/firmware/acpi/platform_profile` follows; the battery shows in the bar
-- [ ] FRED: `grep -o fred=on /proc/cmdline` prints `fred=on` (Panther Lake)
-- [ ] Firmware: `omarchy-update-firmware` lists the ZBook's devices and updates what LVFS has
-- [ ] Touchpad: tap to click, two-finger scroll
+- [ ] **Wi-Fi:** connect to a network. `iw dev wlp0s20f3 link` shows the link. A large download keeps its speed.
+  - If the speed drops a lot, put `options iwlwifi disable_11be=Y` in `/etc/modprobe.d/iwlwifi-disable-eht.conf`. Upstream does this for BE200/BE211 PCI cards. The ZBook's CNVi card (`8086:e340`) is not on that list.
+- [ ] **Bluetooth:** pair a headset. Audio plays through it.
+- [ ] **Audio:** speakers, headphone jack and both microphones work (`wpctl status`; record and play back).
+- [ ] **Camera:** the HP 5MP camera shows a picture, for example in an Edge video call.
+- [ ] **Fingerprint:** Omarchy menu, Setup, Security, Fingerprint. Enroll a finger. The finger unlocks the lock screen and `sudo`.
+- [ ] **Keys:** brightness, volume, mute and microphone mute show their indicators.
+- [ ] **Suspend:** close the lid for 1 minute, then open it. The lock screen shows and accepts the password. Do the same from the menu (System, Suspend).
+- [ ] **Lock:** Super+Ctrl+L locks. After 5 minutes idle, the laptop locks.
+- [ ] **External display:** USB-C or Thunderbolt, and the company dock if there is one.
+- [ ] **Power:** `powerprofilesctl set power-saver` changes `/sys/firmware/acpi/platform_profile` to `low-power`. The bar shows the battery.
+- [ ] **FRED:** `grep -o fred=on /proc/cmdline` prints `fred=on` (Panther Lake).
+- [ ] **Firmware:** `omarchy-update-firmware` lists the laptop's devices.
+- [ ] **Touchpad:** tap to click and two-finger scroll work.
 
 ## Login screen size
 
-The login screen picks its own scale (Hyprland's automatic choice: 1.5 on the ZBook's 14" 1920x1200 panel), separate from the desktop's (Omarchy menu, Setup, Monitor scaling, saved in `~/.config/hypr/monitors.lua`). To give the login screen the desktop's scale, write it to `/etc/omadora/greeter-scale`; it applies from the next time the login screen starts:
+The login screen and the desktop have separate scales:
+
+- **Login screen:** Hyprland's automatic scale, 1.5 on the ZBook's 1920x1200 panel.
+- **Desktop:** Omarchy menu, Setup, Monitor scaling. Saved in `~/.config/hypr/monitors.lua`.
+
+To give the login screen the desktop scale, write the scale to `/etc/omadora/greeter-scale`:
 
 ```bash
 sudo mkdir -p /etc/omadora && echo 1.25 | sudo tee /etc/omadora/greeter-scale
 ```
 
-Remove the file to go back to the automatic scale.
+The new scale shows the next time the login screen starts. To use the automatic scale again, delete the file. If you change the desktop scale, write the file again.
 
-## Changing passwords later
+## Passwords
 
-- User password: Omarchy menu, Update, Password, User (runs `passwd`). The login keyring's password follows it, so Intune keeps its tokens.
-- Disk passphrase: Omarchy menu, Update, Password, Drive Encryption.
+- **User password:** Omarchy menu, Update, Password, User (runs `passwd`). The login keyring password changes with it, so Intune keeps its tokens.
+- **Disk passphrase:** Omarchy menu, Update, Password, Drive Encryption.

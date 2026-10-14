@@ -1,6 +1,8 @@
 # Repositories
 
-Every package Omadora installs comes from Fedora, from a repository in this directory, or from Flathub. `fedora/packages/map.tsv` says which; each third-party repository is limited with `includepkgs=` to exactly the packages taken from it, so none of them can replace a Fedora package such as sudo, glibc or the kernel.
+Each Omadora package comes from Fedora, from a repository in this directory, or from Flathub. `fedora/packages/map.tsv` gives the source of each package.
+
+Each third-party repository has an `includepkgs=` limit with only the packages that we take from it. Thus no repository can replace a Fedora package such as sudo, glibc or the kernel.
 
 | File | Installed as | Contents |
 | --- | --- | --- |
@@ -8,21 +10,32 @@ Every package Omadora installs comes from Fedora, from a repository in this dire
 | `nett00n-hyprland.repo` | `/etc/yum.repos.d/` | The Hyprland stack and Quickshell |
 | `coprs.repo` | `/etc/yum.repos.d/` | Single-app COPRs: lazygit, gpu-screen-recorder, moonlight-qt |
 | `mise.repo` | `/etc/yum.repos.d/` | mise's vendor repository |
-| `microsoft.repo`, `microsoft-edge.repo` | `/etc/yum.repos.d/` | Intune Portal, its identity broker, Defender for Endpoint (Microsoft's RHEL 10 repository) and Edge, which company compliance requires (`docs/INTUNE.md`) |
-| `repos.override.d/50-omadora-rpmfusion.repo` | `/etc/dnf/repos.override.d/` | Limits for RPM Fusion, whose own release packages own its repo files |
-| `keys/*.asc` | `/etc/pki/rpm-gpg/omadora/` | The signing keys of the repositories above, imported by `omadora-repos` after every install or upgrade, together with Fedora's and RPM Fusion's: dnf5-automatic cannot answer a key prompt, so without them the daily security updates fail on a fresh install. `keys/sources.tsv` says where each is published; the weekly repository check compares them |
-| `versionlock.toml` | `/etc/dnf/versionlock.toml` | Hyprland held at 0.56.2, Quickshell at 0.3 |
-| `on-demand/*.repo` | `/etc/yum.repos.d/`, when an app needs it | Vendor repositories and app COPRs for Omarchy's optional installers; see `on-demand/README.md` |
+| `microsoft.repo`, `microsoft-edge.repo` | `/etc/yum.repos.d/` | Intune Portal, its identity broker, Defender for Endpoint (Microsoft's RHEL 10 repository) and Edge. Company compliance requires them (`docs/INTUNE.md`) |
+| `repos.override.d/50-omadora-rpmfusion.repo` | `/etc/dnf/repos.override.d/` | Limits for RPM Fusion. RPM Fusion's release packages own its repository files |
+| `keys/*.asc` | `/etc/pki/rpm-gpg/omadora/` | Signing keys of the repositories above (`keys/sources.tsv` gives where each key is published) |
+| `versionlock.toml` | `/etc/dnf/versionlock.toml` | Hyprland at 0.56.2, Quickshell at 0.3 |
+| `on-demand/*.repo` | `/etc/yum.repos.d/`, when an app needs it | Vendor repositories and app COPRs for Omarchy's optional installers (`on-demand/README.md`) |
+
+## Signing keys
+
+`omadora-repos` imports the keys after each install or upgrade, together with Fedora's and RPM Fusion's keys. dnf5-automatic cannot answer a key prompt. Without the keys, the daily security updates fail on a fresh install. The weekly repository check compares the keys with the published keys.
 
 ## Checks
 
-- `fedora/tests/static.sh` fails when a package the map assigns to a repository is missing from that repository's `includepkgs`.
-- `fedora/tests/resolve.sh` (CI, in a `fedora:45` container) installs these files, fails when a limited repository offers anything its `includepkgs` does not allow, and resolves the base package set; `--optional` adds the on-demand repositories and resolves the optional set. It also lists which repository each package comes from.
+- `fedora/tests/static.sh` fails if a package that the map gives to a repository is not in that repository's `includepkgs`.
+- `fedora/tests/resolve.sh` runs in CI, in a `fedora:45` container:
+  - It installs these files.
+  - It fails if a limited repository offers a package that its `includepkgs` does not allow.
+  - It resolves the base package set. With `--optional`, it adds the on-demand repositories and resolves the optional set.
+  - It lists the repository of each package.
 
-## Changing a limit
+## Change a limit
 
-Add the package to the map, then to the repository's `includepkgs` (globs are fine for subpackage families such as `kmod-v4l2loopback*`). When a new dependency from a limited repository appears, the resolution test names it.
+1. Add the package to the map.
+2. Add the package to the repository's `includepkgs`. Globs are permitted for subpackage families, for example `kmod-v4l2loopback*`.
 
-## After Fedora 45's release (2026-10-20)
+If a new dependency from a limited repository occurs, the resolution test gives its name.
 
-RPM Fusion moves Fedora 45 from `development/45` to `releases/45`, and `updates-testing` stops being enabled by default. Update the COPR build repositories (see `fedora/rpm/README.md`); the files here need no change.
+## After the Fedora 45 release (2026-10-20)
+
+RPM Fusion moves Fedora 45 from `development/45` to `releases/45`, and Fedora disables `updates-testing` by default. Update the COPR build repositories (`fedora/rpm/README.md`). The files in this directory need no change.

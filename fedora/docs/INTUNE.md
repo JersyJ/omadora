@@ -1,66 +1,77 @@
 # Intune and company compliance
 
-What the company requires of a Linux laptop, and how Omadora meets it. Source: the company's internal "Linux Corporate Device Setup and Support Guide" (read 2026-10-12). This file keeps only what the port needs; internal hosts, certificates, access-package names and support channels stay in that guide, which is not in this public repository.
+This file lists the company requirements for a Linux laptop and how Omadora meets them.
 
-Intune enrollment is Phase 4 (pilot) work (`DECISIONS.md`). Everything below that Omadora can prepare ships before then.
+- **Source:** the company's internal "Linux Corporate Device Setup and Support Guide" (read 2026-10-12).
+- **Scope:** only what the port needs. Internal hosts, certificates, access-package names and support channels stay in the internal guide. Do not put them in this public repository.
+- **Status (2026-10-14):** the first ZBook has all packages and settings. Enrollment is not done (Phase 4, `DECISIONS.md`).
 
 ## Compliance checks
 
-Intune checks these continuously; a failing one makes the device non-compliant and blocks company services in Edge.
+Intune checks these items continuously. If one check fails, the device is non-compliant and Edge blocks company services.
 
-| Requirement | Omadora today | Work left |
+| Requirement | Omadora | Open |
 | --- | --- | --- |
-| Supported OS: Fedora newer than 42, x86_64 Intel or AMD | Fedora 45 on the ZBook (Intel) | None. Intune is not for shared machines: one user per device |
-| Secure Boot enabled, no exceptions; Secure Boot in User Mode; third-party UEFI certificates allowed | Boots with Secure Boot on through Fedora's shim (tested in a VM with Microsoft's keys) | On the ZBook: confirm HP's "Enable MS UEFI CA key" setting is on (`HARDWARE.md`) |
-| Disk encryption at OS level: the whole disk, or the OS and `/home`; `/boot` and `/boot/efi` are ignored | The kickstart encrypts the btrfs with LUKS2 | None (test VMs alone run unencrypted) |
-| Microsoft Edge installed | In the base install (`packages/extra.txt`, `repos/microsoft-edge.repo`) | None |
-| Microsoft Defender for Endpoint (`mdatp`): installed, healthy, definitions up to date, registered to the organisation, real-time protection on | `mdatp` in the base install | Intune configures and registers it; verify health on the first enrolled pilot device |
-| Screen lock settings | Omarchy locks with its Quickshell lock screen (`omarchy-apply-lock`): on Super+Ctrl+L and after 5 minutes idle (`config/omarchy/shell.json`, `idle.lock = 300`), password through PAM (`/etc/pam.d/omarchy-lock-password`). Verified 2026-10-13 in a VM (`tests/vm-password-login.sh`): both lock, a wrong password is refused, the right one unlocks, no SELinux denials | Unknown how Intune reads this setting; verify on the first enrolled pilot device |
-| Local password: at least 12 characters, one digit, one lowercase and one uppercase letter (no MFA on local accounts) | omarchy-settings ships `/etc/security/pwquality.conf.d/50-omadora.conf` (`minlen = 12`, `dcredit = -1`, `lcredit = -1`, `ucredit = -1`), which `passwd` enforces through `pam_pwquality` | The kickstart sets the first password from a hash, which bypasses the check: choose a compliant one at install |
-| Automatic security updates; critical security updates applied daily | Met: `dnf5-automatic.timer` installs security updates daily (`/etc/dnf/automatic.conf`, `upgrade_type = security`, no automatic reboot), with a snapper snapshot before and after | Packages without security advisories (our COPR, the Hyprland COPR) wait for `omarchy update`, so the version locks hold. How Intune detects this is not documented; check on the pilot laptop |
-| Full OS update at least every two weeks; Intune reminds every Thursday (14:30 local), allows two postponements, then forces it | Met: `omarchy update` runs a full `dnf upgrade --refresh` plus Flatpak updates, migrations and restart checks | The two-week upstream sync rhythm fits this policy |
-| Hostname `L<serial>` | Anaconda's default | None: Intune sets it |
-| Pulse Secure (Ivanti) policies | No VPN client | Optional per user; see the internal guide |
+| Fedora newer than 42, x86_64 Intel or AMD. One user per device | Fedora 45, Intel ZBook | None |
+| Secure Boot on, in User Mode. Third-party UEFI certificates allowed | Fedora's shim boots with Secure Boot on. On the ZBook: "Enable MS UEFI CA key" on, `mokutil` shows "SecureBoot enabled" (2026-10-14) | None |
+| OS disk encryption: the full disk, or the OS and `/home` (`/boot` and `/boot/efi` do not count) | The kickstart encrypts the btrfs with LUKS2. ZBook: encrypted (2026-10-14) | None |
+| Microsoft Edge installed | Base install (`packages/extra.txt`, `repos/microsoft-edge.repo`) | None |
+| Defender for Endpoint (`mdatp`): installed, healthy, current definitions, registered, real-time protection on | `mdatp` in the base install. ZBook: "No license found" before enrollment (expected) | Intune registers it. Check health after enrollment |
+| Screen lock | Quickshell lock screen: Super+Ctrl+L and 5 minutes idle (`idle.lock = 300`), password through `/etc/pam.d/omarchy-lock-password`. Works in the VM (2026-10-13) and on the ZBook, also after resume (2026-10-14) | How Intune reads this setting is not known. Check after enrollment |
+| Local password: 12 characters or more, a digit, a lowercase and an uppercase letter | `/etc/security/pwquality.conf.d/50-omadora.conf` (`minlen = 12`, `dcredit = -1`, `lcredit = -1`, `ucredit = -1`). `passwd` applies it through `pam_pwquality` | The kickstart does not check the first password. Choose a compliant password at install |
+| Daily critical security updates | `dnf5-automatic.timer`: security updates each day (`upgrade_type = security`), no automatic reboot, snapper snapshots before and after | Packages without advisories (our COPR, the Hyprland COPR) wait for `omarchy update`. How Intune detects updates is not documented. Check after enrollment |
+| Full OS update every 2 weeks. Intune reminds each Thursday 14:30, allows 2 postponements, then forces it | `omarchy update`: full `dnf upgrade --refresh`, Flatpak updates, migrations, restart checks | None. The 2-week sync agrees with this |
+| Hostname `L<serial>` | Installer default | None: Intune sets it |
+| Pulse Secure (Ivanti) | No VPN client | Optional per user (internal guide) |
 
-## Packages Intune needs on Fedora
+## Packages
 
 | Package | Repository | Notes |
 | --- | --- | --- |
-| `intune-portal` (Company Portal, pulls `microsoft-identity-broker`) | Microsoft RHEL 10 prod (`repos/microsoft.repo`) | The RHEL 10 build links Fedora's own WebKitGTK 6.0 (`webkitgtk6.0`) and libsoup 3, which Fedora keeps patched. The RHEL 9 build (same version) needs the WebKitGTK 4.0 API, which upstream removed in 2.52 (2026-03); its last release, 2.50.6, gets no more security fixes |
-| `mdatp` (Defender for Endpoint) | Microsoft RHEL 10 prod | Configured by Intune |
+| `intune-portal` (Company Portal; installs `microsoft-identity-broker`) | Microsoft RHEL 10 prod (`repos/microsoft.repo`) | Uses Fedora's WebKitGTK 6.0 and libsoup 3, which Fedora keeps patched. The RHEL 9 build needs WebKitGTK 4.0, which gets no security fixes after 2.50.6 |
+| `mdatp` (Defender for Endpoint) | Microsoft RHEL 10 prod | Intune configures it |
 | `microsoft-edge-stable` | Microsoft Edge (`repos/microsoft-edge.repo`) | |
-| `xorg-x11-server-Xwayland` | Fedora | The RHEL 9 Intune Portal was an X11 (GTK 3) app and panicked without Xwayland ("Unable to initialize GTK+"); the RHEL 10 build runs on Wayland. The omarchy package still requires Xwayland for other X11 apps |
-| `libsecret` (`secret-tool`) | Fedora | Troubleshooting only |
+| `xorg-x11-server-Xwayland` | Fedora | The RHEL 10 Intune Portal runs on Wayland. `omarchy` requires Xwayland for other X11 apps |
+| `libsecret` (`secret-tool`) | Fedora | For troubleshooting only |
 
-No Java 11 is needed. The current identity broker (3.x) is native code; only `microsoft-identity-diagnostics` asks for a JRE, and accepts Fedora's `java-25-openjdk` (`jre >= 17`). The guide's Temurin 11 steps date from the Java broker.
+- **Java:** not necessary. The identity broker 3.x is native code. Only `microsoft-identity-diagnostics` needs a JRE, and Fedora's `java-25-openjdk` is sufficient. The guide's Temurin 11 steps are for the old Java broker.
+- **Signatures:** Microsoft signs the RHEL 10 packages with a newer key (`repos/keys/microsoft-rhel10.asc`). dnf checks package signatures. dnf does not check metadata signatures, as for Fedora's repositories, because the daily unattended update cannot read a metadata key.
+- **Limits:** each Microsoft repository has an `includepkgs` limit (`repos/README.md`). The guide's commands add repositories without limits. Omadora does not.
+- **Release upgrade:** the guide removes `intune*` before `dnf system-upgrade` and installs it again after. Omadora's release upgrade procedure must do the same.
 
-Verified 2026-10-12 in the test VM (Fedora 45): `intune-portal`, `mdatp` and `microsoft-edge-stable` resolve together from these repositories, and Intune Portal starts and shows its window in the Hyprland session. Enrollment itself is untested until the pilot.
+### Tests
 
-`intune-portal` adds `pam_intune` to the PAM stacks. Before enrollment it logs "Failed to process authtok: Failed to remove old password policy file" on console logins (seen 2026-10-13); SDDM logins and `passwd` work. Check on the pilot laptop that this stops after enrollment.
-
-Verified 2026-10-13 in the test VM: the RHEL 10 `intune-portal` and `microsoft-identity-broker` install on Fedora 45 with no unresolved libraries, use `webkitgtk6.0` 2.54.1, and Intune Portal opens its sign-in window. Microsoft signs the RHEL 10 packages with a newer key (`repomd.xml.key`, shipped in `repos/keys/microsoft-rhel10.asc`). Package signatures are checked; repository metadata signatures are not, as for Fedora's own repositories, because dnf keeps metadata keys in a keyring only its interactive prompt fills and the daily unattended update could not read the repository. Until 2026-10-13 Omadora used the RHEL 9 build with WebKitGTK 4.0 2.50.0 from COPR `dwrobel/webkit2gtk4.0`, six point releases behind even the last 4.0 release.
-
-All of these repositories get `includepkgs` limits like every other third-party source (`repos/README.md`). The guide's own commands also add whole repositories without limits; Omadora will not.
-
-Fedora release upgrades: the guide removes `intune*` before `dnf system-upgrade` and reinstalls it afterwards. Omadora's release upgrade procedure must do the same.
-
-## How enrollment works
-
-1. Install with full-disk encryption and Secure Boot on, with a local account whose password meets the rules above. Update the UEFI firmware first (`fwupdmgr refresh --force && fwupdmgr update`); disabling Intel AMT in the firmware is recommended, not checked.
-2. Request the company's Linux onboarding access package (self-approved), then finish enrollment within 24 hours.
-3. Install the packages above, reboot. No VPN during enrollment.
-4. Open Edge once and skip its sign-in, keep it open, then start `intune-portal` and sign in. A blank Intune window is worked around with `WEBKIT_DISABLE_COMPOSITING_MODE=1 intune-portal`, which may matter under Hyprland.
-5. Intune asks once for the local password, to install a polkit rule, then runs its checks. Compliance can take 10–60 minutes while Defender fetches definitions.
-
-Office, Outlook and Teams are used as Edge web apps (PWAs). Native OneDrive sync and desktop mail clients are not compliant. Company Wi-Fi certificates and profiles arrive through Intune and need NetworkManager.
-
-## What this means for Omadora's design
-
-| Topic | Finding | Status |
+| Date | Where | Result |
 | --- | --- | --- |
-| Secret storage | Intune keeps its tokens in the desktop's default secret service. Omadora uses GNOME Keyring with an encrypted login keyring unlocked at login. The keyring password must match the account password, so password changes must update it too. Switching to another secret service later breaks enrollment | Decided (GNOME Keyring). Verified 2026-10-13: the SDDM password unlocks the login keyring, and `passwd` keeps its password in step |
-| Polkit prompt | Intune asks for the password through polkit once. The guide notes the prompt never appears on i3/Sway | Verified 2026-10-12: Omarchy's Quickshell polkit agent shows the dialog in the Hyprland session |
-| Login shell | Root policies are not deployed when the user's shell is zsh | Omarchy uses bash |
-| Passwordless sudo | The guide discourages passwordless sudo for daily use | Omarchy's narrow NOPASSWD rules and temporary grants stay (decided 2026-10-12) |
-| Slack | The guide describes the Slack RPM | Not used: the company discontinued Slack |
-| Java | Company guidelines require OpenJDK, not Oracle Java | No Java in the base install; Fedora's OpenJDK if `microsoft-identity-diagnostics` is ever needed |
+| 2026-10-12 | VM | `intune-portal`, `mdatp` and `microsoft-edge-stable` resolve together. Intune Portal opens in the Hyprland session |
+| 2026-10-13 | VM | The RHEL 10 packages install with no missing libraries, use `webkitgtk6.0` 2.54.1, and show the sign-in window |
+| 2026-10-14 | ZBook | All packages installed. `mdatp` waits for its license |
+
+> **NOTE:** Before enrollment, `pam_intune` writes messages at console and SSH logins: "Failed to process authtok" and "No authtok available; password policies will fail". SDDM logins and `passwd` work. After enrollment, check that these messages stop.
+
+## Enrollment
+
+1. Install with disk encryption and Secure Boot on. Use a local password that meets the rules above.
+2. Update the UEFI firmware first: `fwupdmgr refresh --force && fwupdmgr update`. The guide recommends Intel AMT off.
+3. Request the company's Linux onboarding access package (self-approved). Finish enrollment in 24 hours.
+4. Make sure the packages above are installed, then reboot. Do not use a VPN during enrollment.
+5. Open Edge. Skip its sign-in and keep Edge open.
+6. Start `intune-portal` and sign in.
+   - If the Intune window is blank, start it with `WEBKIT_DISABLE_COMPOSITING_MODE=1 intune-portal`.
+7. Intune asks one time for the local password (polkit), then runs its checks. Compliance can take 10 to 60 minutes while Defender gets its definitions.
+
+After enrollment:
+
+- Use Office, Outlook and Teams as Edge web apps. Native OneDrive sync and desktop mail clients are not compliant.
+- Intune installs the company Wi-Fi certificates and profiles through NetworkManager.
+
+## Effects on Omadora's design
+
+| Topic | Requirement | Omadora |
+| --- | --- | --- |
+| Secret storage | Intune keeps its tokens in the default secret service. The keyring password must agree with the account password. Another secret service later breaks enrollment | GNOME Keyring. The SDDM password unlocks the login keyring, and `passwd` changes both (tested 2026-10-13) |
+| Polkit prompt | Intune asks for the password through polkit. The guide says the prompt does not show on i3 or Sway | Omarchy's Quickshell polkit agent shows the prompt (tested 2026-10-12) |
+| Login shell | Root policies are not applied if the shell is zsh | Omarchy uses bash |
+| Passwordless sudo | The guide discourages it for daily use | Omarchy's NOPASSWD rules stay (2026-10-12) |
+| Slack | The guide describes the Slack RPM | Not used: the company stopped using Slack |
+| Java | OpenJDK only, no Oracle Java | No Java in the base install |

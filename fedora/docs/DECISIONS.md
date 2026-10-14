@@ -1,60 +1,114 @@
 # Decisions
 
-Decided 2026-10-12 unless noted. Reasons are kept short; `RESEARCH.md` has the evidence.
+Each row gives the decision date. `RESEARCH.md` has the evidence for the 2026-10-12 decisions.
 
-## Decided
+## Platform
 
-| Topic | Decision | Why |
+| Topic | Decision | Reason |
 | --- | --- | --- |
-| Base | Fedora 45 Everything, minimal install, x86_64 | Company policy requires a Fedora base. F45 (GA 2026-10-20) ships gum 2.0, Font Awesome 7, Lua 5.5 and `libdnf5-plugin-actions`, which closes gaps F44 has. Minimal avoids desktop-spin leftovers (portals, keyring, autostarts) |
-| Repository model | Public GitHub fork of omacom/omarchy named `omadora`; upstream files never edited | Upstream syncs without conflicts and keeps full history; Fedora work stays reviewable in one place |
-| Upstream line | `main` tracks upstream's `quattro` branch at a pinned commit, synced every two weeks (`fedora-sync` opens the pull request) | Decided 2026-10-12. Stable tags (v4.0.x) live on release branches that diverge from `quattro`, and the next minor release is cut from `quattro`; porting against a tag would mean redoing the work for 4.1. The pin keeps every build reproducible, and a pilot group takes each sync first |
-| Package sources, in order | Fedora official, then a maintained third-party repo with an F45 build, then our own COPR | Prefer what others maintain. Exception (2026-10-12): packages from the other Omarchy-on-Fedora ports (kammer/omadora, whelanh/omarchy) are built in our COPR instead, so the company does not depend on another port's single maintainer |
-| Hyprland stack | nett00n/hyprland COPR (hyprland, uwsm, quickshell, portals, hypr* tools), versionlocked to the Hyprland version upstream Omarchy pins | Most complete and most current Fedora Hyprland COPR; rebuilds Quickshell against Fedora's Qt. Fedora retired Hyprland after F42 |
-| Omarchy's own apps | Our COPR, starting from whelanh's MIT specs | Decided 2026-10-12. About 20 apps (aether, hype, monologue, omasnap, …); each upstream app release means a spec bump |
-| Our COPR [`jersyj/omadora`](https://copr.fedorainfracloud.org/coprs/jersyj/omadora/) (public, signed by COPR; fedora-45-x86_64) | `omarchy`, `omarchy-settings`, Omarchy's apps (above), `omarchy-hyprland-titlebars`, `omarchy-nvim`, `ttf-jetbrains-mono-nerd-basic`, `ttf-ia-writer`, `tzupdate`, `starship` (`source` = `ours` in `packages/map.tsv`) | Specs start from kamm3r/omadora-pkg and whelanh/omarchy-fedora (both MIT; keep their notices). atim/starship has no F45 build. The titlebars plugin must match nett00n's Hyprland build exactly |
-| Third-party repo hardening | `includepkgs=` on every third-party repo, RPM Fusion included (through a dnf5 `repos.override.d` drop-in); versionlock on Hyprland and Quickshell; pilot group first | A COPR must never be able to replace sudo, glibc or the kernel. CI proves each limit takes effect (`fedora/repos/README.md`) |
-| Bootloader | GRUB2 (Fedora default) + snapper + grub-btrfs (see Snapshot boot and restore); no Limine | Limine is not packaged for Fedora, needs Secure Boot off or per-machine keys (Omarchy's manual says to disable Secure Boot), and its Omarchy glue is mkinitcpio-only. GRUB keeps Secure Boot, TPM2 unlock and fwupd working |
-| Initramfs | dracut | Fedora default; Omarchy's mkinitcpio drop-ins become dracut config |
-| Firewall | firewalld | Fedora's maintained default; ufw on Fedora is 0.35 and `ufw-docker` has no package anywhere. Costs one override (`install/config/firewall.sh`) and four small patches |
-| Migrations | Upstream migrations run, each reviewed (`migrations/classify.tsv`); unreviewed and skipped ones are left out of the build. The 164 migrations up to upstream `defbf90e` are `baseline`: a fresh install marks every shipped migration done, and no Omadora install is older. The package-removing ones were checked against a fresh install on 2026-10-13; only `cups-browsed` needed the kickstart to match (see Printer discovery) | whelanh's port skips all of them, so existing installs never get upstream's config changes. Updated 2026-10-12 |
-| System files | Keep Fedora's `os-release`, `nsswitch.conf` and `cups-files.conf` | Upstream's versions set `ID_LIKE=arch` (breaks dnf copr, toolbox and management agents), fight authselect, and hardcode Arch's cups user 209 |
-| SELinux | Enforcing; releases gated on zero AVC denials | Company laptops; RPM installs label files correctly |
-| Hardware | HP ZBook 8 G2i 14" only | See `HARDWARE.md` |
-| NVIDIA | Not supported; every NVIDIA package is dropped and RPM Fusion is limited to codecs and Steam | Decided 2026-10-12: the company ZBooks are bought without the RTX PRO 500. Removes the akmod, MOK enrollment and Secure Boot signing work |
-| Hardware probe | Done 2026-10-12 on SKU C75Z7AV (`HARDWARE.md`) | USB camera, Elan fingerprint reader supported by libfprint, Intel-only graphics, Wi-Fi 7 BE211; nothing needs a closed driver |
-| Keyring | GNOME Keyring with an encrypted `login` keyring, unlocked by the SDDM password through `pam_gnome_keyring`; no passwordless `Default_keyring` and no autologin | Decided 2026-10-12. Microsoft Intune's identity broker stores its tokens in GNOME Keyring through libsecret. Overrides: `install/user/default-keyring.sh` (creates nothing), `install/login/sddm.sh` (keeps the PAM lines upstream deletes). Verified 2026-10-13 on a fresh encrypted install with Secure Boot (`tests/vm-password-login.sh`): the first SDDM login creates and unlocks `login.keyring`; `passwd` changes its password through Fedora's `/etc/pam.d/passwd` ("gkr-pam: changed password for login keyring"); after a reboot the new password unlocks it |
-| Passwordless sudo rules | Keep upstream's NOPASSWD rules | Decided 2026-10-12 |
-| Log upload | Never upload to logs.omarchy.org; save the log in the home directory instead | Decided 2026-10-12: upstream's support service is for Arch-based Omarchy, not forks. Overrides: `bin/omarchy-upload-log`, `bin/omarchy-debug` |
-| mise | Keep `install/user/mise.sh` (about 20 CLIs from the internet) | Decided 2026-10-12 |
-| sshd migration `1788124236` | Run it (disables SSH password logins, or sshd when no key is authorized) | Decided 2026-10-12 |
-| Optional apps, proprietary with a vendor RPM repository | The vendor's repository, added on demand and limited to that app (Chrome, VS Code, 1Password, Brave, Sublime Text, NordVPN, Dropbox, Symfony CLI, Cursor) | Decided 2026-10-12. Native packages updated by the vendor, as on any Fedora machine |
-| Optional apps without a vendor repository | A maintained COPR when one exists (Zen Browser: sneexy, Zed: che, Sunshine: LizardByte's own, xpadneo: neovi), otherwise Flathub (Spotify, Signal, Slack, Bitwarden, Heroic, Minecraft) | Decided 2026-10-12 |
-| Omarchy's own optional extras | Installable like on Arch, through Omarchy's Install menu, vendor sources first: OpenAI's own RPM for ChatGPT, which adds OpenAI's repository (`url:` in the map); xAI's repository for Grok Bot; the `mineiro/ghostty` COPR for Ghostty (the current release, built for Fedora 45). Otherwise our COPR, repacking the vendor's official build exactly as omarchy-pkgs does for Arch (Claude, and Voxtype's signed release RPM) or building it (umu-launcher, ONCE, the Emacs and Zed integrations); a recipe only rebuilds when its version changes. Not offered for now (`todo`): Perplexity, T3 Code and LM Studio (their recipes stay in `fedora/rpm`, unregistered in COPR), and Hermes Desktop (no prebuilt Linux release; its Vite build segfaults in the Fedora 45 build environment). `elsewhen` and `omarchy-herdr` are `drop`: Omarchy no longer installs them | Decided 2026-10-13. A vendor RPM that adds no repository (Voxtype's) is repacked in our COPR rather than installed from its URL: a URL install pins one version that `omarchy update` never updates. umu's own RPMs are built for Fedora 44's Python 3.14 (a compiled module), so umu is built from source (2 minutes). mise fits none of them: they are desktop apps or need a system service. `fedora/tests/vm-extras.sh` installs each in a VM and checks it starts; `fedora/bin/recipe-status` reports new upstream versions |
-| Packages built from this tree | `omarchy` and `omarchy-settings` mirror upstream's `omarchy-dev` and `omarchy-settings-dev` recipes over the assembled tree; `omadora-repos` installs the repositories, limits and version locks. ALPM hooks become RPM scriptlets | Decided 2026-10-12. The version is upstream's own (`4.0.0.r6912.gdefbf90`); the release counts fork commits |
-| Package helpers | `omarchy-pkg-*` translate Arch names through `packages/map.tsv` (`fedora/lib/runtime/pkg.sh`); the menu's batched guards use the same layer | Decided 2026-10-12. A name the map lacks is taken as a Fedora name |
-| Chromium names | `/usr/bin/chromium` links to Fedora's `chromium-browser`, and a hidden `chromium.desktop` stands in for Fedora's `chromium-browser.desktop` (both from `omarchy-settings`) | Decided 2026-10-12. Omarchy uses the Arch names in 17 commands and its MIME defaults; a shim keeps all of them working without patches |
-| MIME defaults | Omarchy's list ships as `/usr/share/applications/hyprland-mimeapps.list` | Fedora's `shared-mime-info` owns `mimeapps.list`; the desktop-specific list wins in the Hyprland session only |
-| Installer | Fedora Everything netinst + generated kickstart (`fedora/bin/kickstart`): btrfs on LUKS2, Omarchy's system setup, then its user setup in upstream's first-boot owner context (Node.js from the network). The kickstart records the new user as SDDM's last user, because Omarchy's SDDM theme has only a password field. Laptops install from one USB stick: `fedora/bin/usb-image` adds the kickstart to the netinst ISO's EFI partition as an extra initrd (`INSTALL.md`; a second stick labeled `OEMDRV` also works) | Decided 2026-10-12. Tested end to end in a KVM VM (`fedora/tests/vm-install.sh`), on 2026-10-13 also as on a laptop: encrypted disk, Secure Boot, the password typed at SDDM. That test found the missing last user: earlier VM tests logged in automatically and hid it. The one-stick image was booted in a Secure Boot VM and installed the first ZBook on 2026-10-14 |
-| RPM Fusion updates during install | Left out of the kickstart until RPM Fusion opens them for the release | Before Fedora 45's release they do not exist and Anaconda fails on them; the installed system's own repo files still list them |
-| Intune | Phase 4 (pilot). The requirements arrived 2026-10-12 and are in `INTUNE.md`: Edge and Defender in the base install, Intune Portal, a 12-character password policy, automatic security updates and a full update every two weeks | Secure Boot, disk encryption, GNOME Keyring and the polkit prompt are already in place. Edge, Defender and Intune Portal are in the base install (`packages/extra.txt`) |
-| Intune Portal build | Microsoft's RHEL 10 repository, whose `intune-portal` uses Fedora's WebKitGTK 6.0 and libsoup 3; no WebKitGTK 4.0 | Decided 2026-10-13, replacing dwrobel's WebKitGTK 4.0 COPR (2026-10-12). WebKitGTK removed the 4.0 API in 2.52, so a 4.0 build stays on 2.50.x without security fixes, whoever builds it. The RHEL 10 build is the same Intune release and runs on Fedora 45 (`INTUNE.md`). The company guide, written for the RHEL 9 build, takes WebKitGTK 4.0 from end-of-life Fedora 42 |
-| Passwordless sudo (confirmed) | Omarchy's NOPASSWD rules stay although the company guide discourages passwordless sudo for daily use | Decided 2026-10-12 |
-| Slack | Not offered on company laptops | The company discontinued Slack |
-| Update pipeline | `omarchy update` keeps upstream's flow (snapshot, packages, migrations, orphans, restart checks, hooks, mise); the package steps use dnf: `dnf upgrade --refresh` in its own scope, `dnf autoremove` for orphans, Flatpak updates where upstream updates AUR packages. Signing keys need no refresh step | Decided 2026-10-13. Overrides in `fedora/overrides/bin/omarchy-update-*`, `omarchy-version*`, `omarchy-reinstall-pkgs`; patches 0007 (reboot prompt after a kernel update) and 0008 (migrations wait for dnf) |
-| Snapshots | snapper pre/post pair around every dnf transaction (libdnf5 actions plugin, `/etc/dnf/libdnf5-plugins/actions.d/omadora-snapper.actions`), on top of upstream's snapshot before `omarchy update`; ten numbered snapshots kept instead of five | Decided 2026-10-13. Also covers the daily automatic updates and `omarchy-pkg-add`. Tested in the VM |
-| Snapshot boot and restore | grub-btrfs (COPR `jmarcoshp/grub-btrfs`, limited to that package) adds a snapshot submenu to GRUB; a snapshot boots read-only with a writable overlay (dracut `overlayfs` module). `omarchy-snapshot restore`, run from a booted snapshot or with a snapshot picked from a list, makes it the `root` subvolume and keeps the replaced root as `root.old-<time>` (the previous one is deleted) | Decided 2026-10-13. Snapper's own rollback needs the default-subvolume layout Fedora does not use. `/boot` is outside btrfs, so the restored system boots the newest kernel it has modules for. Tested in the VM, both from a booted snapshot and from the list |
-| Automatic updates | Security updates daily through `dnf5-automatic.timer`; no automatic reboot; everything else through `omarchy update` | Decided 2026-10-13 for company compliance (`INTUNE.md`) |
-| Update guard and channels | Not ported: upstream's pacman hook refuses direct `pacman -Syu`, but on Fedora the daily automatic updates and IT tooling run dnf directly. Omadora has one channel (our COPR from `main`), so the channel menu, `omarchy-channel-set` and the pacman mirror commands are left out | Decided 2026-10-13 |
-| uwsm | Built in our COPR (`rpm/uwsm`) with Arch's options, instead of nett00n's | Decided 2026-10-13. nett00n builds uwsm with its defaults, which leave out `uwsm-app`; Omarchy launches every app through it (keybindings, the app menu, autostart), so apps did not start. Found by upstream's acceptance suite in the VM. nett00n's build also requires neither `python3-pyxdg` nor `python3-dbus`, which uwsm imports. uwsm is small (Python and shell, a few releases a year); bump it when Arch does. The `omarchy` package requires `/usr/bin/uwsm-app`, so a uwsm without it can never be installed silently |
-| Printer discovery | No `cups-browsed`: the kickstart leaves it out (`-cups-browsed`), and dnf's `exclude_from_weak_autodetect` keeps CUPS from pulling it back in as a weak dependency | Decided 2026-10-13. Upstream removed automatic printer discovery (migration 1788009111) after the 2024 cups-browsed vulnerabilities. Arch never installs it fresh; Fedora's CUPS recommends it. CUPS itself still finds driverless (IPP Everywhere) printers |
-| Arch-only menu entries | Hidden: Reset Computer (Limine/mkinitcpio factory reset), AUR (Install > Package already covers every repository), update channels (patch 0005) | Decided 2026-10-13 |
-| Gaps in nett00n's packages | Our `omarchy` spec requires `xorg-x11-server-Xwayland`, which nett00n's Hyprland leaves out (Arch's Hyprland requires it; without it X11 apps such as Intune Portal crash). `uwsm` is no longer taken from nett00n (next row). No issue filed upstream for now | Decided 2026-10-12. Drop each requirement once nett00n's packages carry it (`SYNC.md`, "Between syncs") |
-| Obsidian, LocalSend, Pinta | Flathub (current map). An RPM is fine too when a maintained source other than our COPR has one | Decided 2026-10-13 |
-| Codecs | RPM Fusion `ffmpeg` and `intel-media-driver` (full H.264/HEVC; screen recording uses it) | Decided 2026-10-13 |
-| Staged rollout | None for now: one COPR, every build goes to every laptop. One user while the port settles; a testing COPR comes with a pilot group | Decided 2026-10-13 |
-| COPR builds | CI builds what a push to `main` changed after every check passes; the VM tests stay local (`SYNC.md`) | Decided 2026-10-13 |
+| Base | Fedora 45 Everything, minimal install, x86_64 (2026-10-12) | Company policy requires Fedora. Fedora 45 (release 2026-10-20) has gum 2.0, Font Awesome 7, Lua 5.5 and `libdnf5-plugin-actions`. A minimal install has no desktop leftovers |
+| Hardware | HP ZBook 8 G2i 14" only (2026-10-12) | `HARDWARE.md` |
+| NVIDIA | Not supported. All NVIDIA packages are removed. RPM Fusion supplies only codecs and Steam (2026-10-12) | The company buys the ZBook without the RTX PRO 500. No akmod, MOK or Secure Boot signing work |
+| Boot loader | GRUB2, snapper and grub-btrfs. No Limine (2026-10-12) | Fedora has no Limine package. Limine needs Secure Boot off or keys per machine. GRUB keeps Secure Boot, TPM2 unlock and fwupd |
+| Initramfs | dracut (2026-10-12) | Fedora default. Omarchy's mkinitcpio drop-ins become dracut configuration |
+| Firewall | firewalld (2026-10-12) | Fedora's default. Fedora's ufw is 0.35, and `ufw-docker` has no package. Cost: 1 override (`install/config/firewall.sh`) and 4 patches |
+| System files | Keep Fedora's `os-release`, `nsswitch.conf` and `cups-files.conf` (2026-10-12) | Upstream's files set `ID_LIKE=arch` (breaks dnf copr, toolbox and management agents), conflict with authselect, and use Arch's cups user 209 |
+
+## Repository and upstream
+
+| Topic | Decision | Reason |
+| --- | --- | --- |
+| Repository | Public GitHub fork of omacom/omarchy, named `omadora`. Upstream files are not edited (2026-10-12) | Syncs have no conflicts and keep the history. All Fedora work is in one place |
+| Upstream line | `main` follows upstream's `quattro` branch at a pinned commit. Sync every 2 weeks; `fedora-sync` opens the pull request (2026-10-12) | Stable tags are on release branches that diverge from `quattro`, and 4.1 comes from `quattro`. The pin makes builds reproducible |
+| Upstream bugs | Wait for upstream to correct a bug, and take the fix with a sync. Exceptions need approval and a pinned override (2026-10-13) | Fewer differences from upstream. Approved exception: the sleep hook's resume step (2026-10-14, "Desktop" below) |
+| Migrations | Upstream migrations run after review (`migrations/classify.tsv`). Unreviewed and skipped migrations are not built. The 164 migrations up to upstream `defbf90e` are `baseline` (2026-10-12) | whelanh's port skips all migrations, so existing installs never get upstream's configuration changes. A fresh install marks each shipped migration done. The package-removing migrations were checked on a fresh install (2026-10-13) |
+
+## Package sources
+
+| Topic | Decision | Reason |
+| --- | --- | --- |
+| Order | 1. Fedora. 2. A maintained third-party repository with a Fedora 45 build. 3. Our COPR (2026-10-12) | Use what other people maintain. Exception: packages from the other Omarchy-on-Fedora ports (kammer, whelanh) are built in our COPR, so the company does not depend on their single maintainers |
+| Our COPR | [`jersyj/omadora`](https://copr.fedorainfracloud.org/coprs/jersyj/omadora/), public, signed by COPR, fedora-45-x86_64 (2026-10-12) | Builds `omarchy`, `omarchy-settings`, `omadora-repos`, Omarchy's apps, `omarchy-hyprland-titlebars`, `omarchy-nvim`, fonts, `tzupdate`, `starship`, `uwsm`, `lazydocker` (`ours` in `packages/map.tsv`). Specs start from kamm3r and whelanh (MIT; keep their notices) |
+| Fedora package splits | If an Arch package contains files that Fedora puts in other packages, require those packages (2026-10-14) | Arch's `plymouth`, `linux-firmware`, `networkmanager` and `sushi` include parts that Fedora ships separately. The first ZBook found each one (`HARDWARE.md`) |
+| Hyprland stack | nett00n/hyprland COPR (hyprland, quickshell, portals, hypr tools), with a version lock on the Hyprland version that upstream pins (2026-10-12) | The most complete and current Fedora Hyprland COPR. Fedora removed Hyprland after Fedora 42 |
+| Gaps in nett00n's packages | `omarchy` requires `xorg-x11-server-Xwayland`. `uwsm` comes from our COPR (2026-10-12) | Without Xwayland, X11 apps such as Intune Portal crash. Remove each requirement when nett00n's packages have it (`SYNC.md`) |
+| uwsm | Our COPR (`rpm/uwsm`), built with Arch's options (2026-10-13) | nett00n's build has no `uwsm-app`, so no app started. Its build also does not require `python3-pyxdg` and `python3-dbus`. `omarchy` requires `/usr/bin/uwsm-app` |
+| Omarchy's apps | Our COPR, specs from whelanh (MIT) (2026-10-12) | Approximately 20 apps. Each app release needs a spec change |
+| Packages from this tree | `omarchy` and `omarchy-settings` follow upstream's `omarchy-dev` and `omarchy-settings-dev` recipes. `omadora-repos` installs the repositories, limits and version locks. ALPM hooks become RPM scriptlets (2026-10-12) | The version is upstream's (`4.0.0.r6912.gdefbf90`). The release counts fork commits |
+| Theme wallpapers | Stay in `omarchy`, as upstream ships them (2026-10-14) | Each new build downloads 162 MB. That is acceptable with a sync every 2 weeks |
+| Package helpers | `omarchy-pkg-*` translate Arch names through `packages/map.tsv` (`lib/runtime/pkg.sh`). The menu guards use the same layer (2026-10-12) | If the map has no row for a name, the name is used as a Fedora name |
+
+## Security
+
+| Topic | Decision | Reason |
+| --- | --- | --- |
+| SELinux | Enforcing. A release must have 0 AVC denials (2026-10-12) | Company laptops |
+| Local SELinux modules | `omarchy-settings` installs small CIL modules. Allow access that is harmless and expected; hide (`dontaudit`) access that a program does not need (2026-10-14) | `omarchy_xkb`: labels `/etc/xkb` as `usr_t` for `systemd-localed`. `omadora_denials`: lets `systemd-sleep` read fs sysctls and hides user lookups of `power-profiles-daemon` |
+| Third-party repositories | `includepkgs=` on each third-party repository, RPM Fusion also (dnf5 `repos.override.d`). Version lock on Hyprland and Quickshell (2026-10-12) | A COPR must not replace sudo, glibc or the kernel. CI checks each limit (`repos/README.md`) |
+| Keyring | GNOME Keyring with an encrypted `login` keyring. The SDDM password unlocks it through `pam_gnome_keyring`. No passwordless keyring, no autologin (2026-10-12) | Intune's identity broker keeps its tokens there. Overrides: `install/user/default-keyring.sh`, `install/login/sddm.sh`. Tested 2026-10-13: first login, `passwd` and reboot (`tests/vm-password-login.sh`) |
+| Passwordless sudo | Keep Omarchy's NOPASSWD rules (2026-10-12) | The company guide discourages them for daily use. Accepted |
+| sshd migration `1788124236` | Run it: SSH password login off, or sshd off when no key is authorized (2026-10-12) | |
+| Log upload | Do not upload to logs.omarchy.org. Save the log in the home directory (2026-10-12) | Upstream's service supports Arch Omarchy, not forks. Overrides: `bin/omarchy-upload-log`, `bin/omarchy-debug` |
+| Printer discovery | No `cups-browsed`. The kickstart removes it, and `exclude_from_weak_autodetect` stops CUPS from adding it again (2026-10-13) | Upstream removed it after the 2024 vulnerabilities (migration 1788009111). CUPS still finds driverless printers |
+
+## Install
+
+| Topic | Decision | Reason |
+| --- | --- | --- |
+| Installer | Fedora Everything netinst with a generated kickstart (`bin/kickstart`): btrfs on LUKS2, Omarchy's system setup, then its user setup. The kickstart records the user as SDDM's last user (2026-10-12) | Omarchy's SDDM theme has only a password field. Tested in a VM with an encrypted disk, Secure Boot and a typed password (2026-10-13) |
+| USB stick | One stick: `bin/usb-image` adds the kickstart to the ISO's EFI partition as an extra initrd. A second stick with the label `OEMDRV` also works (2026-10-14) | The first ZBook was installed with it, with Secure Boot on (`INSTALL.md`) |
+| RPM Fusion updates during install | Not in the kickstart until RPM Fusion opens them for Fedora 45 | Before the release they do not exist, and the installer stops on them. The installed system keeps them |
+
+## Updates
+
+| Topic | Decision | Reason |
+| --- | --- | --- |
+| Update pipeline | `omarchy update` keeps upstream's steps. The package steps use dnf: `dnf upgrade --refresh` in its own scope, `dnf autoremove`, Flatpak updates in place of AUR updates (2026-10-13) | Overrides: `overrides/bin/omarchy-update-*`, `omarchy-version*`, `omarchy-reinstall-pkgs`. Patches 0007 (reboot prompt after a kernel update) and 0008 (migrations wait for dnf) |
+| Automatic updates | Security updates each day (`dnf5-automatic.timer`), no automatic reboot. All other updates through `omarchy update` (2026-10-13) | Company compliance (`INTUNE.md`) |
+| Snapshots | snapper pre and post snapshots around each dnf transaction (libdnf5 actions plugin), and upstream's snapshot before `omarchy update`. Keep 10 snapshots (2026-10-13) | Covers automatic updates and `omarchy-pkg-add` too |
+| Snapshot boot and restore | grub-btrfs (COPR `jmarcoshp/grub-btrfs`) adds a GRUB snapshot menu. Snapshots boot read-only with an overlay. `omarchy-snapshot restore` makes a snapshot the `root` subvolume and keeps the old root as `root.old-<time>` (2026-10-13) | Snapper's rollback needs a subvolume layout that Fedora does not use. Tested in the VM |
+| Update guard and channels | Not ported (2026-10-13) | On Fedora, automatic updates and IT tools run dnf directly. Omadora has 1 channel (our COPR from `main`) |
+| Staged rollout | None. Each build goes to each laptop (2026-10-13) | One user for now. A testing COPR comes with a pilot group |
+| COPR builds | CI builds what a push to `main` changed, after all checks pass. The VM tests stay local (2026-10-13) | `SYNC.md` |
+
+## Desktop and apps
+
+| Topic | Decision | Reason |
+| --- | --- | --- |
+| Chromium names | `/usr/bin/chromium` links to Fedora's `chromium-browser`. A hidden `chromium.desktop` replaces `chromium-browser.desktop` (2026-10-12) | Omarchy uses the Arch names in 17 commands and in its MIME defaults |
+| MIME defaults | Omarchy's list is `/usr/share/applications/hyprland-mimeapps.list` (2026-10-12) | Fedora's `shared-mime-info` owns `mimeapps.list`. The Hyprland list applies in the Hyprland session only |
+| Arch-only menu entries | Hidden: Reset Computer, AUR, update channels (patch 0005) (2026-10-13) | Install > Package covers all repositories |
+| Login screen scale | Opt-in: `/etc/omadora/greeter-scale` sets the scale. Automatic scale when the file is absent (2026-10-14) | The login screen runs as the `sddm` user and cannot read the user's monitor settings. The user writes the file one time (`INSTALL.md`) |
+| Sleep hook resume step | `omadora-gvfs-resume.service` restores the gvfs FUSE mount after resume. The overridden hook keeps only its pre-sleep step (2026-10-14) | systemd stops the hook's background job, also on Arch. Approved exception to "Upstream bugs" |
+| Proprietary apps with a vendor repository | The vendor's repository, added on demand and limited to that app: Chrome, VS Code, 1Password, Brave, Sublime Text, NordVPN, Dropbox, Symfony CLI, Cursor (2026-10-12) | The vendor updates the native package |
+| Apps without a vendor repository | A maintained COPR if one exists (Zen Browser: sneexy, Zed: che, Sunshine: LizardByte, xpadneo: neovi). Otherwise Flathub: Spotify, Signal, Slack, Bitwarden, Heroic, Minecraft (2026-10-12) | |
+| Obsidian, LocalSend, Pinta | Flathub. An RPM is also acceptable from a maintained source other than our COPR (2026-10-13) | |
+| Codecs | RPM Fusion `ffmpeg` and `intel-media-driver` (2026-10-13) | Full H.264 and HEVC. Screen recording uses them |
+| Omarchy's optional extras | Install through Omarchy's Install menu, vendor sources first (2026-10-13) | Details below |
+| Slack | Not offered on company laptops | The company stopped using Slack |
+
+### Optional extras
+
+| Extra | Source |
+| --- | --- |
+| ChatGPT | OpenAI's RPM, which adds OpenAI's repository (`url:` in the map) |
+| Grok Bot | xAI's repository |
+| Ghostty | `mineiro/ghostty` COPR |
+| Claude, Voxtype | Our COPR, repacks of the vendor builds. A URL install would pin one version that `omarchy update` never updates |
+| umu-launcher, ONCE, Emacs and Zed integrations | Our COPR, built from source. umu's own RPMs need Fedora 44's Python 3.14 |
+| Perplexity, T3 Code, LM Studio | Not offered (`todo`). Recipes stay in `rpm/`, not registered in COPR |
+| Hermes Desktop | Not offered (`todo`). No Linux build, and its Vite build fails in the Fedora 45 build environment |
+| `elsewhen`, `omarchy-herdr` | `drop`: Omarchy no longer installs them |
+
+`tests/vm-extras.sh` installs each extra in a VM and checks that it starts. `bin/recipe-status` reports new upstream versions. A recipe builds again only when its version changes.
+
+## Intune
+
+| Topic | Decision | Reason |
+| --- | --- | --- |
+| Intune | Phase 4. Requirements in `INTUNE.md` (received 2026-10-12): Edge and Defender in the base install, Intune Portal, a 12-character password policy, automatic security updates, a full update every 2 weeks | Secure Boot, disk encryption, GNOME Keyring and the polkit prompt are in place. Edge, Defender and Intune Portal are in `packages/extra.txt` |
+| Intune Portal build | Microsoft's RHEL 10 repository, which uses Fedora's WebKitGTK 6.0 and libsoup 3 (2026-10-13) | Replaces dwrobel's WebKitGTK 4.0 COPR. WebKitGTK 2.52 removed the 4.0 API, so a 4.0 build gets no security fixes |
 
 ## Open
 
-Nothing open.
+Nothing.
