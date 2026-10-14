@@ -247,6 +247,17 @@ install -d %{buildroot}%{_datadir}/selinux/packages/omarchy-settings
 cat >%{buildroot}%{_datadir}/selinux/packages/omarchy-settings/omarchy_xkb.cil <<'CIL'
 (filecon "/etc/xkb(/.*)?" any (system_u object_r usr_t ((s0) (s0))))
 CIL
+# Two denials Fedora's policy logs on every Omadora boot or suspend:
+# - systemd's process launcher reads fs sysctls under /proc/sys/fs while it
+#   starts each systemd-sleep hook (systemd_sleep_t); allow that read.
+# - power-profiles-daemon looks up user accounts (/etc/passwd, SSSD) it does
+#   not need at start; silence it instead of opening the user database to it.
+cat >%{buildroot}%{_datadir}/selinux/packages/omarchy-settings/omadora_denials.cil <<'CIL'
+(allow systemd_sleep_t sysctl_fs_t (dir (search)))
+(allow systemd_sleep_t sysctl_fs_t (file (read open getattr ioctl)))
+(dontaudit powerprofiles_t passwd_file_t (file (read open getattr)))
+(dontaudit powerprofiles_t sssd_var_lib_t (dir (search)))
+CIL
 
 # File list: /etc files are configuration (sudoers.d at 0440), /etc/skel is
 # seed content, and these directory trees are wholly ours. Paths are quoted:
@@ -297,9 +308,13 @@ fi
 %post
 # Installing a module rebuilds the whole policy (seconds), so only once.
 if command -v selinuxenabled >/dev/null 2>&1 && selinuxenabled; then
-  if ! semodule -l 2>/dev/null | grep -qx omarchy_xkb; then
-    semodule -i %{_datadir}/selinux/packages/omarchy-settings/omarchy_xkb.cil >/dev/null 2>&1 || :
-  fi
+  # One module per purpose, so a type a future policy drops only fails its own.
+  # A changed module needs a new name to be installed again.
+  for module in omarchy_xkb omadora_denials; do
+    if ! semodule -l 2>/dev/null | grep -qx "$module"; then
+      semodule -i %{_datadir}/selinux/packages/omarchy-settings/$module.cil >/dev/null 2>&1 || :
+    fi
+  done
   restorecon -R /etc/xkb >/dev/null 2>&1 || :
 fi
 overrides=%{_datadir}/omarchy/etc-overrides
@@ -339,7 +354,7 @@ fi
 
 %postun
 if [ "$1" -eq 0 ]; then
-  semodule -r omarchy_xkb >/dev/null 2>&1 || :
+  semodule -r omarchy_xkb omadora_denials >/dev/null 2>&1 || :
   rm -f /etc/sudoers.d/99-omarchy-nopasswd-*
 fi
 
