@@ -62,6 +62,9 @@ Requires:       grub-btrfs
 Requires(pre):  coreutils
 Requires(post): systemd
 Requires(post): coreutils
+# semodule, restorecon and selinuxenabled for the /etc/xkb label
+Requires(post): policycoreutils
+Requires(post): libselinux-utils
 Requires(posttrans): fontconfig
 
 Provides:       omarchy-security-functions = %{version}-%{release}
@@ -208,6 +211,14 @@ for helper in omarchy-upload-log omarchy-debug omarchy-debug-idle; do
   install -m 0755 "bin/$helper" %{buildroot}%{_bindir}/"$helper"
 done
 
+# SELinux: /etc/xkb holds Omarchy's XKB rules, which libxkbcommon reads before
+# /usr/share/X11/xkb. Label it like those (usr_t); as etc_t, systemd-localed
+# may not map it and `localectl set-x11-keymap` cannot check a layout.
+install -d %{buildroot}%{_datadir}/selinux/packages/omarchy-settings
+cat >%{buildroot}%{_datadir}/selinux/packages/omarchy-settings/omarchy_xkb.cil <<'CIL'
+(filecon "/etc/xkb(/.*)?" any (system_u object_r usr_t ((s0) (s0))))
+CIL
+
 # File list: /etc files are configuration (sudoers.d at 0440), /etc/skel is
 # seed content, and these directory trees are wholly ours. Paths are quoted:
 # some launchers have spaces in their names.
@@ -255,6 +266,13 @@ if [ "$1" -eq 0 ]; then
 fi
 
 %post
+# Installing a module rebuilds the whole policy (seconds), so only once.
+if command -v selinuxenabled >/dev/null 2>&1 && selinuxenabled; then
+  if ! semodule -l 2>/dev/null | grep -qx omarchy_xkb; then
+    semodule -i %{_datadir}/selinux/packages/omarchy-settings/omarchy_xkb.cil >/dev/null 2>&1 || :
+  fi
+  restorecon -R /etc/xkb >/dev/null 2>&1 || :
+fi
 overrides=%{_datadir}/omarchy/etc-overrides
 install -d /etc/security /etc/plymouth /etc/skel
 cp -f "$overrides/security-faillock.conf" /etc/security/faillock.conf
@@ -292,6 +310,7 @@ fi
 
 %postun
 if [ "$1" -eq 0 ]; then
+  semodule -r omarchy_xkb >/dev/null 2>&1 || :
   rm -f /etc/sudoers.d/99-omarchy-nopasswd-*
 fi
 
